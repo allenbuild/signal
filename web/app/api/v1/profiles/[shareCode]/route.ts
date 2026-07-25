@@ -1,25 +1,72 @@
-import { apiError, enforceRateLimit, json, preflight } from "@/lib/api/http";
-import { getProfile, validShareCode } from "@/lib/api/profiles";
+import {
+  ProfileStoreUnavailableError,
+  readSharedProfile,
+} from "../../../../../lib/profile-store";
+import {
+  apiError,
+  getClientIp,
+  getRequestId,
+  jsonResponse,
+  rateLimitHeaders,
+  takeRateLimit,
+} from "../../../../../lib/rate-limit";
 
-export const dynamic = "force-dynamic";
+const LOOKUP_LIMIT = 60;
+const LOOKUP_WINDOW_MS = 60_000;
 
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ shareCode: string }> },
-) {
-  const limited = enforceRateLimit(request, "profiles-read");
-  if (limited) return limited;
+type RouteContext = {
+  params: Promise<{ shareCode: string }> | { shareCode: string };
+};
+
+export async function GET(request: Request, context: RouteContext) {
+  const requestId = getRequestId(request);
+  const rateLimit = takeRateLimit(
+    `profiles:read:${getClientIp(request)}`,
+    { limit: LOOKUP_LIMIT, windowMs: LOOKUP_WINDOW_MS },
+  );
+  const limitHeaders = rateLimitHeaders(rateLimit);
+  if (!rateLimit.allowed) {
+    return apiError(
+      "rate_limited",
+      "Too many profile lookup requests.",
+      429,
+      requestId,
+      limitHeaders,
+    );
+  }
+
   const { shareCode } = await context.params;
-  if (!validShareCode(shareCode)) {
-    return apiError(request, 400, "invalid_share_code", "Share code is not valid.");
+  try {
+    const profile = await readSharedProfile(shareCode);
+    if (!profile) {
+      return apiError(
+        "profile_not_found",
+        "Profile not found.",
+        404,
+        requestId,
+        limitHeaders,
+      );
+    }
+    return jsonResponse(profile, requestId, {
+      status: 200,
+      headers: limitHeaders,
+    });
+  } catch (error) {
+    if (error instanceof ProfileStoreUnavailableError) {
+      return apiError(
+        "storage_unavailable",
+        "Profile storage is temporarily unavailable.",
+        503,
+        requestId,
+        limitHeaders,
+      );
+    }
+    return apiError(
+      "storage_unavailable",
+      "Profile storage is temporarily unavailable.",
+      503,
+      requestId,
+      limitHeaders,
+    );
   }
-  const profile = getProfile(shareCode);
-  if (!profile) {
-    return apiError(request, 404, "profile_not_found", "No public profile matches this share code.");
-  }
-  return json(request, profile);
-}
-
-export async function OPTIONS(request: Request) {
-  return preflight(request);
 }

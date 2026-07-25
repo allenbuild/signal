@@ -1,25 +1,62 @@
-import { ContentNav } from "../components/ContentNav";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy",
+  description: "How Signal keeps camera input, plans, profiles, and secrets private.",
+};
+
+const rows = [
+  ["Camera frames", "Memory-only in the native Mac app", "Never uploaded by this service"],
+  ["Hand landmarks and gesture state", "Processed locally", "Not stored by default"],
+  ["Planner text", "Sent only when you choose Generate", "Used to return a reviewed plan"],
+  ["Profiles", "Local until you export or publish", "Unlisted shares contain redacted profile data"],
+  ["Integration secrets", "Keychain or managed server environment", "Never portable profile JSON"],
+  ["Telemetry", "Off by default", "No camera or raw recording telemetry"],
+] as const;
 
 export default function PrivacyPage() {
   return (
-    <>
-      <ContentNav />
-      <main className="content-page" id="main-content">
-      <div className="content-wrap">
+    <main id="main-content" className="page-main">
+      <section className="page-hero shell">
         <p className="eyebrow">Privacy</p>
-        <h1>Local vision. Explicit action.</h1>
+        <h1>Your camera is not cloud input.</h1>
         <p>
-          Signal is designed around a simple boundary: hand tracking belongs on
-          the Mac; cloud services receive only the text or profile data you choose to send.
+          The website builds and shares commands. The Mac app observes your hand
+          locally. Camera frames do not cross that boundary.
         </p>
-        <div className="content-grid">
-          <article className="content-card"><span>ON DEVICE</span><h2>Camera frames</h2><p>Frames are processed in memory with Apple Vision. They are not uploaded, stored by the website, or accepted by the API.</p></article>
-          <article className="content-card"><span>OPT IN</span><h2>Planning</h2><p>The planner receives a plain-language request and allowed action catalog. It does not receive camera data or secret values.</p></article>
-          <article className="content-card"><span>REDACTED</span><h2>Shared profiles</h2><p>Prototype unlisted profiles use per-worker memory and may disappear between requests. They may keep secret reference IDs for configuration, but never webhook URLs, tokens, passwords, cookies, or authorization values. Only the seeded demo profile is durable in this release.</p></article>
-          <article className="content-card"><span>DEFAULT OFF</span><h2>Telemetry</h2><p>No product telemetry is enabled by default. Output also starts paused, and the emergency shortcut closes every output gate.</p></article>
+      </section>
+      <section className="shell policy-table" aria-label="Signal data handling">
+        <div className="policy-row policy-head">
+          <span>Data</span><span>Where it lives</span><span>Cloud behavior</span>
         </div>
-      </div>
-      </main>
-    </>
+        {rows.map(([data, location, behavior]) => (
+          <div className="policy-row" key={data}>
+            <strong>{data}</strong><span>{location}</span><span>{behavior}</span>
+          </div>
+        ))}
+      </section>
+      <section className="section shell prose-grid">
+        <article>
+          <p className="eyebrow">Sharing</p>
+          <h2>Nothing becomes public by accident.</h2>
+          <p>
+            Guest profiles stay in your browser until you export them. Publishing
+            creates an unlisted, read-only link after showing exactly what will
+            be shared. Raw tokens, webhook URLs, passwords, cookies, and
+            credential-like fields are rejected.
+          </p>
+        </article>
+        <article>
+          <p className="eyebrow">Secrets</p>
+          <h2>References travel. Values do not.</h2>
+          <p>
+            Plans can name a secret reference such as a Discord connection.
+            The actual value is resolved from Keychain or the service
+            environment at execution time and is never returned in a profile,
+            receipt, share code, or planner response.
+          </p>
+        </article>
+      </section>
+    </main>
   );
 }

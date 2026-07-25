@@ -1,26 +1,54 @@
-import { ContentNav } from "../components/ContentNav";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Setup",
+  description: "Install Signal and grant the narrow macOS permissions it needs.",
+};
+
+const steps = [
+  [
+    "Install and open",
+    "Move Signal to Applications, open it, and follow macOS’s first-launch prompt. If Gatekeeper asks, use the release page’s signing-specific instructions.",
+  ],
+  [
+    "Allow Camera",
+    "Open System Settings → Privacy & Security → Camera, then enable the exact Signal app you installed. Frames remain in memory on your Mac.",
+  ],
+  [
+    "Allow Accessibility",
+    "Open Privacy & Security → Accessibility and enable Signal. If you replace the app, remove the old entry and add the new release.",
+  ],
+  [
+    "Calibrate, then enable",
+    "Choose Hybrid mode, confirm the landmark view is stable, and explicitly enable output. Control–Option–Command–H closes the output gate and requests macro cancellation.",
+  ],
+] as const;
 
 export default function SetupPage() {
   return (
-    <>
-      <ContentNav />
-      <main className="content-page" id="main-content">
-      <div className="content-wrap">
-        <p className="eyebrow">Setup / about five minutes</p>
+    <main className="page-main" id="main-content">
+      <section className="page-hero shell">
+        <p className="eyebrow">Setup · About five minutes</p>
         <h1>Give Signal permission to help.</h1>
         <p>
           Signal uses the camera to understand hand landmarks and Accessibility
-          to control the real cursor and frontmost app. You stay in control:
-          output starts paused and must be enabled explicitly.
+          to control the real cursor and frontmost app. Output starts paused and
+          must be enabled explicitly.
         </p>
-        <div className="content-grid">
-          <article className="content-card"><span>01</span><h2>Install and open</h2><p>Move Signal to Applications, open it, and follow macOS’s first-launch prompt. If Gatekeeper asks, use the release page’s signing-specific instructions.</p></article>
-          <article className="content-card"><span>02</span><h2>Allow Camera</h2><p>Open System Settings → Privacy &amp; Security → Camera, then enable the exact Signal app you installed. Frames remain in memory on your Mac.</p></article>
-          <article className="content-card"><span>03</span><h2>Allow Accessibility</h2><p>Open Privacy &amp; Security → Accessibility and enable Signal. If you replace the app, remove the old entry and add the new release candidate.</p></article>
-          <article className="content-card"><span>04</span><h2>Calibrate, then enable</h2><p>Choose Hybrid mode, confirm the landmark view is stable, and explicitly enable output. Control–Option–Command–H closes the output gate and requests macro cancellation.</p></article>
-        </div>
-      </div>
-      </main>
-    </>
+      </section>
+      <section className="section shell">
+        <ol className="install-steps">
+          {steps.map(([title, copy], index) => (
+            <li key={title}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <h2>{title}</h2>
+                <p>{copy}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    </main>
   );
 }

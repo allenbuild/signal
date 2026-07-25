@@ -1,50 +1,106 @@
 import {
+  hasValidPlannerRequestByteLength,
+  plannerRequestSchema,
+} from "../../../../lib/contracts";
+import {
+  createPlannerResponse,
+  rejectUnsafePlannerInstruction,
+} from "../../../../lib/planner";
+import {
   apiError,
-  enforceRateLimit,
-  json,
-  preflight,
-  readJsonBody,
-  rejectDisallowedOrigin,
-} from "@/lib/api/http";
-import { makePlan, validatePlannerInput } from "@/lib/api/planner";
+  getClientIp,
+  getRequestId,
+  jsonResponse,
+  rateLimitHeaders,
+  takeRateLimit,
+} from "../../../../lib/rate-limit";
 
-export const dynamic = "force-dynamic";
+export const runtime = "edge";
 
 export async function POST(request: Request) {
-  const originError = rejectDisallowedOrigin(request);
-  if (originError) return originError;
-  const limited = enforceRateLimit(request, "plan");
-  if (limited) return limited;
-  const body = await readJsonBody(request, 16 * 1024);
-  if (!body.ok) return body.response;
+  let requestId = getRequestId(request);
+  if (!request.headers.get("content-type")?.toLowerCase().includes("application/json")) {
+    return apiError(
+      "unsupported_media_type",
+      "Use application/json.",
+      415,
+      requestId,
+    );
+  }
+
+  const limit = takeRateLimit(`plan:${getClientIp(request)}`, {
+    limit: 20,
+    windowMs: 60_000,
+  });
+  const limitHeaders = rateLimitHeaders(limit);
+  if (!limit.allowed) {
+    return apiError(
+      "rate_limited",
+      "Planner request limit exceeded.",
+      429,
+      requestId,
+      limitHeaders,
+    );
+  }
+
+  const serialized = await request.text();
+  if (!hasValidPlannerRequestByteLength(serialized)) {
+    return apiError(
+      "payload_too_large",
+      "Planner requests may be at most 16 KiB.",
+      413,
+      requestId,
+      limitHeaders,
+    );
+  }
+
+  let candidate: unknown;
+  try {
+    candidate = JSON.parse(serialized);
+  } catch {
+    return apiError("invalid_json", "Malformed JSON.", 400, requestId, limitHeaders);
+  }
+
   if (
-    body.value &&
-    typeof body.value === "object" &&
-    !Array.isArray(body.value) &&
-    "schemaVersion" in body.value &&
-    body.value.schemaVersion !== 1
+    typeof candidate === "object" &&
+    candidate !== null &&
+    "schemaVersion" in candidate &&
+    (candidate as { schemaVersion?: unknown }).schemaVersion !== 1
   ) {
     return apiError(
-      request,
-      422,
       "unsupported_schema_version",
-      "Signal supports planner schema version 1.",
-      ["schemaVersion"],
-    );
-  }
-  const validated = validatePlannerInput(body.value);
-  if (!validated.ok) {
-    return apiError(
-      request,
+      "Only schema version 1 is supported.",
       422,
-      "validation_failed",
-      "Planner request did not match schema version 1.",
-      validated.fields,
+      requestId,
+      limitHeaders,
     );
   }
-  return json(request, await makePlan(validated.value));
-}
 
-export async function OPTIONS(request: Request) {
-  return preflight(request);
+  const parsed = plannerRequestSchema.safeParse(candidate);
+  if (!parsed.success) {
+    return apiError(
+      "invalid_request",
+      "Request does not match the Signal planner contract.",
+      422,
+      requestId,
+      limitHeaders,
+    );
+  }
+  requestId = parsed.data.requestId;
+
+  if (rejectUnsafePlannerInstruction(parsed.data.request)) {
+    return apiError(
+      "unsafe_instruction",
+      "Signal cannot generate plans that expose secrets or bypass the safe action catalog.",
+      422,
+      requestId,
+      limitHeaders,
+    );
+  }
+
+  const response = await createPlannerResponse(parsed.data);
+  return jsonResponse(response, requestId, {
+    status: 200,
+    headers: limitHeaders,
+  });
 }

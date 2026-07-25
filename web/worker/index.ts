@@ -1,4 +1,4 @@
-/** Cloudflare Worker entry point for the Signal public site and v1 API. */
+/** Cloudflare Worker entry point for the integrated Signal site and v1 API. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 
