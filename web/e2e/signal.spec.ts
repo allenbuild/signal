@@ -367,7 +367,7 @@ test.describe("signal single-page command interface", () => {
     });
     await expect(threeCard).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".signal-bridge-status")).toContainText(
-      "Three command fired in Signal.",
+      "Three ran inside this fallback page only. Use the Chrome extension for other tabs.",
     );
   });
 

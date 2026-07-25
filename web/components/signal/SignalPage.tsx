@@ -132,7 +132,7 @@ export function SignalPage() {
               gestureCommands.find(
                 (command) => command.gesture === bridge.activeGesture,
               )?.label
-            } command fired in Signal.`
+            } ran inside this fallback page only. Use the Chrome extension for other tabs.`
           : `${
               gestureCommands.find(
                 (command) => command.gesture === bridge.activeGesture,
@@ -469,6 +469,17 @@ export function SignalPage() {
           <span>{Math.round(zoom * 100)}% zoom</span>
         </nav>
       </header>
+
+      <aside className="signal-extension-notice" role="note">
+        <div>
+          <strong>Browser fallback demo</strong>
+          <span>
+            This page only controls itself. Stop its camera before starting the
+            extension.
+          </span>
+        </div>
+        <a href="/setup">Use Signal across Chrome tabs</a>
+      </aside>
 
       <CameraControlPanel
         mode={mode}

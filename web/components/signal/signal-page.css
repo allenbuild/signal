@@ -85,6 +85,52 @@
   box-shadow: 0 0 0 4px rgb(154 179 124 / 0.1);
 }
 
+.signal-extension-notice {
+  position: fixed;
+  top: 48px;
+  left: 50%;
+  z-index: 140;
+  display: flex;
+  width: min(620px, calc(100% - 40px));
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 10px 15px;
+  transform: translateX(-50%);
+  border: 1px solid rgb(220 233 191 / 0.28);
+  border-radius: 14px;
+  background: rgb(18 21 19 / 0.96);
+  box-shadow: 0 16px 48px rgb(0 0 0 / 0.32);
+  backdrop-filter: blur(18px);
+}
+
+.signal-extension-notice div {
+  display: grid;
+  gap: 3px;
+}
+
+.signal-extension-notice strong {
+  color: var(--signal-text);
+  font-size: 10px;
+}
+
+.signal-extension-notice span {
+  color: var(--signal-muted);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.signal-extension-notice a {
+  flex: none;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: var(--signal-accent);
+  color: #141812;
+  font-size: 8px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
 .signal-command-stage {
   display: flex;
   width: min(980px, calc(100% - 64px));

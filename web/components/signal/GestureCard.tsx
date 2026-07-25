@@ -45,7 +45,7 @@ export function GestureCard({
     >
       <span className="signal-gesture-topline">
         <span>{command.actionType}</span>
-        <span>{fired ? "Command fired" : availability}</span>
+        <span>{fired ? "Fallback only" : availability}</span>
       </span>
       <span className="signal-gesture-mark" aria-hidden="true">
         {command.mark}
