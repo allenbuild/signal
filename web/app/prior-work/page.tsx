@@ -14,8 +14,8 @@ export default function PriorWorkPage() {
         <p>
           Before Night Hack, the team built a separate native experiment named
           HandPilot with early pointer, click, scroll, and zoom work. That
-          prototype is prior work; it is not the architecture shipped by this
-          public browser product.
+          prototype is prior work; it is not the architecture shipped by the
+          Signal Chrome extension.
         </p>
       </section>
       <section className="section shell prose-grid">
@@ -23,11 +23,12 @@ export default function PriorWorkPage() {
           <p className="eyebrow">Signal additions</p>
           <h2>A programmable command layer.</h2>
           <p>
-            During Night Hack, Signal became one public browser application with
-            local MediaPipe hand tracking, Control and Commands modes, nine
-            deterministic command gestures, natural-language workflow creation,
-            Teach by Demo, reviewed browser-safe plans, typed integrations,
-            durable profile sharing, deployment, and tests.
+            During Night Hack, Signal gained local MediaPipe hand tracking,
+            Control and Commands modes, nine deterministic command gestures,
+            natural-language workflow creation, Teach by Demo, reviewed
+            browser-safe plans, typed integrations, durable profile sharing,
+            deployment, and tests. The final runtime packages those capabilities
+            as one cross-tab Manifest V3 Chrome extension.
           </p>
         </article>
         <article>

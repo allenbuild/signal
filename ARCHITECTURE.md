@@ -1,52 +1,58 @@
 # Signal architecture
 
-Signal ships as one public HTTPS browser application.
+Signal ships as one Manifest V3 Chrome extension plus a public installation,
+fallback, builder, profile, and planner website.
 
 ```mermaid
 flowchart LR
-  click["User clicks Start Signal"] --> camera["getUserMedia camera track"]
-  camera --> video["Mirrored local video"]
-  camera --> landmarker["Self-hosted MediaPipe Hand Landmarker"]
-  landmarker --> landmarks["21 landmarks in memory"]
-  landmarks --> control["Control state machine"]
-  landmarks --> commands["Nine-pose recognizer"]
-  control --> page["Virtual cursor, click, scroll, zoom"]
-  commands --> hold["550 ms hold + cooldown + release gate"]
-  hold --> presets["Browser UI presets"]
-  hold --> validator["Reviewed custom plan"]
-  planner["Planner / Teach by Demo API"] --> validator
-  builder["Builder and profiles"] --> validator
-  validator --> executor["Browser-safe executor"]
-  executor --> page
-  executor --> public["Public HTTPS / typed server integration"]
+  panel["Signal side panel"] --> worker["MV3 service worker"]
+  panel -->|explicit Start| offscreen["One offscreen USER_MEDIA document"]
+  offscreen --> camera["Camera + self-hosted MediaPipe"]
+  camera --> landmarks["Landmarks / pose / FPS in memory"]
+  landmarks --> worker
+  worker --> router["Active permitted tab router"]
+  router --> content["Content script + Shadow DOM overlay"]
+  content --> page["Virtual cursor / click / scroll"]
+  content -->|zoom intent| worker
+  worker --> zoom["chrome.tabs setZoom"]
+  worker --> commands["Nine-pose hold / cooldown / rearm"]
+  commands --> executor["Strict browser-safe executor"]
+  site["Public site planner / profiles / builder"] --> executor
 ```
 
 ## Runtime ownership
 
-- `CameraControlPanel` owns permission requests, camera lifecycle, frame
-  scheduling, MediaPipe loading, landmark rendering, and telemetry.
-- `ControlGestureEngine` owns relative pointer motion, pinch hysteresis, one
+- `extension/src/offscreen/**` owns camera lifecycle, frame scheduling,
+  MediaPipe loading, local landmark processing, and telemetry. A visible
+  extension setup page handles Chrome's first permission prompt when needed.
+- `extension/src/content/**` owns relative pointer motion, pinch hysteresis, one
   quick-release click, dominant-axis locking, incremental scroll/zoom, and
-  tracking-loss reset.
-- `recognizeCommandPose` classifies One, Two, Three, Four, Five, Thumbs Up,
-  Thumbs Down, C, and Fist from landmark geometry.
-- `CommandGestureEngine` owns the 550 ms stable hold, 800 ms cooldown, one-shot
-  firing, and pose-change/hand-loss rearm.
+  tracking-loss reset on ordinary pages. It renders only an isolated,
+  pointer-transparent Shadow DOM overlay and never changes page layout.
+- The service worker routes only to the active supported tab, owns real tab
+  zoom and command execution, and resets state on navigation, tab changes, and
+  worker recovery.
+- The active command catalog exposes One, Two, Three, Four, Thumbs Up, Thumbs
+  Down, C, and Fist with stable hold, cooldown, one-shot firing, and
+  release/change rearm. Five remains classifier-only for migration safety and
+  is never registered or displayed.
 - The planner, Fist editor, visual builder, profiles, and sharing APIs accept
   schema version 1 but enforce the smaller browser-safe action catalog.
-- The browser executor supports public HTTPS navigation, bounded waits,
-  notifications/overlays, speech, sound, Signal-page media control, and the
-  typed Discord route. It rejects legacy native actions.
+- The extension executor supports public HTTPS navigation, tab management,
+  selectors, predefined non-sensitive text, bounded waits, page overlays,
+  speech, media control, tab zoom, and typed Discord/Claude routes. It rejects
+  legacy native actions.
 
 ## Privacy and lifecycle
 
-Camera frames and landmarks are not uploaded for gesture recognition and are
-not queued. Visibility loss pauses processing. Stop, permission failure, and
-unmount stop every media track, cancel animation, close the landmarker, clear
-gesture state, and reset controls.
+Camera frames and landmarks are not uploaded, stored, or queued. Stop,
+permission failure, extension suspension recovery, and teardown stop every
+media track, cancel scheduling, close the landmarker, clear gesture state, and
+reset controls.
 
-Teach by Demo is separately initiated and may send 6–10 compressed keyframes
-after disclosure and review; raw recordings remain local.
+Teach by Demo is separately initiated and captures only reviewed browser
+actions. Password fields, sensitive values, raw video, and camera frames are
+excluded.
 
 ## Legacy source
 

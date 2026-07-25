@@ -12,6 +12,69 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install repository pnpm
+        run: npm install --global pnpm@10.29.3
+      - name: Install locked extension dependencies
+        working-directory: extension
+        run: pnpm install --frozen-lockfile
+      - name: Lint extension
+        working-directory: extension
+        run: pnpm lint
+      - name: Test extension
+        working-directory: extension
+        run: pnpm test
+      - name: Type-check extension
+        working-directory: extension
+        run: pnpm typecheck
+      - name: Package extension
+        working-directory: extension
+        run: pnpm package
+      - name: Install Chromium for built-extension smoke
+        working-directory: extension
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Smoke built extension in Chromium
+        working-directory: extension
+        run: xvfb-run -a pnpm test:browser
+      - name: Verify MV3 security boundary
+        run: |
+          node -e '
+            const manifest = require("./extension/dist/manifest.json");
+            const expected = ["activeTab", "offscreen", "scripting", "sidePanel", "storage", "tabs"];
+            const actual = [...manifest.permissions].sort();
+            if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+              throw new Error(`Unexpected extension permissions: ${actual}`);
+            }
+            if (manifest.manifest_version !== 3) {
+              throw new Error("Signal must be Manifest V3.");
+            }
+          '
+          if rg -n 'nativeMessaging|"debugger"|"history"' \
+            extension/manifest.json extension/dist/manifest.json; then
+            echo "Forbidden extension permission found." >&2
+            exit 1
+          fi
+          if rg -n 'https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|\[?::1\]?)' \
+            extension/src extension/dist; then
+            echo "Production localhost destination found." >&2
+            exit 1
+          fi
+          unzip -t extension/release/signal-extension.zip
+      - name: Upload Signal extension
+        uses: actions/upload-artifact@v6
+        with:
+          name: signal-extension
+          path: |
+            extension/dist/signal-extension.zip
+            extension/dist/signal-extension.zip.sha256
+          if-no-files-found: error
+
   web:
     runs-on: ubuntu-latest
     steps:

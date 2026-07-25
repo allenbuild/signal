@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "signal.demo.extension",
+  "name": "Signal extension demo",
+  "description": "A local Fist command for the packaged extension demo.",
+  "commands": [
+    {
+      "schemaVersion": 1,
+      "id": "signal.demo.fist",
+      "gesture": "fist",
+      "name": "Open Wikipedia",
+      "description": "Open Wikipedia and announce that Signal is ready.",
+      "source": "natural_language",
+      "plan": {
+        "schemaVersion": 1,
+        "id": "plan.demo.fist",
+        "name": "Open Wikipedia",
+        "description": "Open a public HTTPS page and speak a local confirmation.",
+        "steps": [
+          {
+            "id": "step-1",
+            "action": {
+              "type": "open_url",
+              "parameters": {
+                "url": "https://www.wikipedia.org/",
+                "networkPolicy": "public_https_only",
+                "disposition": "new_tab"
+              }
+            },
+            "timeoutMs": 10000,
+            "onFailure": "stop",
+            "confirmation": {
+              "mode": "none",
+              "reason": ""
+            }
+          },
+          {
+            "id": "step-2",
+            "action": {
+              "type": "speak_text",
+              "parameters": {
+                "text": "Signal is ready."
+              }
+            },
+            "timeoutMs": 10000,
+            "onFailure": "continue",
+            "confirmation": {
+              "mode": "none",
+              "reason": ""
+            }
+          }
+        ],
+        "timeoutMs": 23000,
+        "onFailure": "stop",
+        "confirmation": {
+          "mode": "none",
+          "reason": ""
+        },
+        "createdSource": "import",
+        "secretReferences": []
+      },
+      "createdAt": "2026-07-24T00:00:00.000Z",
+      "updatedAt": "2026-07-24T00:00:00.000Z",
+      "enabled": true
+    }
+  ]
+}

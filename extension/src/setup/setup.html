@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enable Signal camera</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
+      body { display: grid; min-height: 100vh; margin: 0; place-items: center; background: #0b0d0c; color: #f3eee2; }
+      main { width: min(520px, calc(100% - 40px)); padding: 34px; border: 1px solid rgb(245 240 226 / .14); border-radius: 22px; background: #121513; box-shadow: 0 28px 90px rgb(0 0 0 / .4); }
+      .mark { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 50%; background: #dce9bf; color: #151914; font-weight: 800; }
+      h1 { margin: 24px 0 10px; font-size: 38px; letter-spacing: -.055em; line-height: 1; }
+      p { color: #9c9c92; line-height: 1.55; }
+      button { min-height: 48px; margin-top: 16px; padding: 12px 20px; border: 0; border-radius: 999px; background: #dce9bf; color: #151914; cursor: pointer; font-weight: 750; }
+      button:disabled { cursor: wait; opacity: .6; }
+      video { width: 1px; height: 1px; opacity: 0; }
+      #status.error { color: #ff9180; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark">S</div>
+      <h1>Enable your camera.</h1>
+      <p>
+        Chrome requires one visible permission step before Signal can keep
+        tracking from its private extension document. Frames stay on this
+        computer and are never uploaded or saved.
+      </p>
+      <button id="allow" type="button">Allow camera for Signal</button>
+      <p id="status" role="status">Signal will stop this setup preview immediately after permission is granted.</p>
+      <video id="preview" muted playsinline></video>
+    </main>
+    <script src="./setup.js"></script>
+  </body>
+</html>

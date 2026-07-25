@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const links = [
+  ["/setup", "Install"],
   ["/builder", "Builder"],
   ["/demo", "Demo"],
   ["/docs", "Docs"],
@@ -20,8 +21,8 @@ export function SiteHeader() {
             <Link href={href} key={href}>{label}</Link>
           ))}
         </nav>
-        <Link className="nav-cta" href="/builder">
-          Open Signal <span aria-hidden="true">↗</span>
+        <Link className="nav-cta" href="/setup">
+          Get the extension <span aria-hidden="true">↓</span>
         </Link>
       </div>
     </header>

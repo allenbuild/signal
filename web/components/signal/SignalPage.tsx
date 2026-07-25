@@ -335,10 +335,10 @@ export function SignalPage() {
         break;
       case "five":
         showOverlay(
-          "Signal is browser-only",
-          `${mode === "commands" ? "Command" : "Control"} Mode is active at ${Math.round(
+          "Signal fallback demo",
+          `${mode === "commands" ? "Command" : "Control"} Mode is active in this tab at ${Math.round(
             zoom * 100,
-          )}% zoom. No native companion is connected or required.`,
+          )}% zoom. Install the Chrome extension for cross-tab website control; no native companion is required.`,
           6_000,
         );
         setStatus("Displayed the active Signal summary.");

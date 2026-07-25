@@ -1,39 +1,49 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Setup",
-  description: "Start Signal in a desktop browser and allow camera access.",
+  title: "Install Signal",
+  description:
+    "Download and load the Signal Chrome extension for cross-tab hand control.",
 };
 
 const steps = [
-  [
-    "Open Signal over HTTPS",
-    "Use the public Signal website in a current desktop browser. Nothing needs to be downloaded or installed.",
-  ],
-  [
-    "Start Signal",
-    "Choose Control or Commands, then click Start Signal. The page never requests the camera before this explicit action.",
-  ],
-  [
-    "Allow the camera",
-    "Approve the browser camera prompt. Video frames and hand landmarks stay in this browser tab and are not uploaded.",
-  ],
-  [
-    "Calibrate, then stop safely",
-    "Keep one hand visible in the camera card, verify the landmark overlay, and use Stop Signal whenever you want to close the camera track and reset gesture state.",
-  ],
+  ["Download Signal", "Download the Signal extension ZIP."],
+  ["Unzip it", "Expand the ZIP to reveal the signal-extension folder."],
+  ["Open extensions", "Open chrome://extensions in desktop Chrome."],
+  ["Enable Developer Mode", "Turn on Developer mode in the upper-right corner."],
+  ["Load unpacked", "Choose Load unpacked."],
+  ["Select Signal", "Select the unzipped signal-extension folder."],
+  ["Pin Signal", "Pin Signal from Chrome’s Extensions menu."],
+  ["Open the side panel", "Open Signal’s side panel from the toolbar."],
+  ["Start Signal", "Click Start Signal and grant the one-time camera permission."],
 ] as const;
 
 export default function SetupPage() {
   return (
     <main className="page-main" id="main-content">
       <section className="page-hero shell">
-        <p className="eyebrow">Setup · About one minute</p>
-        <h1>Start with one browser permission.</h1>
+        <p className="eyebrow">Chrome extension · About two minutes</p>
+        <h1>Control the web from one side panel.</h1>
         <p>
-          Signal uses the camera to understand hand landmarks locally. It does
-          not need Accessibility access, a native companion, or a localhost
-          service.
+          Signal follows you across ordinary Chrome tabs. It needs no native
+          companion, Accessibility access, localhost process, account, or cloud
+          camera upload.
+        </p>
+        <div className="button-row">
+          <a className="button button-primary" href="/downloads/signal-extension.zip" download>
+            Download Signal for Chrome <span aria-hidden="true">↓</span>
+          </a>
+          <a
+            className="button button-secondary"
+            href="/downloads/signal-extension.zip.sha256"
+            download
+          >
+            SHA-256 checksum
+          </a>
+        </div>
+        <p className="honesty-line">
+          Hackathon distribution uses Chrome’s Load unpacked flow. Signal does
+          not claim Chrome Web Store availability or zero-install control.
         </p>
       </section>
       <section className="section shell">
@@ -48,6 +58,15 @@ export default function SetupPage() {
             </li>
           ))}
         </ol>
+        <div className="setup-note">
+          <p className="eyebrow">Protected pages</p>
+          <p>
+            Chrome does not let extensions control chrome:// pages, the Chrome
+            Web Store, browser settings, extension management, DevTools, or
+            operating-system UI. Signal reports this limitation visibly and
+            resumes on the next supported website.
+          </p>
+        </div>
       </section>
     </main>
   );

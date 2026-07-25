@@ -20,10 +20,11 @@ export default function DocsPage() {
     <main id="main-content" className="page-main">
       <section className="page-hero shell">
         <p className="eyebrow">Documentation · Schema v1</p>
-        <h1>Build and run in one browser tab.</h1>
+        <h1>Install once. Control ordinary websites.</h1>
         <p>
-          Signal recognizes gestures locally, controls its own interface, and
-          runs reviewed browser-safe commands from the public website.
+          The Signal Chrome extension recognizes gestures locally, controls the
+          active permitted tab, and runs reviewed browser-safe commands from
+          its side panel.
         </p>
       </section>
       <div className="shell docs-layout">
@@ -41,21 +42,24 @@ export default function DocsPage() {
             <p className="eyebrow">Quick start</p>
             <h2>From an idea to a reviewed mapping.</h2>
             <ol>
-              <li>Choose one of the nine command gestures in the <Link href="/builder">builder</Link>.</li>
+              <li>Choose one of the eight active extension command gestures in the <Link href="/builder">builder</Link>.</li>
               <li>Describe the workflow or add safe actions visually.</li>
               <li>Review every step, warning, timeout, and confirmation rule.</li>
               <li>Save locally, export JSON, or publish a redacted unlisted profile.</li>
-              <li>Return to Signal, click Start Signal, and use Commands mode.</li>
+              <li>
+                Install the Signal extension, open its side panel, click Start
+                Signal, and choose Commands mode.
+              </li>
             </ol>
           </section>
           <section id="modes">
             <p className="eyebrow">Modes</p>
             <h2>Control or Commands.</h2>
-            <p><strong>Control</strong> moves a virtual cursor, clicks, scrolls, and zooms inside Signal. <strong>Commands</strong> recognizes nine held poses and dispatches each once until the hand changes or leaves view.</p>
+            <p><strong>Control</strong> moves a virtual cursor, clicks, scrolls, and zooms on the active ordinary website. <strong>Commands</strong> recognizes eight active held poses and dispatches each once until the hand changes or leaves view.</p>
           </section>
           <section id="controls">
             <p className="eyebrow">Gesture vocabulary</p>
-            <h2>Four touch controls and nine command poses.</h2>
+            <h2>Four touch controls and eight active command poses.</h2>
             <div className="docs-chip-list">
               {touchControls.map((item) => <span key={item.title}>{item.title}</span>)}
               {gestures.map((item) => <span key={item.id}>{item.label}</span>)}
@@ -66,7 +70,7 @@ export default function DocsPage() {
             <h2>Everything is inspectable.</h2>
             <p>
               Natural language and Teach by Demo both produce portable version 1
-              plans from a browser-only action catalog. The planner never
+              plans from a browser-safe extension action catalog. The planner never
               executes a plan. The client validates again, previews each effect,
               and requests the configured confirmation before save or first run.
             </p>
@@ -102,7 +106,7 @@ export default function DocsPage() {
               <li>50 plan steps; 10 actions per conditional branch</li>
               <li>300 second plan timeout; 60 second step timeout</li>
               <li>30 second wait action; 20 secret references</li>
-              <li>9 gesture mappings; schema version 1 only</li>
+              <li>8 active extension gesture mappings; schema version 1 only</li>
               <li>Public HTTPS navigation only; no native or operating-system actions</li>
             </ul>
           </section>

@@ -2,9 +2,10 @@
 
 ## Product
 
-Signal is one public browser application for local hand tracking, in-page
-pointer/click/scroll/zoom controls, nine programmable gesture commands,
-natural-language planning, Teach by Demo, and profile sharing.
+Signal is one Manifest V3 Chrome extension for local hand tracking, cross-tab
+virtual pointer/click/scroll/real-tab-zoom controls, eight programmable gesture
+commands, natural-language planning, Teach by Demo, and profile sharing. The
+public site distributes the extension and remains a fallback demo/API surface.
 
 Public URL: <https://signal-hand-control.allenxtech.chatgpt.site>
 
@@ -17,13 +18,16 @@ Public URL: <https://signal-hand-control.allenxtech.chatgpt.site>
 - The pre-pivot merged native/web state is archived at
   `7ac287ccdd0f15d066854613d6083d6c90d6a966` on
   `codex/archive-native-web-2026-07-24`.
-- Current release results must be filled from the exact browser-only commit and
-  Sites version after deployment.
+- The browser-only fallback is preserved at tag `signal-web-fallback`.
+- Current results must be filled from the exact extension commit, ZIP checksum,
+  GitHub artifact, and Sites version after deployment.
 
 ## Final evidence
 
 ```text
-Browser-only commit:
+Extension branch and commit:
+Extension ZIP:
+Extension SHA-256:
 Sites version:
 Production deployment:
 Contracts:
@@ -35,8 +39,11 @@ Playwright:
 Production dependency audit:
 Production health/planner/profile smoke:
 Production camera:
-Control mode physical matrix:
-Commands physical matrix:
+Extension runtime tests:
+Pointer/click/scroll/zoom physical matrix:
+Commands/persistence physical matrix:
+Websites tested:
+Unsupported pages:
 Second-computer test:
 Observed FPS/latency:
 Known limitations:

@@ -1,9 +1,10 @@
 # Browser privacy boundary
 
-Gesture recognition uses local camera frames and landmarks in the active tab.
-No gesture frame endpoint exists. Teach by Demo is separate, explicit, and may
-send only the disclosed compressed keyframes after capture.
+The extension recognizes gestures from local camera frames in its offscreen
+document. No gesture-frame endpoint exists. Frames and landmarks are neither
+uploaded nor stored. Teach by Demo is separate and explicit; it captures
+reviewed browser actions while excluding passwords and sensitive values.
 
-Drafts use browser storage. Published profiles are unlisted and redacted.
+Extension drafts use Chrome local storage. Published profiles are unlisted and redacted.
 Planner and integration requests contain reviewed text or typed actions; secret
 values remain server-side.

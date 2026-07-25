@@ -1,34 +1,54 @@
-# Signal browser-only handoff
+# Signal extension handoff
 
 Snapshot: 2026-07-24, America/Los_Angeles.
 
 ## Product decision
 
-Signal is one public browser application. The earlier native-plus-web merge was
-preserved at commit `7ac287ccdd0f15d066854613d6083d6c90d6a966` on
-`codex/archive-native-web-2026-07-24`, then `main` moved forward with the
-browser-only architecture. Native source remains as legacy history only.
+Signal is one Manifest V3 Chrome extension with a public install/fallback/API
+site. The browser-only fallback is preserved at tag `signal-web-fallback`. The
+earlier native-plus-web merge remains at commit
+`7ac287ccdd0f15d066854613d6083d6c90d6a966` on
+`codex/archive-native-web-2026-07-24`. Native source remains legacy only.
 
-## Implemented in the pivot
+## Preserved from the browser fallback
 
 - Self-hosted MediaPipe Tasks Vision WASM and Hand Landmarker model.
 - Explicit camera start/stop, exact constraints, mirrored preview, 21-point
   overlay, GPU-to-CPU fallback, dropped-frame scheduling, and telemetry.
 - Control mode with relative virtual pointer, click transaction, dominant-axis
   scroll/zoom lock, hysteresis, clamping, re-anchor, and loss reset.
-- Commands mode with nine deterministic poses, 550 ms hold, 800 ms cooldown,
+- Commands mode with eight active deterministic poses, 550 ms hold, 800 ms cooldown,
   single fire, and release/change rearm.
 - One-page 4×2 preset layout plus centered Fist editor.
 - Natural-language and Teach by Demo plans restricted to browser-safe actions.
-- Browser executor, navigation-tab preparation, explicit notification
-  permission, safe URL validation, and native-action rejection.
+- Browser-safe executor, navigation-tab preparation, safe URL validation, and
+  native-action rejection.
 - Builder, profile API, public profile rendering, docs, setup, privacy, and CI
-  updated to the browser-only boundary.
+  remain deployable.
+
+## Extension runtime
+
+- `extension/manifest.json` declares MV3 storage, scripting, tabs, offscreen,
+  sidePanel, and HTTP/HTTPS host access without nativeMessaging or debugger.
+- One offscreen camera/MediaPipe runtime sends versioned tracking frames to the
+  service worker; frames never leave the device.
+- The service worker recovers after suspension, routes only to the active
+  supported tab, resets stale interactions, and owns tab zoom and command
+  execution.
+- Content scripts render an isolated overlay and implement relative cursor,
+  pinch click, held scroll, and zoom intent without moving the OS cursor.
+- The side panel exposes camera lifecycle, Control/Commands modes, eight command
+  cards, editable Fist, natural-language planning, Teach by Demo, tuning, and
+  profile import/export.
 
 ## Verification commands
 
 ```sh
 node scripts/validate-shared-contracts.mjs
+cd extension
+pnpm install --frozen-lockfile
+pnpm verify
+
 cd web
 pnpm install --frozen-lockfile
 pnpm lint
@@ -40,7 +60,9 @@ pnpm audit --prod --audit-level=high
 ```
 
 Do not report a command as passing until it has run on the final commit. Do not
-report a camera gesture or two-computer test without observed physical evidence.
+report a camera gesture or two-computer test without observed physical
+evidence. Loading an unpacked extension or an automated fixture is not a
+physical two-computer result.
 
 ## Deployment
 

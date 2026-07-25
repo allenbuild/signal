@@ -1,4 +1,5 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { createHash } from "node:crypto";
 
 const fallbackBaseURL =
   process.env.PLAYWRIGHT_BASE_URL ??
@@ -496,5 +497,35 @@ test.describe("signal single-page command interface", () => {
     expect(response.headers()["content-security-policy"]).toContain(
       "'wasm-unsafe-eval'",
     );
+  });
+
+  test("installation page publishes the extension ZIP and matching checksum", async ({
+    page,
+    request,
+  }, testInfo) => {
+    await page.goto(appURL("/setup", testInfo));
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: "Control the web from one side panel.",
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /Download Signal for Chrome/i }),
+    ).toHaveAttribute("href", "/downloads/signal-extension.zip");
+    await expect(page.getByText(/Load unpacked flow/i)).toBeVisible();
+
+    const [archive, checksum] = await Promise.all([
+      request.get(appURL("/downloads/signal-extension.zip", testInfo)),
+      request.get(
+        appURL("/downloads/signal-extension.zip.sha256", testInfo),
+      ),
+    ]);
+    expect(archive.status()).toBe(200);
+    expect(checksum.status()).toBe(200);
+    const digest = createHash("sha256")
+      .update(await archive.body())
+      .digest("hex");
+    expect((await checksum.text()).trim().split(/\s+/)[0]).toBe(digest);
   });
 });

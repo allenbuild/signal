@@ -7,3 +7,6 @@ artifacts/
 web/node_modules/
 web/dist/
 web/.env
+extension/node_modules/
+extension/dist/
+extension/release/

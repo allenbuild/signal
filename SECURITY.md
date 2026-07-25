@@ -5,7 +5,7 @@ gesture events as untrusted.
 
 - Schema version 1 is strict and bounded; unknown fields and future versions
   are rejected.
-- The browser-only allowlist rejects native actions even when they remain valid
+- The extension allowlist rejects native actions even when they remain valid
   legacy schema members.
 - Navigation accepts public HTTPS literal hosts only and rejects credentials,
   localhost, private/reserved literals, and non-HTTPS schemes.
@@ -15,6 +15,11 @@ gesture events as untrusted.
   portable JSON.
 - The planner cannot emit shell, AppleScript, operating-system, or arbitrary
   authorization actions.
+- The extension does not request `nativeMessaging`, `debugger`, or `history`.
+  Content scripts are limited to ordinary HTTP/HTTPS pages and reset across
+  navigation and tab changes.
+- Password fields, credential-like values, inline secrets, `javascript:` URLs,
+  arbitrary code, and protected Chrome pages are rejected.
 - CI validates contracts, source quality, tests, production build, E2E, and
   production dependency audit.
 
