@@ -90,7 +90,15 @@ try {
     throw new Error("The Signal service worker did not answer the side panel.");
   }
 
+  const permissionPagePromise = context.waitForEvent("page");
   await panel.getByRole("button", { name: "Start Signal" }).click();
+  const permissionPage = await permissionPagePromise;
+  await permissionPage.waitForURL(
+    `chrome-extension://${extensionId}/setup/setup.html`,
+  );
+  await permissionPage
+    .getByRole("button", { name: "Allow camera for Signal" })
+    .click();
   await panel
     .locator(".camera-pill")
     .filter({ hasText: /FPS/ })

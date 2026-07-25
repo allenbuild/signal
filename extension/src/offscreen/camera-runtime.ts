@@ -30,6 +30,8 @@ export const SIGNAL_CAMERA_CONSTRAINTS: MediaStreamConstraints = {
   },
 };
 
+const CAMERA_REQUEST_TIMEOUT_MS = 8_000;
+
 export function cameraErrorMessage(error: unknown): string {
   if (!(error instanceof DOMException)) {
     return error instanceof Error && error.message
@@ -130,10 +132,39 @@ export class CameraRuntime {
   }
 
   private async openCamera(generation: number): Promise<MediaStream> {
+    let requestTimedOut = false;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
-      const stream = await this.mediaDevices.getUserMedia(
-        SIGNAL_CAMERA_CONSTRAINTS,
-      );
+      const request = this.mediaDevices
+        .getUserMedia(SIGNAL_CAMERA_CONSTRAINTS)
+        .then((stream) => {
+          if (requestTimedOut) {
+            stream.getTracks().forEach((track) => track.stop());
+          }
+          return stream;
+        });
+      const stream = await Promise.race([
+        request,
+        new Promise<never>((_, reject) => {
+          timeout = setTimeout(() => {
+            requestTimedOut = true;
+            reject(
+              new DOMException(
+                "Camera permission did not complete in time.",
+                "NotAllowedError",
+              ),
+            );
+          }, CAMERA_REQUEST_TIMEOUT_MS);
+        }),
+      ]);
+      if (timeout) clearTimeout(timeout);
+      if (requestTimedOut) {
+        stream.getTracks().forEach((track) => track.stop());
+        throw new DOMException(
+          "Camera permission did not complete in time.",
+          "NotAllowedError",
+        );
+      }
       if (generation !== this.lifecycleGeneration) {
         stream.getTracks().forEach((track) => track.stop());
         throw new DOMException(
@@ -160,6 +191,7 @@ export class CameraRuntime {
       this.setState("running");
       return stream;
     } catch (error) {
+      if (timeout) clearTimeout(timeout);
       if (generation === this.lifecycleGeneration) {
         this.releaseStream();
         this.setState("error", cameraErrorMessage(error));

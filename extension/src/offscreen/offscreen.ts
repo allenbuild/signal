@@ -11,6 +11,7 @@ import {
 const MESSAGE_VERSION = 1 as const;
 const PORT_NAME = "signal:offscreen";
 const OFFSCREEN_SOURCE = "signal-offscreen";
+const MEDIAPIPE_START_TIMEOUT_MS = 15_000;
 
 type OffscreenControlMessage =
   | { version?: number; type: "signal:offscreen/start" }
@@ -216,6 +217,28 @@ function interruptedTeardownTarget(): "paused" | "idle" {
   return desiredRuntimeState === "paused" ? "paused" : "idle";
 }
 
+async function startHandTracker(): Promise<void> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      mediapipe.start(),
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () =>
+            reject(
+              new Error(
+                "Local hand tracking took too long to initialize. Stop Signal and try again.",
+              ),
+            ),
+          MEDIAPIPE_START_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
 async function start(): Promise<void> {
   if (running || starting || stopping) return;
   starting = true;
@@ -234,7 +257,7 @@ async function start(): Promise<void> {
       await teardown(interruptedTeardownTarget());
       return;
     }
-    await mediapipe.start();
+    await startHandTracker();
     if (
       generation !== lifecycleGeneration ||
       desiredRuntimeState !== "running"

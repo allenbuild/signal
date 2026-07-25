@@ -522,9 +522,23 @@ export class TrackingNormalizer {
 
 export class MediaPipeRuntime {
   private landmarker: HandLandmarker | null = null;
+  private lifecycleGeneration = 0;
+  private startPromise: Promise<void> | null = null;
 
   async start(): Promise<void> {
     if (this.landmarker) return;
+    if (this.startPromise) return this.startPromise;
+    const generation = ++this.lifecycleGeneration;
+    const startPromise = this.createLandmarker(generation);
+    this.startPromise = startPromise;
+    try {
+      await startPromise;
+    } finally {
+      if (this.startPromise === startPromise) this.startPromise = null;
+    }
+  }
+
+  private async createLandmarker(generation: number): Promise<void> {
     const { FilesetResolver, HandLandmarker: HandLandmarkerTask } =
       await import("@mediapipe/tasks-vision");
     const assetUrl = (path: string) => chrome.runtime.getURL(path);
@@ -542,13 +556,14 @@ export class MediaPipeRuntime {
       minHandPresenceConfidence: 0.55,
       minTrackingConfidence: 0.5,
     };
+    let landmarker: HandLandmarker;
     try {
-      this.landmarker = await HandLandmarkerTask.createFromOptions(
+      landmarker = await HandLandmarkerTask.createFromOptions(
         fileset,
         commonOptions,
       );
     } catch {
-      this.landmarker = await HandLandmarkerTask.createFromOptions(fileset, {
+      landmarker = await HandLandmarkerTask.createFromOptions(fileset, {
         ...commonOptions,
         baseOptions: {
           modelAssetPath: assetUrl(HAND_LANDMARKER_MODEL_PATH),
@@ -556,6 +571,11 @@ export class MediaPipeRuntime {
         },
       });
     }
+    if (generation !== this.lifecycleGeneration) {
+      landmarker.close();
+      return;
+    }
+    this.landmarker = landmarker;
   }
 
   detect(
@@ -569,6 +589,8 @@ export class MediaPipeRuntime {
   }
 
   stop(): void {
+    this.lifecycleGeneration += 1;
+    this.startPromise = null;
     this.landmarker?.close();
     this.landmarker = null;
   }

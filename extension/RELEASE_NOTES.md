@@ -1,4 +1,11 @@
-# Signal extension 0.2.2
+# Signal extension 0.2.3
+
+- Uses a visible, one-time camera setup page so Chrome cannot strand Signal in
+  an unresolved hidden permission request.
+- Automatically starts tracking after permission is granted and closes the
+  setup tab.
+- Times out camera permission and MediaPipe initialization with a recoverable
+  error instead of displaying `STARTING` forever.
 
 - Drives offscreen MediaPipe inference with a reliable bounded timer because
   Chrome can throttle video-frame callbacks in hidden extension documents.

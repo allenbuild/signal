@@ -145,6 +145,27 @@ describe("CameraRuntime", () => {
     expect(runtime.snapshot.state).toBe("paused");
   });
 
+  it("fails a camera request that never resolves instead of hanging", async () => {
+    vi.useFakeTimers();
+    try {
+      const runtime = new CameraRuntime({
+        video: makeVideo(),
+        mediaDevices: {
+          getUserMedia: vi.fn(() => new Promise<MediaStream>(() => undefined)),
+        },
+      });
+
+      const start = runtime.start();
+      const rejection = expect(start).rejects.toMatchObject({
+        name: "NotAllowedError",
+      });
+      await vi.advanceTimersByTimeAsync(8_000);
+      await rejection;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("maps camera denial to the visible-setup fallback message", () => {
     expect(
       cameraErrorMessage(new DOMException("", "NotAllowedError")),

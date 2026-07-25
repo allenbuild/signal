@@ -36,7 +36,7 @@ button?.addEventListener("click", async () => {
       version: 1,
       type: "signal:setup/permission-granted",
     });
-    setStatus("Camera enabled. Return to the Signal side panel and choose Start Signal.");
+    setStatus("Camera enabled. Signal is starting in the side panel.");
   } catch (error) {
     setStatus(
       error instanceof Error

@@ -42,6 +42,7 @@ import {
 const OFFSCREEN_DOCUMENT = "offscreen/offscreen.html";
 const PERMISSION_DOCUMENT = "setup/setup.html";
 const SESSION_KEY = "signal.extension.runtime.v1";
+const CAMERA_PERMISSION_KEY = "signal.extension.camera-permission.v1";
 const PUBLIC_SITE = "https://signal-hand-control.allenxtech.chatgpt.site";
 
 type CameraState =
@@ -762,8 +763,30 @@ async function handleOffscreenMessage(message: unknown) {
   }
 }
 
-async function startSignal() {
+async function startSignal(permissionConfirmed = false) {
   await ensureInitialized();
+  if (!permissionConfirmed) {
+    const permission = await chrome.storage.local.get(CAMERA_PERMISSION_KEY);
+    if (permission[CAMERA_PERMISSION_KEY] !== true) {
+      await patchRuntime(
+        {
+          running: false,
+          paused: false,
+          camera: "permission",
+          status:
+            "Complete the one-time visible camera setup, then Signal will start automatically.",
+        },
+        true,
+      );
+      await openPermissionSetup();
+      return {
+        ok: false,
+        permission: true,
+        error:
+          "Complete the one-time visible camera setup, then Signal will start automatically.",
+      };
+    }
+  }
   runtimeState.mode = "control";
   if (storedState) {
     storedState.settings.mode = "control";
@@ -1216,10 +1239,11 @@ async function handleSidePanelMessage(
       return { ok: true };
     }
     case "signal:setup/permission-granted":
+      await chrome.storage.local.set({ [CAMERA_PERMISSION_KEY]: true });
       if (sender.tab?.id !== undefined) {
         void chrome.tabs.remove(sender.tab.id).catch(() => undefined);
       }
-      return enqueueLifecycle(startSignal);
+      return enqueueLifecycle(() => startSignal(true));
     default:
       return undefined;
   }
