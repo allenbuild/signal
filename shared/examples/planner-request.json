@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "requestId": "demo-request-1",
+  "request": "When I give a thumbs up, open my focus playlist, say Focus mode, and send Demo complete to Discord.",
+  "targetGesture": "thumbs_up",
+  "actionCatalog": [
+    "open_url",
+    "speak_text",
+    "discord_webhook"
+  ]
+}

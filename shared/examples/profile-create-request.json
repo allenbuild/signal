@@ -1,0 +1,14 @@
+{
+  "profile": {
+    "schemaVersion": 1,
+    "id": "signal.example.shared",
+    "name": "Shared focus profile",
+    "description": "A minimal unlisted profile example.",
+    "preferredMode": "commands",
+    "hybridOneBehavior": "pointer",
+    "mappings": [],
+    "share": {
+      "visibility": "unlisted"
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://signal.example/schemas/v1/planner-response.schema.json",
+  "title": "Signal Planner Response v1",
+  "description": "The only accepted response envelope from POST /api/v1/plan.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PlannedResponse"
+    },
+    {
+      "$ref": "#/$defs/ClarificationResponse"
+    }
+  ],
+  "$defs": {
+    "RequestId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "PlannedResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "status",
+        "plan",
+        "warnings",
+        "usedDeterministicFallback"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "requestId": {
+          "$ref": "#/$defs/RequestId"
+        },
+        "status": {
+          "const": "planned"
+        },
+        "plan": {
+          "$ref": "./action-plan.schema.json"
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "string",
+            "maxLength": 240
+          }
+        },
+        "usedDeterministicFallback": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ClarificationResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "status",
+        "question",
+        "missingFields"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "requestId": {
+          "$ref": "#/$defs/RequestId"
+        },
+        "status": {
+          "const": "needs_clarification"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "missingFields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        }
+      }
+    }
+  }
+}

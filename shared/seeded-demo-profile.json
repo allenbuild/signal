@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "id": "signal.seeded.hero",
+  "name": "Signal Hero Demo",
+  "description": "Offline-safe mappings for the touch, natural-language, and Teach by Demo hero flows.",
+  "preferredMode": "hybrid",
+  "hybridOneBehavior": "pointer",
+  "mappings": [
+    {
+      "gesture": "one",
+      "enabled": true,
+      "holdDurationMs": 600,
+      "cooldownMs": 900,
+      "activation": "one_shot",
+      "allowedBundleIdentifiers": [],
+      "preferredMode": "commands",
+      "plan": {
+        "schemaVersion": 1,
+        "id": "signal.seed.focus-url",
+        "name": "Open focus playlist",
+        "description": "Open a public Spotify focus playlist URL.",
+        "steps": [
+          {
+            "id": "open-focus-url",
+            "action": {
+              "type": "open_url",
+              "parameters": {
+                "url": "https://open.spotify.com/genre/0JQ5DAqbMKFAXlCG6QvYQ4",
+                "networkPolicy": "public_https_only"
+              }
+            },
+            "timeoutMs": 10000,
+            "onFailure": "stop",
+            "confirmation": {
+              "mode": "first_run",
+              "reason": "Opens a public URL in the default browser."
+            }
+          }
+        ],
+        "timeoutMs": 15000,
+        "onFailure": "stop",
+        "confirmation": {
+          "mode": "first_run",
+          "reason": "Review the destination before the first run."
+        },
+        "createdSource": "visual",
+        "secretReferences": []
+      }
+    },
+    {
+      "gesture": "thumbs_up",
+      "enabled": true,
+      "holdDurationMs": 600,
+      "cooldownMs": 900,
+      "activation": "one_shot",
+      "allowedBundleIdentifiers": [],
+      "preferredMode": "commands",
+      "plan": {
+        "schemaVersion": 1,
+        "id": "signal.seed.focus-mode",
+        "name": "Focus mode",
+        "description": "Open Spotify, speak a confirmation, and send a configured Discord receipt.",
+        "steps": [
+          {
+            "id": "open-focus-playlist",
+            "action": {
+              "type": "open_url",
+              "parameters": {
+                "url": "https://open.spotify.com/genre/0JQ5DAqbMKFAXlCG6QvYQ4",
+                "networkPolicy": "public_https_only"
+              }
+            },
+            "timeoutMs": 10000,
+            "onFailure": "continue",
+            "confirmation": {
+              "mode": "first_run",
+              "reason": "Opens a public URL in the default browser."
+            }
+          },
+          {
+            "id": "speak-focus-mode",
+            "action": {
+              "type": "speak_text",
+              "parameters": {
+                "text": "Focus mode"
+              }
+            },
+            "timeoutMs": 10000,
+            "onFailure": "continue",
+            "confirmation": {
+              "mode": "none",
+              "reason": "Local speech only."
+            }
+          },
+          {
+            "id": "send-demo-receipt",
+            "action": {
+              "type": "discord_webhook",
+              "parameters": {
+                "secretRef": "demo-discord-webhook",
+                "message": "Demo complete",
+                "fallback": "local_receipt"
+              }
+            },
+            "timeoutMs": 10000,
+            "onFailure": "continue",
+            "confirmation": {
+              "mode": "every_run",
+              "reason": "Sends the displayed message to an external Discord webhook."
+            }
+          }
+        ],
+        "timeoutMs": 35000,
+        "onFailure": "continue",
+        "confirmation": {
+          "mode": "first_run",
+          "reason": "Review all external effects before saving and first run."
+        },
+        "createdSource": "natural_language",
+        "secretReferences": [
+          {
+            "id": "demo-discord-webhook",
+            "provider": "discord",
+            "purpose": "Optional hero-demo completion receipt",
+            "storage": "keychain_or_server_environment"
+          }
+        ]
+      }
+    },
+    {
+      "gesture": "c_shape",
+      "enabled": true,
+      "holdDurationMs": 650,
+      "cooldownMs": 1000,
+      "activation": "one_shot",
+      "allowedBundleIdentifiers": [],
+      "preferredMode": "commands",
+      "plan": {
+        "schemaVersion": 1,
+        "id": "signal.seed.demo-replay",
+        "name": "Replay recorded note",
+        "description": "Deterministic controlled-recorder fallback: open TextEdit, create a document, and type a short phrase.",
+        "steps": [
+          {
+            "id": "open-textedit",
+            "action": {
+              "type": "open_application",
+              "parameters": {
+                "bundleIdentifier": "com.apple.TextEdit",
+                "applicationName": "TextEdit"
+              }
+            },
+            "timeoutMs": 10000,
+            "onFailure": "stop",
+            "confirmation": {
+              "mode": "first_run",
+              "reason": "Opens a local application."
+            }
+          },
+          {
+            "id": "new-document",
+            "action": {
+              "type": "keyboard_shortcut",
+              "parameters": {
+                "key": "n",
+                "modifiers": [
+                  "command"
+                ]
+              }
+            },
+            "timeoutMs": 5000,
+            "onFailure": "stop",
+            "confirmation": {
+              "mode": "first_run",
+              "reason": "Sends Command-N to the frontmost application."
+            }
+          },
+          {
+            "id": "type-demo-text",
+            "action": {
+              "type": "type_text",
+              "parameters": {
+                "text": "Signal replayed this workflow with a hand gesture.",
+                "containsSensitiveData": false
+              }
+            },
+            "timeoutMs": 10000,
+            "onFailure": "stop",
+            "confirmation": {
+              "mode": "first_run",
+              "reason": "Types the displayed non-sensitive text."
+            }
+          }
+        ],
+        "timeoutMs": 30000,
+        "onFailure": "stop",
+        "confirmation": {
+          "mode": "first_run",
+          "reason": "Review keyboard and text-entry effects before first run."
+        },
+        "createdSource": "demo_recording",
+        "secretReferences": []
+      }
+    }
+  ],
+  "share": {
+    "visibility": "unlisted",
+    "shareCode": "SIG1-SGNL2626"
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://signal.example/schemas/v1/profile.schema.json",
+  "title": "Signal Gesture Profile v1",
+  "description": "A portable gesture-to-plan profile. It may contain secret reference metadata but never secret values.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "description",
+    "preferredMode",
+    "hybridOneBehavior",
+    "mappings",
+    "share"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "preferredMode": {
+      "enum": [
+        "touch",
+        "commands",
+        "hybrid"
+      ]
+    },
+    "hybridOneBehavior": {
+      "enum": [
+        "pointer",
+        "command"
+      ]
+    },
+    "mappings": {
+      "type": "array",
+      "maxItems": 9,
+      "items": {
+        "$ref": "#/$defs/GestureMapping"
+      }
+    },
+    "share": {
+      "$ref": "#/$defs/ShareMetadata"
+    }
+  },
+  "$defs": {
+    "Gesture": {
+      "enum": [
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "fist",
+        "thumbs_up",
+        "thumbs_down",
+        "c_shape"
+      ]
+    },
+    "GestureMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gesture",
+        "enabled",
+        "holdDurationMs",
+        "cooldownMs",
+        "activation",
+        "allowedBundleIdentifiers",
+        "plan"
+      ],
+      "properties": {
+        "gesture": {
+          "$ref": "#/$defs/Gesture"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "holdDurationMs": {
+          "type": "integer",
+          "minimum": 250,
+          "maximum": 3000,
+          "default": 600
+        },
+        "cooldownMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000,
+          "default": 900
+        },
+        "activation": {
+          "enum": [
+            "one_shot",
+            "repeat"
+          ]
+        },
+        "repeatIntervalMs": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 10000
+        },
+        "allowedBundleIdentifiers": {
+          "type": "array",
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$"
+          }
+        },
+        "preferredMode": {
+          "enum": [
+            "commands",
+            "hybrid"
+          ]
+        },
+        "plan": {
+          "$ref": "./action-plan.schema.json"
+        }
+      }
+    },
+    "ShareMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "visibility"
+      ],
+      "properties": {
+        "visibility": {
+          "enum": [
+            "private",
+            "unlisted"
+          ]
+        },
+        "shareCode": {
+          "type": "string",
+          "pattern": "^SIG1-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$"
+        }
+      }
+    }
+  }
+}

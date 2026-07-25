@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "requestId": "demo-request-1",
+  "status": "planned",
+  "plan": {
+    "schemaVersion": 1,
+    "id": "signal.example.focus-mode",
+    "name": "Focus mode",
+    "description": "Open a focus playlist, speak a local cue, and send a configured Discord receipt.",
+    "steps": [
+      {
+        "id": "open-playlist",
+        "action": {
+          "type": "open_url",
+          "parameters": {
+            "url": "https://open.spotify.com/genre/0JQ5DAqbMKFAXlCG6QvYQ4",
+            "networkPolicy": "public_https_only"
+          }
+        },
+        "timeoutMs": 10000,
+        "onFailure": "continue",
+        "confirmation": {
+          "mode": "first_run",
+          "reason": "Opens the displayed public URL."
+        }
+      },
+      {
+        "id": "speak-cue",
+        "action": {
+          "type": "speak_text",
+          "parameters": {
+            "text": "Focus mode"
+          }
+        },
+        "timeoutMs": 10000,
+        "onFailure": "continue",
+        "confirmation": {
+          "mode": "none",
+          "reason": "Local speech only."
+        }
+      },
+      {
+        "id": "send-receipt",
+        "action": {
+          "type": "discord_webhook",
+          "parameters": {
+            "secretRef": "demo-discord-webhook",
+            "message": "Demo complete",
+            "fallback": "local_receipt"
+          }
+        },
+        "timeoutMs": 10000,
+        "onFailure": "continue",
+        "confirmation": {
+          "mode": "every_run",
+          "reason": "Sends the displayed message to an external Discord webhook."
+        }
+      }
+    ],
+    "timeoutMs": 35000,
+    "onFailure": "continue",
+    "confirmation": {
+      "mode": "first_run",
+      "reason": "AI plans are previews and require approval before save or first run."
+    },
+    "createdSource": "natural_language",
+    "secretReferences": [
+      {
+        "id": "demo-discord-webhook",
+        "provider": "discord",
+        "purpose": "Optional demo completion receipt",
+        "storage": "keychain_or_server_environment"
+      }
+    ]
+  },
+  "warnings": [
+    "Discord uses a local receipt fallback until the secret reference is configured."
+  ],
+  "usedDeterministicFallback": false
+}

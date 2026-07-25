@@ -1,0 +1,1151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://signal.example/schemas/v1/action-plan.schema.json",
+  "title": "Signal Action Plan v1",
+  "description": "Portable, reviewable macro plan. Version 1 deliberately excludes raw AppleScript, shell commands, arbitrary authorization headers, and raw secret values.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "description",
+    "steps",
+    "timeoutMs",
+    "onFailure",
+    "confirmation",
+    "createdSource",
+    "secretReferences"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "$ref": "#/$defs/Identifier"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/Step"
+      }
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 300000
+    },
+    "onFailure": {
+      "$ref": "#/$defs/FailurePolicy"
+    },
+    "confirmation": {
+      "$ref": "#/$defs/Confirmation"
+    },
+    "createdSource": {
+      "enum": [
+        "visual",
+        "natural_language",
+        "demo_recording",
+        "import"
+      ]
+    },
+    "secretReferences": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/$defs/SecretReference"
+      }
+    }
+  },
+  "$defs": {
+    "Identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "FailurePolicy": {
+      "enum": [
+        "stop",
+        "continue",
+        "ask"
+      ]
+    },
+    "Confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "reason"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "none",
+            "first_run",
+            "every_run"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 160
+        }
+      }
+    },
+    "SecretReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "provider",
+        "purpose",
+        "storage"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "provider": {
+          "enum": [
+            "discord",
+            "slack",
+            "http_bearer",
+            "http_basic",
+            "http_api_key"
+          ]
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "storage": {
+          "const": "keychain_or_server_environment"
+        }
+      }
+    },
+    "Step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "action",
+        "timeoutMs",
+        "onFailure",
+        "confirmation"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "action": {
+          "$ref": "#/$defs/Action"
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 60000
+        },
+        "onFailure": {
+          "$ref": "#/$defs/FailurePolicy"
+        },
+        "confirmation": {
+          "$ref": "#/$defs/Confirmation"
+        }
+      }
+    },
+    "Action": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/NonConditionalAction"
+        },
+        {
+          "$ref": "#/$defs/ConditionalAction"
+        }
+      ]
+    },
+    "NonConditionalAction": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/OpenApplicationAction"
+        },
+        {
+          "$ref": "#/$defs/OpenURLAction"
+        },
+        {
+          "$ref": "#/$defs/OpenDeepLinkAction"
+        },
+        {
+          "$ref": "#/$defs/KeyboardShortcutAction"
+        },
+        {
+          "$ref": "#/$defs/TypeTextAction"
+        },
+        {
+          "$ref": "#/$defs/WaitAction"
+        },
+        {
+          "$ref": "#/$defs/ShowNotificationAction"
+        },
+        {
+          "$ref": "#/$defs/SpeakTextAction"
+        },
+        {
+          "$ref": "#/$defs/PlaySoundAction"
+        },
+        {
+          "$ref": "#/$defs/SetClipboardAction"
+        },
+        {
+          "$ref": "#/$defs/ReadClipboardAndTransformAction"
+        },
+        {
+          "$ref": "#/$defs/RunAppleShortcutAction"
+        },
+        {
+          "$ref": "#/$defs/RunAppleScriptTemplateAction"
+        },
+        {
+          "$ref": "#/$defs/HTTPRequestAction"
+        },
+        {
+          "$ref": "#/$defs/DiscordWebhookAction"
+        },
+        {
+          "$ref": "#/$defs/SlackWebhookAction"
+        },
+        {
+          "$ref": "#/$defs/MediaControlAction"
+        },
+        {
+          "$ref": "#/$defs/SetVolumeAction"
+        },
+        {
+          "$ref": "#/$defs/ShowOverlayAction"
+        },
+        {
+          "$ref": "#/$defs/FocusApplicationAction"
+        },
+        {
+          "$ref": "#/$defs/ClickScreenPointAction"
+        },
+        {
+          "$ref": "#/$defs/ScrollAmountAction"
+        },
+        {
+          "$ref": "#/$defs/ZoomStepsAction"
+        }
+      ]
+    },
+    "OpenApplicationAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "open_application"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bundleIdentifier"
+          ],
+          "properties": {
+            "bundleIdentifier": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 255,
+              "pattern": "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$"
+            },
+            "applicationName": {
+              "type": "string",
+              "maxLength": 120
+            }
+          }
+        }
+      }
+    },
+    "OpenURLAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "open_url"
+        },
+        "parameters": {
+          "$ref": "#/$defs/PublicHTTPSDestination"
+        }
+      }
+    },
+    "OpenDeepLinkAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "open_deep_link"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "url"
+          ],
+          "properties": {
+            "scheme": {
+              "enum": [
+                "facetime",
+                "macappstore",
+                "mailto",
+                "music",
+                "shortcuts",
+                "spotify"
+              ]
+            },
+            "url": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 2048,
+              "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+            }
+          }
+        }
+      }
+    },
+    "KeyboardShortcutAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "keyboard_shortcut"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "key",
+            "modifiers"
+          ],
+          "properties": {
+            "key": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 24
+            },
+            "modifiers": {
+              "type": "array",
+              "maxItems": 4,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "command",
+                  "control",
+                  "option",
+                  "shift"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "TypeTextAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "type_text"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text",
+            "containsSensitiveData"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "containsSensitiveData": {
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    "WaitAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "wait"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "durationMs"
+          ],
+          "properties": {
+            "durationMs": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 30000
+            }
+          }
+        }
+      }
+    },
+    "ShowNotificationAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "show_notification"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "body"
+          ],
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 500
+            }
+          }
+        }
+      }
+    },
+    "SpeakTextAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "speak_text"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "voice": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "rate": {
+              "type": "number",
+              "minimum": 0.25,
+              "maximum": 2
+            }
+          }
+        }
+      }
+    },
+    "PlaySoundAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "play_sound"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sound"
+          ],
+          "properties": {
+            "sound": {
+              "enum": [
+                "Basso",
+                "Blow",
+                "Bottle",
+                "Frog",
+                "Funk",
+                "Glass",
+                "Hero",
+                "Morse",
+                "Ping",
+                "Pop",
+                "Purr",
+                "Sosumi",
+                "Submarine",
+                "Tink"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "SetClipboardAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "set_clipboard"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text",
+            "containsSensitiveData"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "containsSensitiveData": {
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    "ReadClipboardAndTransformAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "read_clipboard_and_transform"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "transform",
+            "destination"
+          ],
+          "properties": {
+            "transform": {
+              "enum": [
+                "lowercase",
+                "titlecase",
+                "trim",
+                "uppercase",
+                "url_encode"
+              ]
+            },
+            "destination": {
+              "const": "clipboard"
+            },
+            "maximumInputCharacters": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 10000
+            }
+          }
+        }
+      }
+    },
+    "RunAppleShortcutAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "run_apple_shortcut"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "shortcutName"
+          ],
+          "properties": {
+            "shortcutName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "input": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          }
+        }
+      }
+    },
+    "RunAppleScriptTemplateAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "run_applescript_template"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "templateId",
+            "arguments"
+          ],
+          "properties": {
+            "templateId": {
+              "enum": [
+                "activate_application",
+                "create_textedit_document",
+                "open_system_settings_pane"
+              ]
+            },
+            "arguments": {
+              "type": "object",
+              "maxProperties": 8,
+              "propertyNames": {
+                "$ref": "#/$defs/Identifier"
+              },
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 500
+              }
+            }
+          }
+        }
+      }
+    },
+    "HTTPRequestAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "http_request"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "url",
+            "networkPolicy",
+            "headers",
+            "secretRefs",
+            "maximumResponseBytes"
+          ],
+          "properties": {
+            "method": {
+              "enum": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+              ]
+            },
+            "url": {
+              "type": "string",
+              "minLength": 9,
+              "maxLength": 2048,
+              "pattern": "^https://[^\\s]+$"
+            },
+            "networkPolicy": {
+              "const": "public_https_only"
+            },
+            "headers": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "value"
+                ],
+                "properties": {
+                  "name": {
+                    "enum": [
+                      "Accept",
+                      "Content-Type",
+                      "User-Agent"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "maxLength": 200
+                  }
+                }
+              }
+            },
+            "bodyTemplate": {
+              "type": "string",
+              "maxLength": 16000,
+              "description": "Non-secret body template. Secret material may appear only as ${secret:<reference-id>} placeholders resolved at execution."
+            },
+            "secretRefs": {
+              "type": "array",
+              "maxItems": 4,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/Identifier"
+              }
+            },
+            "maximumResponseBytes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1048576
+            }
+          }
+        }
+      }
+    },
+    "DiscordWebhookAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "discord_webhook"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "secretRef",
+            "message",
+            "fallback"
+          ],
+          "properties": {
+            "secretRef": {
+              "$ref": "#/$defs/Identifier"
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1800
+            },
+            "fallback": {
+              "const": "local_receipt"
+            }
+          }
+        }
+      }
+    },
+    "SlackWebhookAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "slack_webhook"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "secretRef",
+            "message",
+            "fallback"
+          ],
+          "properties": {
+            "secretRef": {
+              "$ref": "#/$defs/Identifier"
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 3000
+            },
+            "fallback": {
+              "const": "local_receipt"
+            }
+          }
+        }
+      }
+    },
+    "MediaControlAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "media_control"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command"
+          ],
+          "properties": {
+            "command": {
+              "enum": [
+                "next",
+                "pause",
+                "play",
+                "previous",
+                "toggle_play_pause"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "SetVolumeAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "set_volume"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "percent"
+          ],
+          "properties": {
+            "percent": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        }
+      }
+    },
+    "ShowOverlayAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "show_overlay"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "body",
+            "durationMs"
+          ],
+          "properties": {
+            "title": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "durationMs": {
+              "type": "integer",
+              "minimum": 250,
+              "maximum": 10000
+            }
+          }
+        }
+      }
+    },
+    "FocusApplicationAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "focus_application"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bundleIdentifier"
+          ],
+          "properties": {
+            "bundleIdentifier": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 255,
+              "pattern": "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$"
+            }
+          }
+        }
+      }
+    },
+    "ClickScreenPointAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "click_screen_point"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "coordinateSpace"
+          ],
+          "properties": {
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "coordinateSpace": {
+              "const": "normalized_active_display"
+            }
+          }
+        }
+      }
+    },
+    "ScrollAmountAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "scroll_amount"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "horizontal",
+            "vertical"
+          ],
+          "properties": {
+            "horizontal": {
+              "type": "integer",
+              "minimum": -10000,
+              "maximum": 10000
+            },
+            "vertical": {
+              "type": "integer",
+              "minimum": -10000,
+              "maximum": 10000
+            }
+          }
+        }
+      }
+    },
+    "ZoomStepsAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "zoom_steps"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "steps"
+          ],
+          "properties": {
+            "steps": {
+              "type": "integer",
+              "minimum": -20,
+              "maximum": 20,
+              "not": {
+                "const": 0
+              }
+            },
+            "bundleIdentifier": {
+              "type": "string",
+              "maxLength": 255
+            }
+          }
+        }
+      }
+    },
+    "ConditionalAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parameters"
+      ],
+      "properties": {
+        "type": {
+          "const": "conditional"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "condition",
+            "ifTrue",
+            "ifFalse"
+          ],
+          "properties": {
+            "condition": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "value"
+              ],
+              "properties": {
+                "type": {
+                  "enum": [
+                    "application_is_frontmost",
+                    "clipboard_is_empty",
+                    "network_reachable"
+                  ]
+                },
+                "value": {
+                  "type": "string",
+                  "maxLength": 2048
+                }
+              }
+            },
+            "ifTrue": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {
+                "$ref": "#/$defs/NonConditionalAction"
+              }
+            },
+            "ifFalse": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {
+                "$ref": "#/$defs/NonConditionalAction"
+              }
+            }
+          }
+        }
+      }
+    },
+    "PublicHTTPSDestination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "networkPolicy"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "minLength": 9,
+          "maxLength": 2048,
+          "pattern": "^https://[^\\s]+$"
+        },
+        "networkPolicy": {
+          "const": "public_https_only"
+        }
+      }
+    }
+  }
+}
