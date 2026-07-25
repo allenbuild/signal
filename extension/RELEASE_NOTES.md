@@ -1,4 +1,9 @@
-# Signal extension 0.2.1
+# Signal extension 0.2.2
+
+- Drives offscreen MediaPipe inference with a reliable bounded timer because
+  Chrome can throttle video-frame callbacks in hidden extension documents.
+- Fails the built-extension smoke test unless the synthetic camera produces a
+  positive processed-frame rate.
 
 - Keeps tracking frames synchronized with Chrome's real active tab even when
   tab-activation events arrive out of order.

@@ -103,6 +103,9 @@ try {
     );
     if (cameraFps <= 0) await panel.waitForTimeout(250);
   }
+  if (cameraFps <= 0) {
+    throw new Error("The offscreen camera opened but processed no frames.");
+  }
 
   const receipt = await panel.evaluate(async (url) => {
     const tabs = await chrome.tabs.query({});

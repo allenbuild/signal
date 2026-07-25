@@ -75,13 +75,6 @@ type OffscreenOutboundMessage =
       pinch: TrackingAnalysis["pinch"];
     };
 
-type VideoWithFrameCallback = HTMLVideoElement & {
-  requestVideoFrameCallback?(
-    callback: (now: number, metadata: VideoFrameCallbackMetadata) => void,
-  ): number;
-  cancelVideoFrameCallback?(handle: number): void;
-};
-
 function requireCameraElement(): HTMLVideoElement {
   const element =
     document.querySelector<HTMLVideoElement>("#signal-camera");
@@ -105,7 +98,6 @@ let stopping = false;
 let lifecycleGeneration = 0;
 let desiredRuntimeState: "running" | "paused" | "idle" = "idle";
 let sequence = 0;
-let videoFrameHandle: number | null = null;
 let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
 let lastVideoTime = -1;
 let lastTrackingVisible = false;
@@ -448,30 +440,19 @@ function updateStats(timestamp: number, inferenceMs: number): void {
 }
 
 function scheduleNextFrame(): void {
-  if (!running || videoFrameHandle !== null || timeoutHandle !== null) return;
+  if (!running || timeoutHandle !== null) return;
   const callback = (now: number) => {
-    videoFrameHandle = null;
     timeoutHandle = null;
     processFrame(now);
   };
-  const frameVideo = video as VideoWithFrameCallback;
-  if (frameVideo.requestVideoFrameCallback) {
-    videoFrameHandle = frameVideo.requestVideoFrameCallback(callback);
-  } else {
-    timeoutHandle = setTimeout(() => callback(performance.now()), 33);
-  }
+  // requestVideoFrameCallback exists in an offscreen document but Chrome can
+  // indefinitely throttle it while that document is hidden. USER_MEDIA keeps
+  // the capture stream alive, so drive inference with a bounded timer instead.
+  timeoutHandle = setTimeout(() => callback(performance.now()), 33);
 }
 
 function cancelScheduledFrame(): void {
-  const frameVideo = video as VideoWithFrameCallback;
-  if (
-    videoFrameHandle !== null &&
-    frameVideo.cancelVideoFrameCallback
-  ) {
-    frameVideo.cancelVideoFrameCallback(videoFrameHandle);
-  }
   if (timeoutHandle !== null) clearTimeout(timeoutHandle);
-  videoFrameHandle = null;
   timeoutHandle = null;
 }
 
