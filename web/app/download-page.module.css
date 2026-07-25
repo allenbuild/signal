@@ -1,0 +1,112 @@
+.page {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 22%, rgb(198 255 134 / 0.12), transparent 34%),
+    linear-gradient(rgb(255 255 255 / 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.025) 1px, transparent 1px),
+    #0b0f0d;
+  background-size: auto, 42px 42px, 42px 42px, auto;
+  color: #f5f4ec;
+}
+
+.card {
+  width: min(100%, 560px);
+  padding: clamp(38px, 8vw, 70px);
+  border: 1px solid #303a34;
+  border-radius: 30px;
+  background: rgb(17 23 19 / 0.94);
+  box-shadow: 0 34px 100px rgb(0 0 0 / 0.38);
+  text-align: center;
+}
+
+.mark {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 26px;
+  place-items: center;
+  border-radius: 16px;
+  background: #dcebb8;
+  color: #111513;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: #9aa69e;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.card h1 {
+  margin: 0;
+  font-family: var(--font-signal-serif), Georgia, serif;
+  font-size: clamp(74px, 18vw, 118px);
+  font-weight: 600;
+  letter-spacing: -0.075em;
+  line-height: 0.86;
+}
+
+.summary {
+  max-width: 390px;
+  margin: 28px auto 0;
+  color: #b8c0ba;
+  font-size: clamp(17px, 3vw, 20px);
+  line-height: 1.5;
+}
+
+.download {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 36px;
+  padding: 0 24px;
+  border-radius: 999px;
+  background: #dcebb8;
+  color: #111513;
+  font-size: 15px;
+  font-weight: 780;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.download:hover {
+  transform: translateY(-2px);
+  background: #edfacb;
+}
+
+.download span {
+  font-size: 20px;
+}
+
+.note {
+  margin: 22px auto 0;
+  color: #7f8b83;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.note strong {
+  color: #aeb8b1;
+  font-family: var(--font-geist-mono), monospace;
+  font-weight: 600;
+}
+
+@media (max-width: 520px) {
+  .page {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 40px 24px;
+    border-radius: 24px;
+  }
+}

@@ -28,6 +28,7 @@ export class CommandGestureEngine {
   private candidate: GestureId | null = null;
   private candidateStartedAt = 0;
   private firedForCandidate = false;
+  private latchedGesture: GestureId | null = null;
   private readonly lastFireAt = new Map<GestureId, number>();
   private readonly holdMs: number;
   private readonly cooldownMs: number;
@@ -48,8 +49,16 @@ export class CommandGestureEngine {
     );
   }
 
-  reset(timestamp = Date.now()): CommandGestureUpdate | null {
-    const released = this.candidate;
+  reset(
+    timestamp = Date.now(),
+    preserveFiredGesture = false,
+  ): CommandGestureUpdate | null {
+    const released = this.candidate ?? this.latchedGesture;
+    this.latchedGesture =
+      preserveFiredGesture &&
+      (this.firedForCandidate || this.latchedGesture !== null)
+        ? (this.candidate ?? this.latchedGesture)
+        : null;
     this.candidate = null;
     this.candidateStartedAt = 0;
     this.firedForCandidate = false;
@@ -70,9 +79,23 @@ export class CommandGestureEngine {
         ? detection.gesture
         : null;
 
+    if (validGesture && validGesture === this.latchedGesture) {
+      return this.result(
+        validGesture,
+        "holding",
+        confidence,
+        1,
+        detection.timestamp,
+        false,
+      );
+    }
+    if (validGesture && validGesture !== this.latchedGesture) {
+      this.latchedGesture = null;
+    }
+
     if (
       !validGesture ||
-      context.mode !== "commands" ||
+      context.mode === "paused" ||
       context.editing ||
       !context.supportedTab
     ) {

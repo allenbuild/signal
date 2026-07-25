@@ -46,6 +46,7 @@ export type PinchTransactionState =
 export type TrackingAnalysis = {
   landmarks: HandLandmark[];
   gesture: TrackingGesture;
+  commandGesture?: SignalGestureId;
   confidence: number;
   pointerDelta?: { dx: number; dy: number; normalized: true };
   pinch: {
@@ -508,6 +509,7 @@ export class TrackingNormalizer {
           : pose.pointerPose
             ? "pointer"
             : (pose.gesture ?? "unknown"),
+      ...(pose.gesture ? { commandGesture: pose.gesture } : {}),
       confidence: Math.max(pose.confidence, handednessConfidence),
       ...(pointerDelta ? { pointerDelta } : {}),
       pinch: {

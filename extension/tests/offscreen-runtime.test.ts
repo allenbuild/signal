@@ -185,6 +185,7 @@ describe("TrackingNormalizer", () => {
     const first = normalizer.analyze(input, 0);
 
     expect(first?.gesture).toBe("pointer");
+    expect(first?.commandGesture).toBe("one");
     expect(first?.pointerDelta).toBeUndefined();
   });
 

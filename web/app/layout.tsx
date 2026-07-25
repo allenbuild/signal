@@ -37,16 +37,14 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase,
     title: {
-      default: "signal — Show a gesture. Run a command.",
+      default: "signal — Download for Chrome",
       template: "%s · Signal",
     },
-    description:
-      "A private, reviewable hand-gesture controller that runs in your browser.",
+    description: "Download the Signal hand-control extension for Chrome.",
     icons: { icon: "/favicon.png", shortcut: "/favicon.png" },
     openGraph: {
-      title: "signal — Show a gesture. Run a command.",
-      description:
-        "Choose a hand gesture, review its command, and run it with Signal.",
+      title: "signal — Download for Chrome",
+      description: "Hand control and one-shot gesture commands across browser tabs.",
       type: "website",
       images: [
         {
@@ -59,8 +57,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: "signal — Show a gesture. Run a command.",
-      description: "Show a gesture. Run a command.",
+      title: "signal — Download for Chrome",
+      description: "Download the Signal hand-control extension for Chrome.",
       images: [socialImage],
     },
   };
@@ -73,27 +71,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link
-          rel="preload"
-          href="/mediapipe/hand_landmarker.task"
-          as="fetch"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="preload"
-          href="/mediapipe/0.10.35/wasm/vision_wasm_internal.wasm"
-          as="fetch"
-          type="application/wasm"
-          crossOrigin="anonymous"
-        />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${signalSerif.variable} antialiased`}
       >
-        <a className="skip-link" href="#main-content">
-          Skip to content
-        </a>
         {children}
       </body>
     </html>

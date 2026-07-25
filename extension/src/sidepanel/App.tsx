@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 const gestures = [
-  ["one", "1", "Rickroll"],
+  ["five", "5", "Rickroll"],
   ["two", "2", "New Gmail"],
   ["three", "3", "Cursor Agents"],
   ["four", "4", "New Google Doc"],
@@ -170,11 +170,6 @@ export function App() {
     });
   }
 
-  async function setMode(mode: RuntimeState["mode"]) {
-    setRuntime((current) => ({ ...current, mode }));
-    await send({ version: 1, type: "signal:sidepanel/mode", mode });
-  }
-
   async function openPermissionSetup() {
     await send({ version: 1, type: "signal:sidepanel/open-permission" });
   }
@@ -333,7 +328,7 @@ export function App() {
         <div>
           <p className="eyebrow"><i /> Signal Extension</p>
           <h1>signal</h1>
-          <p>Show a gesture. Control the web.</p>
+          <p>Point, click, and run gestures together.</p>
         </div>
         <span className={`camera-pill camera-${runtime.camera}`}>{cameraLabel}</span>
       </header>
@@ -345,20 +340,6 @@ export function App() {
       )}
 
       <section className="runtime-card" aria-label="Signal runtime">
-        <div className="mode-toggle" aria-label="Mode">
-          <button
-            aria-pressed={runtime.mode === "control"}
-            onClick={() => void setMode("control")}
-          >
-            Control
-          </button>
-          <button
-            aria-pressed={runtime.mode === "commands"}
-            onClick={() => void setMode("commands")}
-          >
-            Commands
-          </button>
-        </div>
         <div className="runtime-actions">
           {!runtime.running ? (
             <button className="primary" onClick={() => void start()}>Start Signal</button>
@@ -384,7 +365,7 @@ export function App() {
         <div className="telemetry">
           <span><small>Gesture</small>{runtime.gesture ?? "No hand"}</span>
           <span><small>Confidence</small>{Math.round(runtime.confidence * 100)}%</span>
-          <span><small>Mode</small>{runtime.mode}</span>
+          <span><small>Active</small>Control + commands</span>
         </div>
         <p className="status" aria-live="polite">{runtime.status}</p>
       </section>

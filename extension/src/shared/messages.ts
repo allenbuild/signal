@@ -22,6 +22,7 @@ export type TrackingFrameMessage = {
   sequence: number;
   sessionId?: string;
   gesture: TrackingGesture;
+  commandGesture?: GestureId;
   confidence: number;
   landmarks?: NormalizedLandmark[];
   pointerDelta?: PointerDelta;
@@ -204,6 +205,12 @@ export function isTrackingFrameMessage(
   if (
     value.sessionId !== undefined &&
     (typeof value.sessionId !== "string" || value.sessionId.length > 128)
+  ) {
+    return false;
+  }
+  if (
+    value.commandGesture !== undefined &&
+    !GESTURE_IDS.includes(value.commandGesture as GestureId)
   ) {
     return false;
   }

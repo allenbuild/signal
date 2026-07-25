@@ -1,4 +1,11 @@
-# Signal extension 0.2.4
+# Signal extension 0.3.0
+
+- Runs cursor control, pinch click/scroll/zoom, and command gestures together
+  from one side-panel experience with no Control/Commands mode switch.
+- Keeps One dedicated to cursor control and assigns Rickroll to the Five pose.
+- Keeps a fired pose latched across the tab opened by its command, preventing
+  one held gesture from opening the same link repeatedly.
+- Replaces the public browser fallback with a focused extension download page.
 
 - Prevents a stored running session from bypassing the visible camera setup
   after an extension reload.

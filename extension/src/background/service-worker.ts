@@ -103,7 +103,7 @@ let activeCommand: AbortController | null = null;
 function activeMode(): SignalMode {
   return !runtimeState.running || runtimeState.paused
     ? "paused"
-    : runtimeState.mode;
+    : "control";
 }
 
 function enqueueLifecycle<T>(operation: () => Promise<T>): Promise<T> {
@@ -392,7 +392,7 @@ async function refreshActiveTab(
     activeTabSupported: supported,
     status: supported
       ? runtimeState.running
-        ? `${runtimeState.mode === "control" ? "Control" : "Commands"} mode is active on this tab.`
+        ? "Control and command gestures are active on this tab."
         : runtimeState.status
       : PROTECTED_PAGE_MESSAGE,
   });
@@ -402,8 +402,8 @@ async function refreshActiveTab(
   }
 }
 
-function resetGestureEngine() {
-  gestureEngine.reset();
+function resetGestureEngine(preserveFiredGesture = false) {
+  gestureEngine.reset(Date.now(), preserveFiredGesture);
 }
 
 function commandPlan(
@@ -628,10 +628,11 @@ async function handleTrackingFrame(frame: TrackingFrameMessage) {
   if (!runtimeState.running || runtimeState.paused) return;
   const result = await router.routeTrackingFrame(frame);
   const supported = result.status === "sent";
+  const detectedCommandGesture = frame.commandGesture ?? frame.gesture;
   const gesture = ACTIVE_COMMAND_GESTURES.includes(
-    frame.gesture as ActiveCommandGesture,
+    detectedCommandGesture as ActiveCommandGesture,
   )
-    ? (frame.gesture as ActiveCommandGesture)
+    ? (detectedCommandGesture as ActiveCommandGesture)
     : null;
   const update = gestureEngine.update(
     {
@@ -645,7 +646,7 @@ async function handleTrackingFrame(frame: TrackingFrameMessage) {
       // Command presets can open or activate permitted tabs without injecting
       // into the current page. Keep them available even when the user starts
       // from chrome://extensions or another protected browser surface.
-      supportedTab: runtimeState.mode === "commands" || supported,
+      supportedTab: true,
     },
   );
 
@@ -662,14 +663,15 @@ async function handleTrackingFrame(frame: TrackingFrameMessage) {
   if (now - lastTelemetryAt >= 200 || frame.gesture === "unknown") {
     lastTelemetryAt = now;
     runtimeState.fps = frame.fps ?? runtimeState.fps;
-    runtimeState.gesture = frame.gesture === "unknown" ? null : frame.gesture;
+    runtimeState.gesture =
+      gesture ?? (frame.gesture === "unknown" ? null : frame.gesture);
     runtimeState.confidence = frame.confidence;
     runtimeState.activeTabSupported = supported;
     runtimeState.commandProgress = update?.progress;
     runtimeState.status =
       result.status === "unsupported"
         ? PROTECTED_PAGE_MESSAGE
-        : runtimeState.mode === "commands" && update
+        : update
           ? `${update.gesture.replace("_", " ")} ${update.phase} at ${Math.round(update.progress * 100)}%.`
           : "Signal is tracking locally.";
     try {
@@ -1095,18 +1097,15 @@ async function handleSidePanelMessage(
       await enqueueLifecycle(resumeSignal);
       return { ok: true };
     case "signal:sidepanel/mode": {
-      const mode =
-        message.mode === "commands" ? "commands" : "control";
-      runtimeState.mode = mode;
-      if (mode === "control") cancelActiveCommand();
+      runtimeState.mode = "control";
       if (storedState) {
-        storedState.settings.mode = mode;
+        storedState.settings.mode = "control";
         await storage.save(storedState);
       }
       resetGestureEngine();
       await sendModeToActiveTab();
       await patchRuntime({
-        status: `${mode === "control" ? "Control" : "Commands"} mode selected.`,
+        status: "Control and command gestures are active together.",
       });
       return { ok: true };
     }
@@ -1339,8 +1338,11 @@ async function ensureInitialized() {
   if (initialization) return initialization;
   initialization = (async () => {
     storedState = await storage.load();
-    const storedMode = storedState.settings.mode;
-    runtimeState.mode = storedMode === "commands" ? "commands" : "control";
+    runtimeState.mode = "control";
+    if (storedState.settings.mode !== "control") {
+      storedState.settings.mode = "control";
+      await storage.save(storedState);
+    }
     gestureEngine = new CommandGestureEngine({
       holdMs: storedState.tuning.holdMs,
       cooldownMs: storedState.tuning.cooldownMs,
@@ -1418,7 +1420,7 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
       const candidate = routable(tab);
       if (!candidate) return;
       zoom.clear();
-      resetGestureEngine();
+      resetGestureEngine(true);
       const result = await router.activate(candidate, "tab-change");
       const supported = result.status === "sent";
       await patchRuntime({
@@ -1444,7 +1446,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
   void router.navigationCommitted(tabId, changeInfo.url ?? tab.url).then(
     async (result) => {
-      resetGestureEngine();
+      resetGestureEngine(true);
       zoom.clear(tabId);
       const supported = result.status === "sent";
       await patchRuntime({
@@ -1466,7 +1468,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
     demoSessionId = null;
   }
   if (router.activeTabId === tabId) {
-    resetGestureEngine();
+    resetGestureEngine(true);
     void refreshActiveTab();
   }
 });

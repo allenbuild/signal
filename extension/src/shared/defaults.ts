@@ -3,7 +3,7 @@ import type { BrowserCommandAction, GestureId } from "./types";
 export const ACTIVE_COMMAND_CATALOG_VERSION = 1 as const;
 
 export const ACTIVE_COMMAND_GESTURES = [
-  "one",
+  "five",
   "two",
   "three",
   "four",
@@ -75,8 +75,8 @@ export const ACTIVE_COMMAND_CATALOG = {
   schemaVersion: ACTIVE_COMMAND_CATALOG_VERSION,
   commands: [
     {
-      id: "signal.default.v1.one",
-      gesture: "one",
+      id: "signal.default.v1.five",
+      gesture: "five",
       name: "Rickroll",
       description: "Open the Rickroll video in a new active tab.",
       configurable: false,

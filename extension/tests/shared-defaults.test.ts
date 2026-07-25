@@ -25,18 +25,19 @@ describe("active command defaults", () => {
     expect(new Set(ACTIVE_COMMAND_GESTURES).size).toBe(8);
   });
 
-  it("does not expose or resolve the removed Five command", () => {
-    expect(ACTIVE_COMMAND_GESTURES).not.toContain("five");
+  it("keeps One cursor-only and exposes Five as a command", () => {
+    expect(ACTIVE_COMMAND_GESTURES).not.toContain("one");
     expect(
       ACTIVE_COMMAND_CATALOG.commands.some(
-        ({ gesture }) => (gesture as string) === "five",
+        ({ gesture }) => (gesture as string) === "one",
       ),
     ).toBe(false);
-    expect(getActiveCommandDefinition("five")).toBeNull();
+    expect(getActiveCommandDefinition("one")).toBeNull();
+    expect(getActiveCommandDefinition("five")?.name).toBe("Rickroll");
   });
 
   it.each([
-    ["one", "Rickroll", RICKROLL_URL],
+    ["five", "Rickroll", RICKROLL_URL],
     ["two", "New Gmail", GMAIL_COMPOSE_URL],
     ["three", "Cursor Agents", CURSOR_AGENTS_URL],
     ["four", "New Google Doc", NEW_GOOGLE_DOC_URL],

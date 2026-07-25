@@ -71,6 +71,7 @@ type OffscreenOutboundMessage =
       stats: TrackingStats;
       landmarks: TrackingAnalysis["landmarks"];
       gesture: TrackingAnalysis["gesture"];
+      commandGesture?: TrackingAnalysis["commandGesture"];
       confidence: number;
       fps: number;
       pointerDelta?: TrackingAnalysis["pointerDelta"];
@@ -464,6 +465,9 @@ function processFrame(timestamp: number): void {
         stats: currentStats,
         landmarks: analysis.landmarks,
         gesture: analysis.gesture,
+        ...(analysis.commandGesture
+          ? { commandGesture: analysis.commandGesture }
+          : {}),
         confidence: analysis.confidence,
         fps: currentStats.processedFps,
         ...(analysis.pointerDelta

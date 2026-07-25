@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import "../components/signal/signal-page.css";
-
 :root {
   --ink: #111513;
   --ink-soft: #424944;

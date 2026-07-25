@@ -79,6 +79,20 @@ try {
   await panel.goto(`chrome-extension://${extensionId}/sidepanel/index.html`);
   await panel.getByRole("heading", { name: "signal", exact: true }).waitFor();
   await panel.getByRole("button", { name: "Start Signal" }).waitFor();
+  await panel.getByText(/Control \+ commands/).waitFor();
+  await panel.getByText("five", { exact: true }).waitFor();
+  if (
+    (await panel.getByRole("button", { name: "Control", exact: true }).count()) +
+      (await panel
+        .getByRole("button", { name: "Commands", exact: true })
+        .count()) !==
+    0
+  ) {
+    throw new Error("The side panel still exposes separate runtime modes.");
+  }
+  if ((await panel.getByText("one", { exact: true }).count()) !== 0) {
+    throw new Error("The removed One command is still visible.");
+  }
 
   const runtimeStatus = await panel.evaluate(async () => {
     return chrome.runtime.sendMessage({

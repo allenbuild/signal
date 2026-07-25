@@ -22,6 +22,7 @@ describe("versioned messages", () => {
       timestamp: 100,
       sequence: 4,
       gesture: "pointer" as const,
+      commandGesture: "one" as const,
       confidence: 0.92,
       landmarks: [{ x: 0.2, y: 0.4, z: -0.01 }],
       pointerDelta: { dx: 2, dy: -1 },
@@ -32,6 +33,9 @@ describe("versioned messages", () => {
     expect(isSignalMessage(frame)).toBe(true);
     expect(isTrackingFrameMessage({ ...frame, version: 2 })).toBe(false);
     expect(isTrackingFrameMessage({ ...frame, confidence: 2 })).toBe(false);
+    expect(
+      isTrackingFrameMessage({ ...frame, commandGesture: "wave" }),
+    ).toBe(false);
   });
 
   it("creates generation-scoped reset messages", () => {
@@ -102,12 +106,11 @@ describe("nine-gesture one-shot engine", () => {
     ).toBe(true);
   });
 
-  it("suppresses commands while editing, paused, controlling, or unsupported", () => {
+  it("runs alongside control and suppresses only editing, pause, or unsupported contexts", () => {
     const engine = new CommandGestureEngine();
     for (const context of [
       { ...commands, editing: true },
       { ...commands, supportedTab: false },
-      { ...commands, mode: "control" as const },
       { ...commands, mode: "paused" as const },
     ]) {
       const result = engine.update(
@@ -117,6 +120,52 @@ describe("nine-gesture one-shot engine", () => {
       expect(result?.phase).toBe("suppressed");
       expect(result?.firedNow).toBe(false);
     }
+    expect(
+      engine.update(
+        { gesture: "one", confidence: 1, timestamp: 2_000 },
+        { ...commands, mode: "control" },
+      )?.phase,
+    ).toBe("detected");
+  });
+
+  it("keeps a fired gesture latched across tab navigation until pose release", () => {
+    const engine = new CommandGestureEngine({
+      holdMs: 100,
+      cooldownMs: 0,
+      minimumConfidence: 0.7,
+    });
+    engine.update(
+      { gesture: "two", confidence: 1, timestamp: 0 },
+      commands,
+    );
+    expect(
+      engine.update(
+        { gesture: "two", confidence: 1, timestamp: 100 },
+        commands,
+      )?.firedNow,
+    ).toBe(true);
+
+    engine.reset(110, true);
+    expect(
+      engine.update(
+        { gesture: "two", confidence: 1, timestamp: 500 },
+        commands,
+      )?.firedNow,
+    ).toBe(false);
+    engine.update(
+      { gesture: null, confidence: 0, timestamp: 510 },
+      commands,
+    );
+    engine.update(
+      { gesture: "two", confidence: 1, timestamp: 520 },
+      commands,
+    );
+    expect(
+      engine.update(
+        { gesture: "two", confidence: 1, timestamp: 620 },
+        commands,
+      )?.firedNow,
+    ).toBe(true);
   });
 
   it("exposes deterministic hold progress and rejects weak detections", () => {
