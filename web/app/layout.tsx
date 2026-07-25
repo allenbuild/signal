@@ -14,20 +14,20 @@ export async function generateMetadata(): Promise<Metadata> {
   const socialImage = new URL("/og.png", base).toString();
   return {
     metadataBase: base,
-    title: "Signal — Your hand already knows the shortcut",
+    title: "Signal — Hand control in your browser",
     description:
-      "Touchless Mac control and nine programmable hand gestures for repeatable workflows.",
+      "Local webcam hand tracking, virtual cursor controls, and programmable browser-safe gesture commands—no installation required.",
     icons: { icon: "/favicon.png", shortcut: "/favicon.png" },
     openGraph: {
       title: "Signal — Point. Pinch. Program.",
-      description: "A touch interface and programmable command layer for your Mac.",
+      description: "A local hand-control interface and programmable command layer for the browser.",
       type: "website",
-      images: [{ url: socialImage, width: 1200, height: 630, alt: "Signal hand interface for macOS" }],
+      images: [{ url: socialImage, width: 1200, height: 630, alt: "Signal browser hand-control interface" }],
     },
     twitter: {
       card: "summary_large_image",
       title: "Signal — Point. Pinch. Program.",
-      description: "Your hand is now a programmable interface for the Mac.",
+      description: "Your hand is now a programmable interface for Signal in the browser.",
       images: [socialImage],
     },
   };

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ContentNav } from "../components/ContentNav";
 
 export default function SetupPage() {
@@ -5,21 +6,22 @@ export default function SetupPage() {
     <>
       <ContentNav />
       <main className="content-page" id="main-content">
-      <div className="content-wrap">
-        <p className="eyebrow">Setup / about five minutes</p>
-        <h1>Give Signal permission to help.</h1>
-        <p>
-          Signal uses the camera to understand hand landmarks and Accessibility
-          to control the real cursor and frontmost app. You stay in control:
-          output starts paused and must be enabled explicitly.
-        </p>
-        <div className="content-grid">
-          <article className="content-card"><span>01</span><h2>Install and open</h2><p>Move Signal to Applications, open it, and follow macOS’s first-launch prompt. If Gatekeeper asks, use the release page’s signing-specific instructions.</p></article>
-          <article className="content-card"><span>02</span><h2>Allow Camera</h2><p>Open System Settings → Privacy &amp; Security → Camera, then enable the exact Signal app you installed. Frames remain in memory on your Mac.</p></article>
-          <article className="content-card"><span>03</span><h2>Allow Accessibility</h2><p>Open Privacy &amp; Security → Accessibility and enable Signal. If you replace the app, remove the old entry and add the new release candidate.</p></article>
-          <article className="content-card"><span>04</span><h2>Calibrate, then enable</h2><p>Choose Hybrid mode, confirm the landmark view is stable, and explicitly enable output. Control–Option–Command–H closes the output gate and requests macro cancellation.</p></article>
+        <div className="content-wrap">
+          <p className="eyebrow">Browser setup / under one minute</p>
+          <h1>One click starts local hand tracking.</h1>
+          <p>
+            Signal controls its own web interface and browser-safe workflows.
+            It does not synthesize operating-system-wide input or control
+            arbitrary desktop applications.
+          </p>
+          <div className="content-grid">
+            <article className="content-card"><span>01</span><h2>Use a desktop browser</h2><p>Current Chrome on macOS, Windows, or Linux is the primary supported path. No account or installation is required.</p></article>
+            <article className="content-card"><span>02</span><h2>Click Start Signal</h2><p>This real click requests camera permission, prepares local MediaPipe tracking, and attempts to open one reusable action tab.</p></article>
+            <article className="content-card"><span>03</span><h2>Allow Camera</h2><p>The mirrored preview and hand landmarks appear after permission. Frames are processed locally and are not uploaded or stored.</p></article>
+            <article className="content-card"><span>04</span><h2>Choose a mode</h2><p>Control moves Signal’s virtual cursor and handles pinch actions. Commands recognizes deliberate held poses. Press Escape at any time to pause.</p></article>
+          </div>
+          <Link className="button button-primary" href="/">Start on the Signal page <span>↗</span></Link>
         </div>
-      </div>
       </main>
     </>
   );

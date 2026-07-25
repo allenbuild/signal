@@ -11,7 +11,7 @@ export function ContentNav() {
         <Link href="/privacy">Privacy</Link>
         <Link href="/prior-work">Prior work</Link>
       </div>
-      <Link className="button button-small button-dark" href="/download">Download</Link>
+      <Link className="button button-small button-dark" href="/">Open Signal</Link>
     </nav>
   );
 }
