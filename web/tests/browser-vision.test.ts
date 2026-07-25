@@ -208,6 +208,19 @@ describe("control-mode transaction engine", () => {
     expect(reentered.cursor.x).toBeCloseTo(moved.cursor.x, 5);
   });
 
+  it("keeps the full 30px virtual cursor inside the viewport after resize", () => {
+    const engine = new ControlEngine({ width: 1_000, height: 800 });
+    engine.resize(100, 80);
+
+    const snapshot = engine.update({
+      landmarks: makeHand([]),
+      pointerPose: false,
+      timestamp: 0,
+    });
+    expect(snapshot.cursor.x).toBe(85);
+    expect(snapshot.cursor.y).toBe(65);
+  });
+
   it("uses pinch hysteresis and emits one click only after quick release", () => {
     const engine = new ControlEngine({ width: 1_000, height: 800 });
     const base = makeHand([]);

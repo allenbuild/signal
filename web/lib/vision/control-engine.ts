@@ -48,6 +48,8 @@ export type ControlEngineOptions = {
   dominantAxisRatio?: number;
 };
 
+const CURSOR_RADIUS_PX = 15;
+
 export class ControlEngine {
   private width: number;
   private height: number;
@@ -94,8 +96,16 @@ export class ControlEngine {
   resize(width: number, height: number) {
     this.width = width;
     this.height = height;
-    this.cursor.x = clamp(this.cursor.x, 0, width);
-    this.cursor.y = clamp(this.cursor.y, 0, height);
+    this.cursor.x = clamp(
+      this.cursor.x,
+      CURSOR_RADIUS_PX,
+      Math.max(CURSOR_RADIUS_PX, width - CURSOR_RADIUS_PX),
+    );
+    this.cursor.y = clamp(
+      this.cursor.y,
+      CURSOR_RADIUS_PX,
+      Math.max(CURSOR_RADIUS_PX, height - CURSOR_RADIUS_PX),
+    );
   }
 
   reset(): ControlSnapshot {
@@ -234,13 +244,13 @@ export class ControlEngine {
           adjustedY * this.smoothing;
         this.cursor.x = clamp(
           this.cursor.x + this.smoothedDelta.x,
-          4,
-          this.width - 4,
+          CURSOR_RADIUS_PX,
+          Math.max(CURSOR_RADIUS_PX, this.width - CURSOR_RADIUS_PX),
         );
         this.cursor.y = clamp(
           this.cursor.y + this.smoothedDelta.y,
-          4,
-          this.height - 4,
+          CURSOR_RADIUS_PX,
+          Math.max(CURSOR_RADIUS_PX, this.height - CURSOR_RADIUS_PX),
         );
       }
       this.cursor.visible = true;
