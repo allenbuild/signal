@@ -11,14 +11,16 @@ unlisted profile pages, and a narrowly typed Discord integration.
 
 ## Current status
 
-The source, local tests, generated D1 migration, and a local `dist/` directory
-are present. Generated output is not evidence of a clean build from the final
+The source, local tests, generated D1 migration, and build configuration are
+present. Generated output is not evidence of a clean build from the final
 commit, public deployment, or release. At this snapshot:
 
 - no production URL or public release artifact is recorded;
 - Vercel CLI authentication is unavailable on this machine;
-- `.openai/hosting.json` declares the D1 binding name `DB` but has no Sites
-  `project_id`;
+- `.openai/hosting.json` persists Sites project
+  `appgprj_6a6427e53dd081919929ed91bee95fc9` and D1 binding `DB`, but the
+  current Sites connector identity receives `404 project_not_found` for that
+  project;
 - production D1 migration, HTTPS smoke tests, provider calls, second-device
   checks, native artifact download, signing, and notarization remain unverified.
 
@@ -401,13 +403,15 @@ physical deletion on an idle service.
 
 This project is built with Vinext and the Cloudflare Vite plugin, and its
 profile API depends on D1. Sites is therefore the intended full-stack path.
-Before publishing, the release owner must create/reuse the Sites project,
-persist its opaque `project_id` in `.openai/hosting.json`, apply the generated
-migration, configure managed environment values, save the exact tested commit
-as a version, deploy that version, and poll to a successful status.
+Before publishing, the release owner must restore access to the persisted Sites
+project, apply the generated migration through the Sites deployment, configure
+managed environment values, save the exact tested commit as a version, deploy
+that version, and poll to a successful status.
 
-At this snapshot no `project_id` or deployed Sites URL is recorded. If a Sites
-deployment completes, record the exact URL and smoke evidence in
+At this snapshot a `project_id` is recorded but is not visible to the current
+connector identity, and no deployed Sites URL is recorded. Do not create a
+duplicate project or substitute a different opaque ID. If access is restored
+and deployment completes, record the exact URL and smoke evidence in
 `HANDOFF.md`; do not infer success from `dist/`.
 
 ### Vercel path and current blocker

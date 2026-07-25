@@ -201,7 +201,7 @@ pnpm run test:e2e
 Current local verification against the one-page source:
 
 ```text
-pnpm test          PASS — 10 files, 102 tests
+pnpm test          PASS — 10 files, 104 tests
 pnpm run typecheck PASS
 pnpm run lint      PASS
 pnpm run build     PASS
@@ -232,13 +232,16 @@ Required browser checks:
 
 Sites is the intended full-stack target because the current build is
 Vinext/Cloudflare and the profile store uses D1. Public Sites project
-`appgprj_6a6427e53dd081919929ed91bee95fc9` is persisted and has public access,
-but it has no saved version, deployment, or production URL.
+`appgprj_6a6427e53dd081919929ed91bee95fc9` is persisted, but the current Sites
+connector identity receives `404 project_not_found` for that exact ID. No saved
+version, deployment, or production URL can be inspected or created until
+ownership/access is restored.
 
 The release owner must:
 
 1. run the complete verification sequence;
-2. reuse the persisted Sites project ID; do not create a second project;
+2. restore access to and reuse the persisted Sites project ID; do not create a
+   second project or substitute another opaque ID;
 3. configure managed environment values;
 4. push the exact validated source and use that branch-head SHA;
 5. package the validated `dist/`, hosting metadata, and D1 migration;

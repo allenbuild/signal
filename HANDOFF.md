@@ -13,10 +13,12 @@ acceptance gates.
 The work was developed on `partner/web-cloud` and is being fast-forwarded and
 pushed as `human/actions-cloud` for handoff.
 
-There is not yet a live production URL. A public Sites project was created and
-persisted in `web/.openai/hosting.json`, but no source version was saved or
-deployed before the session stop. Vercel authentication was unavailable, so no
-Vercel deployment is claimed.
+There is not yet a live production URL. Sites project
+`appgprj_6a6427e53dd081919929ed91bee95fc9` is persisted in
+`web/.openai/hosting.json`, but the current connector identity receives
+`404 project_not_found` for that exact ID. No source version can be saved or
+deployed until ownership/access is restored. Vercel authentication remains
+unavailable, so no Vercel deployment is claimed.
 
 ## Features completed
 
@@ -38,17 +40,24 @@ Vercel deployment is claimed.
 - Strict action/profile/planner contracts with unknown-action, private literal
   URL, and inline-secret rejection.
 - D1 unlisted profile create/read/revoke APIs plus generated migration.
+- One-page-memory revoke-capability handling with explicit copy and confirmed
+  revoke controls; the capability never enters profile JSON or local storage.
+- Defined D1 retention: active shares expire after 365 days, revoked rows after
+  30 days, API access purges opportunistically, and
+  `web/db/purge-expired-profiles.sql` is supplied for the required daily
+  production schedule.
 - Typed Discord integration, server-side secrets, defensive headers, privacy
   and security documentation, and generated social artwork.
-- Public Sites project created with public access:
-  `appgprj_6a6427e53dd081919929ed91bee95fc9`.
+- Sites project ID persisted:
+  `appgprj_6a6427e53dd081919929ed91bee95fc9`; access by the current connector
+  identity is blocked with `404 project_not_found`.
 
 ## Verification
 
 Run from `web/`:
 
 ```text
-pnpm test          PASS — 10 files, 102 tests
+pnpm test          PASS — 10 files, 104 tests
 pnpm typecheck     PASS
 pnpm lint          PASS
 pnpm build         PASS
@@ -56,25 +65,25 @@ pnpm test:e2e      PASS — 16/16 desktop/mobile Chromium tests
 git diff --check   PASS
 ```
 
-Manual in-app browser QA also verified fallback generation, plan review,
-save/reload persistence, mobile full-screen modal behavior, Escape/focus
-restoration, and a clean console.
+The final E2E run used the repository-pinned Playwright Chromium against the
+Signal dev server on `http://localhost:3100` because an unrelated local service
+occupied port 3000. Manual in-app browser QA from the preceding source commit
+also verified fallback generation, plan review, save/reload persistence, mobile
+full-screen modal behavior, Escape/focus restoration, and a clean console.
 
 ## Features partially completed or intentionally deferred
 
-- Sites project/access setup is complete, but no saved version, deployment, or
-  production URL exists.
+- Sites project ownership/access must be restored before saved versions,
+  deployment state, environment values, or a production URL can be managed.
 - Vercel CLI/auth/project linking was unavailable; Vinext/Cloudflare/D1 on
   Vercel still needs validation if Vercel is mandatory.
 - Anthropic and Discord production secrets were not configured; fallback and
   simulation remain functional.
 - Native retrieval is currently JSON export/import; there is no live
   WebView/native command transport.
-- The profile API supports revocation, but the legacy browser publisher does
-  not retain its create-only revoke token.
 - No native artifact, signing/notarization, physical gesture, second-device,
   or real HTTPS screen-picker recording test is claimed.
-- D1 production migration and retention/purge automation are unverified.
+- D1 production migration and the daily retention schedule are unverified.
 
 ## Files modified
 
@@ -149,9 +158,9 @@ Test-only: `PLAYWRIGHT_BASE_URL`, `BASE_URL`, `CI`.
 
 ## Remaining TODOs in priority order
 
-1. From a clean `human/actions-cloud` checkout, install with
-   `pnpm install --frozen-lockfile` and rerun all five verification commands.
-2. Build/package the exact commit, push it to the configured Sites source
+1. Restore the current connector identity's access to persisted Sites project
+   `appgprj_6a6427e53dd081919929ed91bee95fc9`.
+2. Build/package the exact verified commit, push it to the configured Sites source
    repository, save a version, deploy it publicly, and poll to success.
 3. Set `NEXT_PUBLIC_SITE_URL` to the returned URL and redeploy the environment
    revision.
@@ -163,16 +172,17 @@ Test-only: `PLAYWRIGHT_BASE_URL`, `BASE_URL`, `CI`.
 7. Configure live Anthropic/Discord only if needed, without exposing values.
 8. Choose a native command retrieval transport; JSON import is the current
    supported mechanism.
-9. Fix the legacy revoke-token UX and define D1 retention.
+9. Schedule and verify `web/db/purge-expired-profiles.sql` at least daily.
 10. If Vercel is mandatory, authenticate/link it and adapt/validate the
     Vinext/Cloudflare/D1 runtime before claiming a Vercel URL.
 
 ## Bugs and known issues
 
 - No live deployment URL yet.
-- D1 revocation does not automatically purge rows.
+- The persisted Sites project is not visible to the current connector identity.
+- The production D1 migration and daily retention schedule are not yet
+  verifiable.
 - Per-IP rate limits are in-memory and reset across isolates/deploys.
-- The legacy profile UI discards the revoke token.
 - Keyframes can contain sensitive content; the UI/docs disclose this risk.
 - Historical supporting routes remain even though `/` is the only primary page.
 
