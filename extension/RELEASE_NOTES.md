@@ -1,4 +1,10 @@
-# Signal extension 0.2.3
+# Signal extension 0.2.4
+
+- Prevents a stored running session from bypassing the visible camera setup
+  after an extension reload.
+- Detects a camera stream that delivers zero usable frames and automatically
+  opens recovery setup instead of claiming tracking is active.
+- Adds a one-click **Repair zero-FPS camera** action to the side panel.
 
 - Uses a visible, one-time camera setup page so Chrome cannot strand Signal in
   an unresolved hidden permission request.

@@ -12,6 +12,7 @@ const MESSAGE_VERSION = 1 as const;
 const PORT_NAME = "signal:offscreen";
 const OFFSCREEN_SOURCE = "signal-offscreen";
 const MEDIAPIPE_START_TIMEOUT_MS = 15_000;
+const FIRST_FRAME_TIMEOUT_MS = 5_000;
 
 type OffscreenControlMessage =
   | { version?: number; type: "signal:offscreen/start" }
@@ -100,6 +101,7 @@ let lifecycleGeneration = 0;
 let desiredRuntimeState: "running" | "paused" | "idle" = "idle";
 let sequence = 0;
 let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+let firstFrameWatchdog: ReturnType<typeof setTimeout> | null = null;
 let lastVideoTime = -1;
 let lastTrackingVisible = false;
 let captureFrames = 0;
@@ -217,6 +219,39 @@ function interruptedTeardownTarget(): "paused" | "idle" {
   return desiredRuntimeState === "paused" ? "paused" : "idle";
 }
 
+function clearFirstFrameWatchdog(): void {
+  if (firstFrameWatchdog !== null) clearTimeout(firstFrameWatchdog);
+  firstFrameWatchdog = null;
+}
+
+function scheduleFirstFrameWatchdog(generation: number): void {
+  clearFirstFrameWatchdog();
+  firstFrameWatchdog = setTimeout(() => {
+    firstFrameWatchdog = null;
+    if (
+      !running ||
+      generation !== lifecycleGeneration ||
+      currentStats.processedFps > 0
+    ) {
+      return;
+    }
+    desiredRuntimeState = "idle";
+    lifecycleGeneration += 1;
+    void teardown(
+      "error",
+      "The camera opened but delivered no usable frames. Close other camera tabs and run camera setup again.",
+    ).then(() => {
+      post({
+        version: MESSAGE_VERSION,
+        source: OFFSCREEN_SOURCE,
+        type: "signal:offscreen/permission-required",
+        sessionId,
+        reason: "camera",
+      });
+    });
+  }, FIRST_FRAME_TIMEOUT_MS);
+}
+
 async function startHandTracker(): Promise<void> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -272,9 +307,17 @@ async function start(): Promise<void> {
     captureFrames = 0;
     processedFrames = 0;
     statsStartedAt = performance.now();
+    currentStats = {
+      captureFps: 0,
+      processedFps: 0,
+      inferenceMs: 0,
+      width: video.videoWidth,
+      height: video.videoHeight,
+    };
     running = true;
     postCameraState(camera.snapshot);
     scheduleNextFrame();
+    scheduleFirstFrameWatchdog(generation);
   } catch (error) {
     if (
       generation !== lifecycleGeneration ||
@@ -312,6 +355,7 @@ async function teardown(
   stopping = true;
   running = false;
   cancelScheduledFrame();
+  clearFirstFrameWatchdog();
   normalizer.reset();
   mediapipe.stop();
   if (target === "paused") camera.pause();

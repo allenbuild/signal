@@ -376,6 +376,11 @@ export function App() {
             Grant camera permission
           </button>
         )}
+        {runtime.running && runtime.camera === "running" && runtime.fps <= 0 && (
+          <button className="permission-link" onClick={() => void openPermissionSetup()}>
+            Repair zero-FPS camera
+          </button>
+        )}
         <div className="telemetry">
           <span><small>Gesture</small>{runtime.gesture ?? "No hand"}</span>
           <span><small>Confidence</small>{Math.round(runtime.confidence * 100)}%</span>

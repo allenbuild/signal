@@ -753,7 +753,9 @@ async function handleOffscreenMessage(message: unknown) {
           (stoppedUnexpectedly
             ? "Signal’s camera stopped unexpectedly. Choose Start Signal to recover."
             : camera === "running"
-              ? "Signal is tracking locally across ordinary tabs."
+              ? (event.fps ?? 0) > 0
+                ? "Signal is tracking locally across ordinary tabs."
+                : "Camera opened; waiting for the first usable frame…"
               : camera === "paused"
                 ? "Signal is paused. The camera track is off."
                 : runtimeState.status),
@@ -1118,6 +1120,18 @@ async function handleSidePanelMessage(
       }
       return { ok: true };
     case "signal:sidepanel/open-permission":
+      await enqueueLifecycle(stopSignal);
+      await chrome.storage.local.remove(CAMERA_PERMISSION_KEY);
+      await patchRuntime(
+        {
+          running: false,
+          paused: false,
+          camera: "permission",
+          fps: 0,
+          status: "Complete the visible camera setup, then Signal will restart.",
+        },
+        true,
+      );
       await openPermissionSetup();
       return { ok: true };
     case "signal:sidepanel/plan": {
@@ -1336,12 +1350,25 @@ async function ensureInitialized() {
     const previous = session[SESSION_KEY] as StoredRuntimeSession | undefined;
     runtimeState.running = previous?.running === true;
     runtimeState.paused = previous?.paused === true;
+    const cameraPermission = await chrome.storage.local.get(
+      CAMERA_PERMISSION_KEY,
+    );
+    const permissionConfirmed =
+      cameraPermission[CAMERA_PERMISSION_KEY] === true;
+    if (runtimeState.running && !permissionConfirmed) {
+      runtimeState.running = false;
+      runtimeState.paused = false;
+      runtimeState.camera = "permission";
+      runtimeState.status =
+        "Complete the one-time visible camera setup before Signal starts.";
+      await persistRuntimeSession();
+    }
     if (runtimeState.running && runtimeState.paused) {
       runtimeState.camera = "paused";
       runtimeState.status = "Signal is paused. The camera track is off.";
     }
     await refreshActiveTab("service-worker-restart");
-    if (runtimeState.running && !runtimeState.paused) {
+    if (runtimeState.running && !runtimeState.paused && permissionConfirmed) {
       try {
         await sendOffscreen("signal:offscreen/ping");
         await sendOffscreen("signal:offscreen/start");
