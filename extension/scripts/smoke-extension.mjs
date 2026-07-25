@@ -125,7 +125,15 @@ try {
     throw new Error("The built content script did not click the fixture target.");
   }
 
-  await panel.getByRole("button", { name: "Stop" }).click();
+  const stopReceipt = await panel.evaluate(async () => {
+    return chrome.runtime.sendMessage({
+      version: 1,
+      type: "signal:sidepanel/stop",
+    });
+  });
+  if (!stopReceipt?.ok) {
+    throw new Error(stopReceipt?.error ?? "Signal did not stop cleanly.");
+  }
   await panel.getByRole("button", { name: "Start Signal" }).waitFor();
 
   console.log(
