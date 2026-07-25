@@ -101,7 +101,7 @@ final class SchemaProfilePlannerTests: XCTestCase {
     func testPlannerDefaultsToPublicHTTPSAndSeededFallback() async throws {
         let configuration = PlannerConfiguration()
         XCTAssertEqual(configuration.endpoint.scheme, "https")
-        XCTAssertNotEqual(configuration.endpoint.host, "localhost")
+        XCTAssertEqual(configuration.endpoint.host, "signal-hand-control.allenxtech.chatgpt.site")
         let client = PlannerClient()
         let result = client.offlinePlan(for: "When I give a thumbs up, start focus mode")
         XCTAssertEqual(result.interpretedGesture, .thumbsUp)

@@ -388,9 +388,11 @@ struct SignalSettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section("Planner") {
-                TextField("Public HTTPS endpoint", text: $model.endpoint)
-                Button("Validate & Apply") { model.updatePlannerEndpoint() }
-                Text("Localhost and private-network endpoints are blocked.")
+                LabeledContent("Production endpoint") {
+                    Text(PlannerConfiguration.productionEndpoint.host ?? "Unavailable")
+                        .textSelection(.enabled)
+                }
+                Text("Signal only sends planning requests to its fixed public HTTPS service. Redirected responses are rejected.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section("Safety") {

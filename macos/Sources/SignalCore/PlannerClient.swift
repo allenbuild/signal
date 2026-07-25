@@ -1,11 +1,15 @@
 import Foundation
 
 public struct PlannerConfiguration: Codable, Equatable, Sendable {
+    public static let productionEndpoint = URL(
+        string: "https://signal-hand-control.allenxtech.chatgpt.site/api/v1/plan"
+    )!
+
     public var endpoint: URL
     public var timeoutSeconds: Double
 
     public init(
-        endpoint: URL = URL(string: "https://signal-hand.app/api/v1/plan")!,
+        endpoint: URL = Self.productionEndpoint,
         timeoutSeconds: Double = 12
     ) {
         self.endpoint = endpoint
@@ -129,6 +133,7 @@ public actor PlannerClient {
             let (data, response) = try await session.data(for: request)
             guard data.count <= 1_048_576,
                   let http = response as? HTTPURLResponse,
+                  http.url == configuration.endpoint,
                   (200..<300).contains(http.statusCode) else {
                 throw URLError(.badServerResponse)
             }

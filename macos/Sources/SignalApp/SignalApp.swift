@@ -91,7 +91,6 @@ final class SignalAppModel: ObservableObject {
     @Published var recorderState: RecorderState = .idle
     @Published var recorderItems: [RecordedTimelineItem] = []
     @Published var oneCommandInHybrid = false
-    @Published var endpoint = "https://signal-hand.app/api/v1/plan"
 
     let safetyGate = SafetyGate()
     private lazy var events = QuartzEventPoster(safetyGate: safetyGate)
@@ -297,21 +296,6 @@ final class SignalAppModel: ObservableObject {
 
     func mappedPlan(for gesture: CommandGesture) -> ActionPlan? {
         plans[gesture]
-    }
-
-    func updatePlannerEndpoint() {
-        guard let url = URL(string: endpoint) else {
-            statusMessage = "Invalid endpoint"
-            return
-        }
-        Task {
-            do {
-                try await planner.update(configuration: PlannerConfiguration(endpoint: url))
-                statusMessage = "Planner endpoint updated"
-            } catch {
-                statusMessage = error.localizedDescription
-            }
-        }
     }
 
     private func process(_ hand: HandLandmarks, metrics: CameraDiagnostics) {
