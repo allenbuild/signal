@@ -2,8 +2,9 @@ import { ContentNav } from "../components/ContentNav";
 
 export default function PrivacyPage() {
   return (
-    <main className="content-page">
+    <>
       <ContentNav />
+      <main className="content-page" id="main-content">
       <div className="content-wrap">
         <p className="eyebrow">Privacy</p>
         <h1>Local vision. Explicit action.</h1>
@@ -14,10 +15,11 @@ export default function PrivacyPage() {
         <div className="content-grid">
           <article className="content-card"><span>ON DEVICE</span><h2>Camera frames</h2><p>Frames are processed in memory with Apple Vision. They are not uploaded, stored by the website, or accepted by the API.</p></article>
           <article className="content-card"><span>OPT IN</span><h2>Planning</h2><p>The planner receives a plain-language request and allowed action catalog. It does not receive camera data or secret values.</p></article>
-          <article className="content-card"><span>REDACTED</span><h2>Shared profiles</h2><p>Public profiles may keep secret reference IDs for configuration, but never webhook URLs, tokens, passwords, cookies, or authorization values.</p></article>
+          <article className="content-card"><span>REDACTED</span><h2>Shared profiles</h2><p>Temporary unlisted profiles may keep secret reference IDs for configuration, but never webhook URLs, tokens, passwords, cookies, or authorization values.</p></article>
           <article className="content-card"><span>DEFAULT OFF</span><h2>Telemetry</h2><p>No product telemetry is enabled by default. Output also starts paused, and the emergency shortcut closes every output gate.</p></article>
         </div>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

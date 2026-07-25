@@ -1,5 +1,14 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
+
+process.env.SIGNAL_DOWNLOAD_URL = "https://downloads.example/Signal-0.1.0-arm64.zip";
+process.env.SIGNAL_RELEASE_VERSION = "0.1.0-rc1";
+process.env.SIGNAL_RELEASE_COMMIT = "abc1234";
+process.env.SIGNAL_RELEASE_SHA256 = "a".repeat(64);
+process.env.SIGNAL_RELEASE_ARCHITECTURE = "Apple silicon (arm64) only";
+process.env.SIGNAL_SIGNING_STATUS = "Ad hoc";
+process.env.SIGNAL_NOTARIZATION_STATUS = "Not notarized";
 
 const workerUrl = new URL("../dist/server/index.js", import.meta.url);
 workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
@@ -51,7 +60,50 @@ test("renders the finished Signal landing page without starter metadata", async 
   assert.match(html, /Your hand already knows the shortcut/);
   assert.match(html, /Point\. Pinch\. Program\./);
   assert.match(html, /Try the local profile builder/);
+  assert.match(html, /href="#main-content"[^>]*>Skip to main content/);
+  assert.match(html, /<main id="main-content">/);
+  assert.match(html, /aria-pressed="true"/);
+  assert.match(html, /role="status"/);
+  assert.match(html, /New links are temporary until this worker restarts/);
+  assert.match(html, /controlled reviewable[\s\S]*demo timeline/i);
+  assert.match(html, /Generic network actions are disabled/);
+  assert.match(html, /closes the output gate and requests macro cancellation/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
+  assert.doesNotMatch(html, /editable macro engine|stops touch output and macros immediately/i);
+});
+
+test("keeps keyboard focus visible and mobile navigation available", async () => {
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /:focus-visible\s*\{/);
+  assert.match(css, /\.skip-link:focus-visible/);
+  assert.match(css, /\.nav-links\s*\{[\s\S]*overflow-x:\s*auto/);
+  assert.doesNotMatch(css, /outline:\s*0|\.nav-links\s*\{\s*display:\s*none/);
+});
+
+test("download page shows environment-provided release evidence and honest Gatekeeper steps", async () => {
+  const response = await request("/download");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /macOS 13 or later is required/);
+  assert.match(html, /Apple silicon \(arm64\) only/);
+  assert.match(html, /0\.1\.0-rc1/);
+  assert.match(html, /abc1234/);
+  assert.match(html, new RegExp("a{64}"));
+  assert.match(html, /Ad hoc/);
+  assert.match(html, /Not notarized/);
+  assert.match(html, /Control-click Signal and choose Open/);
+  assert.match(html, /Do not disable Gatekeeper/);
+});
+
+test("prior-work page preserves zero-file repository evidence without editable claims", async () => {
+  const response = await request("/prior-work");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /night-hack-start/);
+  assert.match(html, /contains zero tracked files/);
+  assert.match(html, /team-supplied disclosure/);
+  assert.match(html, /controlled Teach by Demo timeline/);
+  assert.doesNotMatch(html, /editable macro engine/);
 });
 
 test("returns a deterministic, non-secret health response", async () => {

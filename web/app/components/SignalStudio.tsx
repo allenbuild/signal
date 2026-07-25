@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 const choices = [
@@ -42,11 +43,13 @@ export function SignalStudio() {
   const [plan, setPlan] = useState<Planned | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [shareCode, setShareCode] = useState("");
+  const [announcement, setAnnouncement] = useState("Choose a gesture, then build a plan.");
   const selected = useMemo(() => choices.find((choice) => choice[0] === gesture)!, [gesture]);
 
   async function interpret() {
     setStatus("loading");
     setShareCode("");
+    setAnnouncement("Building and validating the action plan.");
     try {
       const response = await fetch("/api/v1/plan", {
         method: "POST",
@@ -70,15 +73,18 @@ export function SignalStudio() {
       if (!response.ok || data.status !== "planned") throw new Error("not planned");
       setPlan(data);
       setStatus("idle");
+      setAnnouncement(`${data.plan.name} is ready to review with ${data.plan.steps.length} validated steps.`);
     } catch {
       setPlan(null);
       setStatus("error");
+      setAnnouncement("The planner is unavailable. Try the seeded focus phrase.");
     }
   }
 
   async function publish() {
     if (!plan) return;
     setStatus("loading");
+    setAnnouncement("Publishing a temporary unlisted profile link.");
     try {
       const response = await fetch("/api/v1/profiles", {
         method: "POST",
@@ -110,23 +116,32 @@ export function SignalStudio() {
       if (!data.shareCode) throw new Error("missing share code");
       setShareCode(data.shareCode);
       setStatus("idle");
+      setAnnouncement(
+        `Temporary profile ${data.shareCode} is ready. It remains available only until this worker restarts.`,
+      );
     } catch {
       setStatus("error");
+      setAnnouncement("The profile could not be published. Review the plan and try again.");
     }
   }
 
   return (
-    <div className="studio">
-      <div className="studio-sidebar">
-        <div className="studio-label">1 / CHOOSE GESTURE</div>
+    <div className="studio" aria-busy={status === "loading"}>
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </p>
+      <div className="studio-sidebar" role="group" aria-labelledby="gesture-choice-label">
+        <div className="studio-label" id="gesture-choice-label">1 / CHOOSE GESTURE</div>
         {choices.map(([id, symbol, label]) => (
           <button
+            aria-pressed={gesture === id}
             className={gesture === id ? "gesture-choice active" : "gesture-choice"}
             key={id}
             onClick={() => {
               setGesture(id);
               setPlan(null);
               setShareCode("");
+              setAnnouncement(`${label} selected. Describe the workflow to map to this gesture.`);
             }}
             type="button"
           >
@@ -139,13 +154,14 @@ export function SignalStudio() {
         <div className="studio-label">2 / DESCRIBE WORKFLOW</div>
         <label htmlFor="signal-prompt">What should {selected[2].toLowerCase()} do?</label>
         <textarea
+          aria-describedby="planner-privacy-note"
           id="signal-prompt"
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
           maxLength={4000}
         />
         <div className="prompt-footer">
-          <span><i className="green-dot" /> Seeded demo works without an AI key</span>
+          <span id="planner-privacy-note"><i className="green-dot" /> Seeded demo works without an AI key</span>
           <button className="button button-primary" type="button" onClick={interpret} disabled={status === "loading"}>
             {status === "loading" ? "Working…" : "Build plan"} <span>→</span>
           </button>
@@ -164,7 +180,11 @@ export function SignalStudio() {
             <button className="publish-button" type="button" onClick={publish} disabled={status === "loading"}>
               Publish unlisted profile <span>↗</span>
             </button>
-            {shareCode && <a className="share-result" href={`/p/${shareCode}`}>Shared as <b>{shareCode}</b> →</a>}
+            {shareCode && (
+              <Link className="share-result" href={`/p/${shareCode}`}>
+                Temporary link <b>{shareCode}</b> · open profile →
+              </Link>
+            )}
           </>
         ) : (
           <div className="plan-empty">
@@ -172,6 +192,10 @@ export function SignalStudio() {
             <p>{status === "error" ? "The planner is unavailable. Try the seeded focus phrase." : "Your validated steps will appear here."}</p>
           </div>
         )}
+        <p className="share-lifetime">
+          New links are temporary until this worker restarts. The seeded demo
+          <Link href="/p/SIG1-SGNL2626"> SIG1-SGNL2626</Link> is durable.
+        </p>
       </div>
     </div>
   );

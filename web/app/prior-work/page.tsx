@@ -2,8 +2,9 @@ import { ContentNav } from "../components/ContentNav";
 
 export default function PriorWorkPage() {
   return (
-    <main className="content-page">
+    <>
       <ContentNav />
+      <main className="content-page" id="main-content">
       <div className="content-wrap">
         <p className="eyebrow">Night Hack disclosure</p>
         <h1>Built on HandPilot. Extended as Signal.</h1>
@@ -17,9 +18,9 @@ export default function PriorWorkPage() {
         <p>
           During Night Hack, the team created Signal as a substantial new capability layer
           and product: nine programmable gestures, natural-language workflow creation,
-          Teach by Demo recording, an editable macro engine, action integrations, profiles,
-          sharing, cloud planning, a redesigned command-centered experience, public
-          deployment, and distributable release packaging.
+          a controlled Teach by Demo timeline, validated macro planning, action integrations,
+          profiles, temporary unlisted links, a redesigned command-centered experience,
+          public web delivery, and release packaging work.
         </p>
         <p>
           Repository evidence and team disclosure are kept separate: the inspected
@@ -32,6 +33,7 @@ export default function PriorWorkPage() {
           <p>The repository’s <code>night-hack-start</code> tag marks the complete pre-event baseline. Only commits after that tag are claimed as Night Hack work.</p>
         </div>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

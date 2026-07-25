@@ -34,12 +34,13 @@ export function ProfileClient({ shareCode }: { shareCode: string }) {
   }, [shareCode]);
 
   return (
-    <main className="profile-page">
+    <div className="profile-page">
       <div className="profile-shell">
         <div className="profile-top">
           <Link className="brand brand-light" href="/"><span className="brand-mark"><i /><i /><i /></span><span>Signal</span></Link>
           <Link className="button button-small button-primary" href="/download">Get Signal</Link>
         </div>
+        <main id="main-content">
         {profile ? (
           <section className="profile-card">
             <div className="profile-hero">
@@ -64,7 +65,8 @@ export function ProfileClient({ shareCode }: { shareCode: string }) {
             {missing ? "This profile was not found or is no longer shared." : "Loading shared profile…"}
           </div>
         )}
+        </main>
       </div>
-    </main>
+    </div>
   );
 }

@@ -15,7 +15,7 @@ const gestures = [
 
 export default function Home() {
   return (
-    <main>
+    <>
       <nav className="site-nav">
         <Link className="brand" href="/" aria-label="Signal home">
           <span className="brand-mark"><i /><i /><i /></span>
@@ -32,6 +32,7 @@ export default function Home() {
         </Link>
       </nav>
 
+      <main id="main-content">
       <section className="hero section-shell">
         <div className="hero-copy">
           <p className="eyebrow"><span className="status-dot" /> Native macOS hand interface</p>
@@ -134,7 +135,7 @@ export default function Home() {
           </div>
           <div>
             <h3>Make any gesture useful.</h3>
-            <p>Describe a workflow, teach one by demo, or build each step directly.</p>
+            <p>Describe a workflow, review a controlled demo timeline, or build each step directly.</p>
           </div>
           <div className="mini-timeline">
             <span><b>↑</b> Thumbs up</span>
@@ -177,7 +178,7 @@ export default function Home() {
         <div className="mode-copy">
           <p className="eyebrow">Designed to avoid collisions</p>
           <h2>Three modes.<br />One obvious state.</h2>
-          <p>Signal makes the active control layer visible and starts with output paused. A global emergency shortcut stops touch output and macros immediately.</p>
+          <p>Signal makes the active control layer visible and starts with output paused. The emergency shortcut closes the output gate and requests macro cancellation.</p>
           <kbd>⌃⌥⌘ H</kbd><span>Emergency pause</span>
         </div>
         <div className="mode-list">
@@ -196,7 +197,7 @@ export default function Home() {
           <div className="trust-points">
             <article><span>01</span><h3>Frames stay local</h3><p>Vision processing runs on-device. Signal never sends camera frames to the planning API.</p></article>
             <article><span>02</span><h3>Secrets stay out of profiles</h3><p>Shared workflows contain references, never webhook tokens, passwords, or raw credentials.</p></article>
-            <article><span>03</span><h3>Actions stay reviewable</h3><p>AI plans are previews. Unsupported code and private-network destinations are rejected.</p></article>
+            <article><span>03</span><h3>Actions stay reviewable</h3><p>AI plans are previews. Generic network actions are disabled; fixed integration routes validate their configured destinations.</p></article>
           </div>
         </div>
       </section>
@@ -214,8 +215,8 @@ export default function Home() {
           </p>
           <p>
             During the hackathon, we created Signal’s programmable gesture layer:
-            nine command poses, validated macros, planning, Teach by Demo, profiles,
-            sharing, a public API, and a distributable product experience.
+            nine command poses, validated macros, planning, a controlled reviewable
+            demo timeline, temporary profile links, a public API, and release packaging.
           </p>
           <Link className="text-link" href="/prior-work">Read the full disclosure <span>↗</span></Link>
         </div>
@@ -230,12 +231,13 @@ export default function Home() {
           <Link className="button button-outline-light" href="/setup">Read setup guide</Link>
         </div>
       </section>
+      </main>
 
       <footer className="site-footer">
         <Link className="brand brand-light" href="/"><span className="brand-mark"><i /><i /><i /></span><span>Signal</span></Link>
         <p>Hand control for the work you repeat.</p>
         <div><Link href="/setup">Setup</Link><Link href="/privacy">Privacy</Link><Link href="/prior-work">Prior work</Link><a href="/api/v1/health">API</a></div>
       </footer>
-    </main>
+    </>
   );
 }
