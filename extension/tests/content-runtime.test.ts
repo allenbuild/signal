@@ -188,6 +188,24 @@ describe("relative virtual cursor", () => {
     cursor.process({ dx: -0.1, dy: 0 }, 1);
     expect(cursor.position.x - before).toBeGreaterThan(10);
   });
+
+  it("maps the tracked fingertip directly into the page viewport", () => {
+    const overlay = fakeOverlay();
+    const cursor = new VirtualCursor(
+      overlay,
+      { ...tuning.cursor, smoothing: 1 },
+      () => ({ width: 200, height: 100 }),
+    );
+
+    expect(cursor.processAbsolute({ x: 0.5, y: 0.5 })).toEqual({
+      x: 100,
+      y: 50,
+    });
+    expect(cursor.processAbsolute({ x: 0.88, y: 0.92 })).toEqual({
+      x: 200,
+      y: 100,
+    });
+  });
 });
 
 describe("page interaction transactions", () => {

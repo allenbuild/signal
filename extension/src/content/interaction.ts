@@ -10,6 +10,7 @@ import type {
   ZoomRequestMessage,
 } from "../shared/messages";
 import type {
+  NormalizedLandmark,
   PinchTransactionState,
   SignalMode,
 } from "../shared/types";
@@ -46,6 +47,7 @@ export interface TrackingFrame {
     | "fist"
     | string;
   confidence: number;
+  landmarks?: NormalizedLandmark[];
   pointerDelta?: PointerDelta;
   palmWidth?: number;
   pinch?: PinchFrame;
@@ -213,6 +215,25 @@ export class VirtualCursor {
     return this.position;
   }
 
+  processAbsolute(point: NormalizedLandmark): CursorPosition {
+    const { width, height } = this.viewport();
+    // Expand the practical camera interaction area to the full viewport so
+    // users do not need to move their hand to the physical image edges.
+    const normalizedX = clamp((point.x - 0.12) / 0.76, 0, 1);
+    const normalizedY = clamp((point.y - 0.08) / 0.84, 0, 1);
+    const targetX = normalizedX * width;
+    const targetY = normalizedY * height;
+    const smoothing = clamp(this.tuning.smoothing, 0.2, 1);
+
+    this.anchored = true;
+    this.cursorPosition = {
+      x: this.cursorPosition.x + (targetX - this.cursorPosition.x) * smoothing,
+      y: this.cursorPosition.y + (targetY - this.cursorPosition.y) * smoothing,
+    };
+    this.overlay.setCursor(this.cursorPosition, true);
+    return this.position;
+  }
+
   loseAnchor(hide = false): void {
     this.anchored = false;
     this.smoothedX = 0;
@@ -361,7 +382,14 @@ export class InteractionController {
       this.releasePinch();
     }
 
-    if (frame.gesture === "pointer" && frame.pointerDelta) {
+    const indexTip = frame.landmarks?.[8];
+    if (frame.gesture === "pointer" && indexTip) {
+      this.cursor.processAbsolute(indexTip);
+      this.overlay.setNativeCursorHidden(
+        this.hideNativeCursor,
+      );
+      this.overlay.showStatus("Signal Control", "active");
+    } else if (frame.gesture === "pointer" && frame.pointerDelta) {
       this.cursor.process(frame.pointerDelta, frame.palmWidth);
       this.overlay.setNativeCursorHidden(
         this.hideNativeCursor,

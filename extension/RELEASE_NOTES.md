@@ -1,4 +1,8 @@
-# Signal extension 0.3.0
+# Signal extension 0.3.1
+
+- Moves the page cursor from the tracked index fingertip's absolute position,
+  avoiding zero-motion pointer frames.
+- Keeps relative cursor deltas as a compatibility fallback.
 
 - Runs cursor control, pinch click/scroll/zoom, and command gestures together
   from one side-panel experience with no Control/Commands mode switch.
