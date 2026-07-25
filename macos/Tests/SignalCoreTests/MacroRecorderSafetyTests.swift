@@ -18,6 +18,24 @@ final class MacroRecorderSafetyTests: XCTestCase {
         XCTAssertTrue(gate.isPaused)
     }
 
+    func testSynchronousGateOperationCannotBeginAfterEmergencyPause() {
+        let gate = SafetyGate()
+        gate.enableExplicitly()
+        var effects = 0
+        let first = gate.performIfEnabled {
+            effects += 1
+            return "posted"
+        }
+        XCTAssertEqual(first, "posted")
+        gate.emergencyPause()
+        let blocked = gate.performIfEnabled {
+            effects += 1
+            return "must not post"
+        }
+        XCTAssertNil(blocked)
+        XCTAssertEqual(effects, 1)
+    }
+
     func testMacroExecutesValidatedStepsAndProducesReceipts() async {
         let performer = MockPerformer()
         let executor = MacroExecutor()

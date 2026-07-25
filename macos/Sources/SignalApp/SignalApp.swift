@@ -30,6 +30,12 @@ struct SignalApplication: App {
                 .environmentObject(model)
         } label: {
             Image(systemName: model.isPaused ? "hand.raised.slash.fill" : "hand.raised.fill")
+                .accessibilityLabel("Signal")
+                .accessibilityValue(
+                    model.isPaused
+                        ? "Paused, \(model.mode.displayName) Mode"
+                        : "Output enabled, \(model.mode.displayName) Mode"
+                )
         }
 
         Settings {
@@ -88,7 +94,7 @@ final class SignalAppModel: ObservableObject {
     @Published var endpoint = "https://signal-hand.app/api/v1/plan"
 
     let safetyGate = SafetyGate()
-    private let events = QuartzEventPoster()
+    private lazy var events = QuartzEventPoster(safetyGate: safetyGate)
     private lazy var performer = SystemActionPerformer(events: events, safetyGate: safetyGate)
     private let executor = MacroExecutor()
     private let planner = PlannerClient()
@@ -112,8 +118,10 @@ final class SignalAppModel: ObservableObject {
     func startRuntimeOnce() {
         guard !runtimeStarted else { return }
         runtimeStarted = true
+        let gate = safetyGate
         hotkey.start { [weak self] in
-            Task { @MainActor [weak self] in self?.emergencyStop() }
+            gate.emergencyPause()
+            Task { @MainActor [weak self] in self?.finishEmergencyUIAfterGate() }
         }
         camera.onHand = { [weak self] hand, metrics in
             Task { @MainActor [weak self] in self?.process(hand, metrics: metrics) }
@@ -151,7 +159,8 @@ final class SignalAppModel: ObservableObject {
     }
 
     func emergencyStop() {
-        pause(reason: .emergency)
+        safetyGate.emergencyPause()
+        finishEmergencyUIAfterGate()
     }
 
     func cycleMode() {
@@ -398,12 +407,23 @@ final class SignalAppModel: ObservableObject {
             let run = await executor.execute(
                 plan,
                 performer: SafetyGatedPerformer(gate: safetyGate, underlying: performer),
-                confirmations: ApprovedPlanConfirmations()
+                confirmations: ExactEffectConfirmationProvider()
             )
             receipts.insert(contentsOf: run.stepReceipts.reversed(), at: 0)
             receipts = Array(receipts.prefix(20))
             statusMessage = "\(plan.name): \(run.status.rawValue)"
         }
+    }
+
+    private func finishEmergencyUIAfterGate() {
+        isPaused = true
+        _ = touchEngine.cancel()
+        touchState = .idle
+        activationEngine.cancel()
+        candidate = nil
+        holdProgress = 0
+        Task { await executor.cancel() }
+        statusMessage = "EMERGENCY STOP — explicit re-enable required"
     }
 
     private func palmScale(_ hand: HandLandmarks) -> Double {

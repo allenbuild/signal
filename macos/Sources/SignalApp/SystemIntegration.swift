@@ -6,34 +6,205 @@ import SignalCore
 import UserNotifications
 
 final class QuartzEventPoster: @unchecked Sendable {
+    private struct HeldKey: Equatable {
+        var code: CGKeyCode
+        var flags: CGEventFlags
+    }
+
+    private let safetyGate: SafetyGate
+    private let stateLock = NSLock()
+    private var heldKeys: [HeldKey] = []
+    private var mouseDownAt: CGPoint?
+    private var pauseHandlerID: UUID?
+
+    init(safetyGate: SafetyGate) {
+        self.safetyGate = safetyGate
+        pauseHandlerID = safetyGate.onPause { [weak self] in
+            self?.releaseHeldEvents()
+        }
+    }
+
     func accessibilityTrusted(prompt: Bool = false) -> Bool {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: prompt] as CFDictionary
         return AXIsProcessTrustedWithOptions(options)
     }
 
     func movePointer(relative delta: Point2D) {
-        guard let current = CGEvent(source: nil)?.location else { return }
-        let bounds = NSScreen.screens.map(\.frame).reduce(CGRect.null) { $0.union($1) }
-        let destination = CGPoint(
-            x: min(max(current.x + delta.x, bounds.minX), bounds.maxX - 1),
-            y: min(max(current.y + delta.y, bounds.minY), bounds.maxY - 1)
-        )
-        CGEvent(
-            mouseEventSource: nil,
-            mouseType: .mouseMoved,
-            mouseCursorPosition: destination,
-            mouseButton: .left
-        )?.post(tap: .cghidEventTap)
+        safetyGate.performIfEnabled {
+            guard let current = CGEvent(source: nil)?.location else { return }
+            let bounds = NSScreen.screens.map(\.frame).reduce(CGRect.null) { $0.union($1) }
+            let destination = CGPoint(
+                x: min(max(current.x + delta.x, bounds.minX), bounds.maxX - 1),
+                y: min(max(current.y + delta.y, bounds.minY), bounds.maxY - 1)
+            )
+            CGEvent(
+                mouseEventSource: nil,
+                mouseType: .mouseMoved,
+                mouseCursorPosition: destination,
+                mouseButton: .left
+            )?.post(tap: .cghidEventTap)
+        }
     }
 
-    func leftClick() {
-        guard let point = CGEvent(source: nil)?.location else { return }
+    @discardableResult
+    func leftClick() -> Bool {
+        safetyGate.performIfEnabled {
+            guard let point = CGEvent(source: nil)?.location else { return false }
+            postClickPair(at: point)
+            return true
+        } ?? false
+    }
+
+    @discardableResult
+    func click(at point: CGPoint) -> Bool {
+        safetyGate.performIfEnabled {
+            postClickPair(at: point)
+            return true
+        } ?? false
+    }
+
+    @discardableResult
+    func scroll(_ amount: Double, horizontal: Double = 0) -> Bool {
+        safetyGate.performIfEnabled {
+            CGEvent(
+                scrollWheelEvent2Source: nil,
+                units: .pixel,
+                wheelCount: 2,
+                wheel1: Int32(clamped(amount, -80...80)),
+                wheel2: Int32(clamped(horizontal, -80...80)),
+                wheel3: 0
+            )?.post(tap: .cghidEventTap)
+            return true
+        } ?? false
+    }
+
+    @discardableResult
+    func zoom(steps: Int) -> Bool {
+        let keyCode: CGKeyCode = steps > 0 ? 24 : 27
+        let flags: CGEventFlags = steps > 0 ? [.maskCommand, .maskShift] : [.maskCommand]
+        for _ in 0..<min(abs(steps), 4) {
+            guard postKey(code: keyCode, flags: flags) else { return false }
+        }
+        return true
+    }
+
+    @discardableResult
+    func postKey(code: CGKeyCode, flags: CGEventFlags) -> Bool {
+        safetyGate.performIfEnabled {
+            let held = HeldKey(code: code, flags: flags)
+            stateLock.withLock { heldKeys.append(held) }
+            let down = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: true)
+            down?.flags = flags
+            down?.post(tap: .cghidEventTap)
+            releaseKeyIfHeld(held)
+            return true
+        } ?? false
+    }
+
+    @discardableResult
+    func typeText(_ text: String) -> Bool {
+        let utf16 = Array(text.utf16)
+        var index = 0
+        while index < utf16.count {
+            let end = min(index + 20, utf16.count)
+            let chunk = Array(utf16[index..<end])
+            let posted = safetyGate.performIfEnabled {
+                let held = HeldKey(code: 0, flags: [])
+                stateLock.withLock { heldKeys.append(held) }
+                let down = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true)
+                down?.keyboardSetUnicodeString(stringLength: chunk.count, unicodeString: chunk)
+                down?.post(tap: .cghidEventTap)
+                releaseUnicodeKeyIfHeld(held, chunk: chunk)
+                return true
+            } ?? false
+            guard posted else { return false }
+            index = end
+        }
+        return true
+    }
+
+    /// Posts unconditional releases. It is invoked synchronously by SafetyGate
+    /// after the gate closes, so no permission check is performed here.
+    func releaseHeldEvents() {
+        let snapshot: ([HeldKey], CGPoint?) = stateLock.withLock {
+            let value = (heldKeys, mouseDownAt)
+            heldKeys.removeAll()
+            mouseDownAt = nil
+            return value
+        }
+        for held in snapshot.0 {
+            postKeyUp(code: held.code)
+            releaseModifierKeys(for: held.flags)
+        }
+        if let point = snapshot.1 {
+            postMouseUp(at: point)
+        }
+    }
+
+    private func releaseKeyIfHeld(_ held: HeldKey) {
+        let shouldRelease = stateLock.withLock {
+            guard let index = heldKeys.firstIndex(of: held) else { return false }
+            heldKeys.remove(at: index)
+            return true
+        }
+        if shouldRelease {
+            postKeyUp(code: held.code)
+            releaseModifierKeys(for: held.flags)
+        }
+    }
+
+    private func releaseUnicodeKeyIfHeld(_ held: HeldKey, chunk: [UniChar]) {
+        let shouldRelease = stateLock.withLock {
+            guard let index = heldKeys.firstIndex(of: held) else { return false }
+            heldKeys.remove(at: index)
+            return true
+        }
+        guard shouldRelease else { return }
+        let up = CGEvent(keyboardEventSource: nil, virtualKey: held.code, keyDown: false)
+        up?.flags = []
+        up?.keyboardSetUnicodeString(stringLength: chunk.count, unicodeString: chunk)
+        up?.post(tap: .cghidEventTap)
+    }
+
+    private func releaseMouseIfHeld() {
+        let point = stateLock.withLock {
+            let point = mouseDownAt
+            mouseDownAt = nil
+            return point
+        }
+        if let point { postMouseUp(at: point) }
+    }
+
+    private func postClickPair(at point: CGPoint) {
+        stateLock.withLock { mouseDownAt = point }
         CGEvent(
             mouseEventSource: nil,
             mouseType: .leftMouseDown,
             mouseCursorPosition: point,
             mouseButton: .left
         )?.post(tap: .cghidEventTap)
+        releaseMouseIfHeld()
+    }
+
+    private func postKeyUp(code: CGKeyCode) {
+        let up = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: false)
+        up?.flags = []
+        up?.post(tap: .cghidEventTap)
+    }
+
+    private func releaseModifierKeys(for flags: CGEventFlags) {
+        let modifiers: [(CGEventFlags, CGKeyCode)] = [
+            (.maskCommand, 55),
+            (.maskShift, 56),
+            (.maskAlternate, 58),
+            (.maskControl, 59)
+        ]
+        for (flag, code) in modifiers where flags.contains(flag) {
+            postKeyUp(code: code)
+        }
+    }
+
+    private func postMouseUp(at point: CGPoint) {
         CGEvent(
             mouseEventSource: nil,
             mouseType: .leftMouseUp,
@@ -42,48 +213,9 @@ final class QuartzEventPoster: @unchecked Sendable {
         )?.post(tap: .cghidEventTap)
     }
 
-    func scroll(_ amount: Double, horizontal: Double = 0) {
-        CGEvent(
-            scrollWheelEvent2Source: nil,
-            units: .pixel,
-            wheelCount: 2,
-            wheel1: Int32(clamped(amount, -80...80)),
-            wheel2: Int32(clamped(horizontal, -80...80)),
-            wheel3: 0
-        )?.post(tap: .cghidEventTap)
-    }
-
-    func zoom(steps: Int) {
-        let keyCode: CGKeyCode = steps > 0 ? 24 : 27
-        let flags: CGEventFlags = steps > 0 ? [.maskCommand, .maskShift] : [.maskCommand]
-        for _ in 0..<min(abs(steps), 4) {
-            postKey(code: keyCode, flags: flags)
-        }
-    }
-
-    func postKey(code: CGKeyCode, flags: CGEventFlags) {
-        let down = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: true)
-        down?.flags = flags
-        down?.post(tap: .cghidEventTap)
-        let up = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: false)
-        up?.flags = flags
-        up?.post(tap: .cghidEventTap)
-    }
-
-    func typeText(_ text: String) {
-        let utf16 = Array(text.utf16)
-        var index = 0
-        while index < utf16.count {
-            let end = min(index + 20, utf16.count)
-            let chunk = Array(utf16[index..<end])
-            let down = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true)
-            down?.keyboardSetUnicodeString(stringLength: chunk.count, unicodeString: chunk)
-            down?.post(tap: .cghidEventTap)
-            let up = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false)
-            up?.keyboardSetUnicodeString(stringLength: chunk.count, unicodeString: chunk)
-            up?.post(tap: .cghidEventTap)
-            index = end
-        }
+    deinit {
+        releaseHeldEvents()
+        if let pauseHandlerID { safetyGate.removeHandler(pauseHandlerID) }
     }
 }
 
@@ -128,13 +260,15 @@ final class SystemActionPerformer: ActionPerforming, @unchecked Sendable {
             if modifiers.contains("control") { flags.insert(.maskControl) }
             if modifiers.contains("shift") { flags.insert(.maskShift) }
             try ensureOutputEnabled()
-            events.postKey(code: code, flags: flags)
+            guard events.postKey(code: code, flags: flags) else {
+                throw SystemActionError.outputPaused
+            }
             return "Posted reviewed shortcut"
 
         case .typeText:
             let text = try string("text", in: step)
             try ensureOutputEnabled()
-            events.typeText(text)
+            guard events.typeText(text) else { throw SystemActionError.outputPaused }
             return "Typed reviewed text"
 
         case .wait:
@@ -176,11 +310,15 @@ final class SystemActionPerformer: ActionPerforming, @unchecked Sendable {
             let vertical = step.parameters["vertical"]?.numberValue ?? 0
             let horizontal = step.parameters["horizontal"]?.numberValue ?? 0
             try ensureOutputEnabled()
-            events.scroll(vertical, horizontal: horizontal)
+            guard events.scroll(vertical, horizontal: horizontal) else {
+                throw SystemActionError.outputPaused
+            }
             return "Scrolled"
 
         case .zoomSteps:
-            events.zoom(steps: Int(step.parameters["steps"]?.numberValue ?? 0))
+            guard events.zoom(steps: Int(step.parameters["steps"]?.numberValue ?? 0)) else {
+                throw SystemActionError.outputPaused
+            }
             return "Zoomed"
 
         case .clickScreenPoint:
@@ -198,10 +336,7 @@ final class SystemActionPerformer: ActionPerforming, @unchecked Sendable {
                 y: screenFrame.minY + clamped(y, 0...1) * screenFrame.height
             )
             try ensureOutputEnabled()
-            CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown, mouseCursorPosition: point, mouseButton: .left)?
-                .post(tap: .cghidEventTap)
-            CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp, mouseCursorPosition: point, mouseButton: .left)?
-                .post(tap: .cghidEventTap)
+            guard events.click(at: point) else { throw SystemActionError.outputPaused }
             return "Clicked reviewed normalized point"
 
         case .discordWebhook, .slackWebhook:
@@ -304,9 +439,53 @@ enum SystemActionError: Error, LocalizedError {
     }
 }
 
-struct ApprovedPlanConfirmations: ConfirmationProviding {
+struct ExactEffectConfirmationProvider: ConfirmationProviding {
     func approve(plan: ActionPlan, step: ActionStep?) async -> Bool {
-        plan.approved
+        let confirmation = step?.confirmation ?? plan.confirmation
+        let effects = step.map { [$0] } ?? plan.steps
+        return await MainActor.run {
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = step == nil
+                ? "Allow “\(plan.name)” to run?"
+                : "Allow this \(step!.action.rawValue.replacingOccurrences(of: "_", with: " ")) effect?"
+            let exactEffects = effects.enumerated().map { index, effect in
+                "\(index + 1). \(Self.exactSummary(effect))"
+            }.joined(separator: "\n")
+            alert.informativeText = [
+                confirmation.reason,
+                "Exact effects:",
+                exactEffects,
+                "This approval applies to this execution only."
+            ]
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n\n")
+            alert.addButton(withTitle: "Allow Once")
+            alert.addButton(withTitle: "Cancel")
+            NSApp.activate(ignoringOtherApps: true)
+            return alert.runModal() == .alertFirstButtonReturn
+        }
+    }
+
+    private static func exactSummary(_ step: ActionStep) -> String {
+        let parameters = step.parameters.keys.sorted().map { key in
+            "\(key)=\(render(step.parameters[key] ?? .null))"
+        }.joined(separator: ", ")
+        return parameters.isEmpty
+            ? step.plainEnglish
+            : "\(step.plainEnglish) [\(parameters)]"
+    }
+
+    private static func render(_ value: JSONValue) -> String {
+        switch value {
+        case .string(let value): return "“\(value)”"
+        case .number(let value): return String(value)
+        case .bool(let value): return String(value)
+        case .array(let values): return "[\(values.map(render).joined(separator: ", "))]"
+        case .object(let values):
+            return "{\(values.keys.sorted().map { "\($0): \(render(values[$0] ?? .null))" }.joined(separator: ", "))}"
+        case .null: return "null"
+        }
     }
 }
 
@@ -340,6 +519,14 @@ final class EmergencyHotkeyMonitor {
     }
 
     deinit { stop() }
+}
+
+private extension NSLock {
+    func withLock<T>(_ body: () throws -> T) rethrows -> T {
+        lock()
+        defer { unlock() }
+        return try body()
+    }
 }
 
 struct KeychainSecretStore {

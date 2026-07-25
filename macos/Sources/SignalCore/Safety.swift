@@ -46,6 +46,19 @@ public final class SafetyGate: @unchecked Sendable {
         pause(.emergency)
     }
 
+    /// Runs a synchronous output operation only while the gate is open.
+    ///
+    /// The gate lock remains held for the operation, so a concurrent pause waits
+    /// for the operation to finish and no operation can begin after pause returns.
+    /// The body must not call back into `SafetyGate`.
+    @discardableResult
+    public func performIfEnabled<T>(_ body: () throws -> T) rethrows -> T? {
+        try lock.withLock {
+            guard !_isPaused else { return nil }
+            return try body()
+        }
+    }
+
     @discardableResult
     public func onPause(_ handler: @escaping @Sendable () -> Void) -> UUID {
         let id = UUID()
