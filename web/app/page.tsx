@@ -19,7 +19,7 @@ export default function Home() {
         </p>
         <a
           className={styles.download}
-          href="/downloads/signal-extension.zip"
+          href="/downloads/signal-extension.zip?v=0.3.1"
           download
         >
           Download extension
