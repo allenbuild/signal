@@ -641,7 +641,10 @@ async function handleTrackingFrame(frame: TrackingFrameMessage) {
     {
       mode: activeMode(),
       editing: editorOpen,
-      supportedTab: supported,
+      // Command presets can open or activate permitted tabs without injecting
+      // into the current page. Keep them available even when the user starts
+      // from chrome://extensions or another protected browser surface.
+      supportedTab: runtimeState.mode === "commands" || supported,
     },
   );
 
@@ -1358,25 +1361,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.tabs.onActivated.addListener(({ tabId }) => {
-  void getActiveTab().then(async (tab) => {
-    if (tab?.id !== tabId) return;
-    const candidate = routable(tab);
-    if (!candidate) return;
-    zoom.clear();
-    resetGestureEngine();
-    const result = await router.activate(candidate, "tab-change");
-    const supported = result.status === "sent";
-    await patchRuntime({
-      activeTabSupported: supported,
-      status: supported
-        ? "Signal moved to the active tab."
-        : PROTECTED_PAGE_MESSAGE,
-    });
-    if (supported) {
-      await sendModeToActiveTab();
-      await sendTuningToActiveTab();
-    }
-  });
+  void chrome.tabs
+    .get(tabId)
+    .then(async (tab) => {
+      const candidate = routable(tab);
+      if (!candidate) return;
+      zoom.clear();
+      resetGestureEngine();
+      const result = await router.activate(candidate, "tab-change");
+      const supported = result.status === "sent";
+      await patchRuntime({
+        activeTabSupported: supported,
+        status: supported
+          ? "Signal moved to the active tab."
+          : PROTECTED_PAGE_MESSAGE,
+      });
+      if (supported) {
+        await sendModeToActiveTab();
+        await sendTuningToActiveTab();
+      }
+    })
+    .catch(() => undefined);
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {

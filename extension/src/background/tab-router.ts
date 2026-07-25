@@ -19,6 +19,7 @@ export type TabRouterDependencies = {
   injectContentScript?(tabId: number): Promise<void>;
   canAccessTab?(tab: RoutableTab): Promise<boolean>;
   onUnsupported?(message: string, tab?: RoutableTab): void;
+  activeValidationIntervalMs?: number;
 };
 
 export type RouteResult =
@@ -53,6 +54,7 @@ export class ActiveTabRouter {
   private generation = 0;
   private lastSequence = -1;
   private lastSessionId: string | null = null;
+  private lastActiveValidationAt = Number.NEGATIVE_INFINITY;
   private routing: Promise<void> = Promise.resolve();
 
   constructor(private readonly dependencies: TabRouterDependencies) {}
@@ -154,11 +156,7 @@ export class ActiveTabRouter {
   async routeTrackingFrame(
     frame: TrackingFrameMessage,
   ): Promise<RouteResult> {
-    const expectedTabId = this.activeTab?.id ?? null;
-    const expectedGeneration = this.generation;
-    const operation = this.routing.then(() =>
-      this.performRoute(frame, expectedTabId, expectedGeneration),
-    );
+    const operation = this.routing.then(() => this.performRoute(frame));
     this.routing = operation.then(
       () => undefined,
       () => undefined,
@@ -166,19 +164,37 @@ export class ActiveTabRouter {
     return operation;
   }
 
+  private async synchronizeActiveTab(
+    timestamp: number,
+  ): Promise<RouteResult | null> {
+    const interval = Math.max(
+      0,
+      this.dependencies.activeValidationIntervalMs ?? 250,
+    );
+    if (
+      this.activeTab &&
+      timestamp - this.lastActiveValidationAt < interval
+    ) {
+      return null;
+    }
+    this.lastActiveValidationAt = timestamp;
+    const browserActiveTab = await this.dependencies.getActiveTab();
+    if (!browserActiveTab) return { status: "no-active-tab" };
+    if (
+      this.activeTab?.id !== browserActiveTab.id ||
+      this.activeTab.url !== browserActiveTab.url
+    ) {
+      return this.activate(browserActiveTab, "tab-change");
+    }
+    return null;
+  }
+
   private async performRoute(
     frame: TrackingFrameMessage,
-    expectedTabId: number | null,
-    expectedGeneration: number,
   ): Promise<RouteResult> {
-    if (
-      expectedTabId === null ||
-      expectedGeneration !== this.generation ||
-      this.activeTab?.id !== expectedTabId
-    ) {
-      return expectedTabId === null
-        ? { status: "no-active-tab" }
-        : { status: "stale" };
+    const synchronization = await this.synchronizeActiveTab(frame.timestamp);
+    if (synchronization && synchronization.status !== "sent") {
+      return synchronization;
     }
     const tab = this.activeTab;
     const generation = this.generation;

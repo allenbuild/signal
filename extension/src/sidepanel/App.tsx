@@ -340,7 +340,7 @@ export function App() {
 
       {!runtime.activeTabSupported && (
         <div className="notice error" role="status">
-          Signal cannot control this protected browser page.
+          Page controls are unavailable here. Command gestures can still open tabs.
         </div>
       )}
 

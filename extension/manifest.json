@@ -3,7 +3,7 @@
   "name": "Signal — Hand Control",
   "short_name": "Signal",
   "description": "Control ordinary websites with private, on-device hand gestures.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "minimum_chrome_version": "116",
   "permissions": [
     "storage",

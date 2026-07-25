@@ -1,4 +1,9 @@
-# Signal extension 0.2.0
+# Signal extension 0.2.1
+
+- Keeps tracking frames synchronized with Chrome's real active tab even when
+  tab-activation events arrive out of order.
+- Allows command gestures to open their configured tabs from protected Chrome
+  pages while continuing to block page-level cursor injection there.
 
 - Manifest V3 side-panel product for Chrome on macOS, Windows, and Linux.
 - One offscreen, local-only camera and self-hosted MediaPipe runtime.

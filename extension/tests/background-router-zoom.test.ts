@@ -53,6 +53,33 @@ describe("active-tab routing", () => {
     ).toBe(true);
   });
 
+  it("self-heals routing when a browser tab activation event is missed", async () => {
+    const deliveries: Array<{ tabId: number; message: SignalMessage }> = [];
+    let browserActiveTab = {
+      id: 1,
+      url: "https://www.wikipedia.org/",
+    };
+    const router = new ActiveTabRouter({
+      getActiveTab: async () => browserActiveTab,
+      sendMessage: async (tabId, message) => {
+        deliveries.push({ tabId, message });
+      },
+      activeValidationIntervalMs: 0,
+    });
+
+    await router.restore();
+    await router.routeTrackingFrame({ ...frame(1), timestamp: 1_000 });
+    browserActiveTab = { id: 2, url: "https://github.com/" };
+    await router.routeTrackingFrame({ ...frame(2), timestamp: 1_016 });
+
+    expect(
+      deliveries
+        .filter((item) => item.message.type === "signal:tracking-frame")
+        .map((item) => item.tabId),
+    ).toEqual([1, 2]);
+    expect(router.activeTabId).toBe(2);
+  });
+
   it("never replays an old or duplicate frame after a newer sequence", async () => {
     const sendMessage = vi.fn(async () => undefined);
     const router = new ActiveTabRouter({
