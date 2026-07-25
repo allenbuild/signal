@@ -25,9 +25,55 @@ export default function Home() {
           Download extension
           <span aria-hidden="true">↓</span>
         </a>
+        <section className={styles.instructions} aria-labelledby="install-title">
+          <p className={styles.instructionsEyebrow}>Install in Chrome</p>
+          <h2 id="install-title">Four quick steps</h2>
+          <ol className={styles.steps}>
+            <li>
+              <span className={styles.stepNumber}>1</span>
+              <div>
+                <strong>Unzip the download</strong>
+                <p>
+                  Open Downloads and double-click{" "}
+                  <code>signal-extension.zip</code>. Keep the unzipped{" "}
+                  <code>signal-extension</code> folder.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span className={styles.stepNumber}>2</span>
+              <div>
+                <strong>Open Chrome Extensions</strong>
+                <p>
+                  Type <code>chrome://extensions</code> into Chrome&apos;s
+                  address bar and press Return.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span className={styles.stepNumber}>3</span>
+              <div>
+                <strong>Turn on Developer mode</strong>
+                <p>Use the switch in the upper-right corner of the page.</p>
+              </div>
+            </li>
+            <li>
+              <span className={styles.stepNumber}>4</span>
+              <div>
+                <strong>Add Signal</strong>
+                <p>
+                  Drag the unzipped folder onto the Extensions page. If Chrome
+                  does not accept the drag, choose <b>Load unpacked</b> and
+                  select that folder.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </section>
         <p className={styles.note}>
-          Unzip, open <strong>chrome://extensions</strong>, enable Developer
-          mode, and choose Load unpacked.
+          Pin Signal from Chrome&apos;s puzzle-piece menu, then open it on a
+          normal website tab. Chrome blocks page control on{" "}
+          <strong>chrome://</strong> pages.
         </p>
       </section>
     </main>

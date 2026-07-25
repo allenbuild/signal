@@ -23,6 +23,11 @@ test.describe("Signal download site", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "signal", exact: true }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Four quick steps" }),
+    ).toBeVisible();
+    await expect(page.getByText("chrome://extensions")).toBeVisible();
+    await expect(page.getByText("Load unpacked")).toBeVisible();
     await expect(page.getByRole("link")).toHaveCount(1);
 
     const downloadLink = page.getByRole("link", {
@@ -30,7 +35,7 @@ test.describe("Signal download site", () => {
     });
     await expect(downloadLink).toHaveAttribute(
       "href",
-      "/downloads/signal-extension.zip",
+      "/downloads/signal-extension.zip?v=0.3.1",
     );
     const downloadPromise = page.waitForEvent("download");
     await downloadLink.click();

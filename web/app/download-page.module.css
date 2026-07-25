@@ -13,8 +13,8 @@
 }
 
 .card {
-  width: min(100%, 560px);
-  padding: clamp(38px, 8vw, 70px);
+  width: min(100%, 680px);
+  padding: clamp(38px, 7vw, 64px);
   border: 1px solid #303a34;
   border-radius: 30px;
   background: rgb(17 23 19 / 0.94);
@@ -85,6 +85,86 @@
 
 .download span {
   font-size: 20px;
+}
+
+.instructions {
+  margin-top: 34px;
+  padding-top: 30px;
+  border-top: 1px solid #2c3530;
+  text-align: left;
+}
+
+.instructionsEyebrow {
+  margin: 0 0 8px;
+  color: #91a481;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.instructions h2 {
+  margin: 0;
+  color: #f5f4ec;
+  font-size: clamp(22px, 4vw, 28px);
+  letter-spacing: -0.025em;
+}
+
+.steps {
+  display: grid;
+  gap: 12px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #2a342e;
+  border-radius: 16px;
+  background: #0e1410;
+}
+
+.stepNumber {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  background: #dcebb8;
+  color: #111513;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.steps strong {
+  display: block;
+  padding-top: 2px;
+  color: #f0f1e9;
+  font-size: 14px;
+}
+
+.steps p {
+  margin: 5px 0 0;
+  color: #8f9a93;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.steps code {
+  color: #c9d7bd;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.92em;
+}
+
+.steps b {
+  color: #b8c8aa;
+  font-weight: 700;
 }
 
 .note {
