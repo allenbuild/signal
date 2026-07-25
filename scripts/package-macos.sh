@@ -99,6 +99,32 @@ else
   plutil -insert SignalCommit -string "${commit}" "${plist}"
   plutil -insert NSCameraUsageDescription -string \
     'Signal processes hand gestures on this Mac. Camera frames remain in memory.' "${plist}"
+
+  icon_source="${SIGNAL_ICON_SOURCE:-${repo_root}/web/public/favicon.png}"
+  if [[ -f "${icon_source}" ]] && command -v sips >/dev/null 2>&1 \
+    && command -v iconutil >/dev/null 2>&1; then
+    iconset="${stage_root}/Signal.iconset"
+    mkdir -p "${iconset}"
+    while read -r pixels filename; do
+      sips -z "${pixels}" "${pixels}" "${icon_source}" \
+        --out "${iconset}/${filename}" >/dev/null
+    done <<'ICON_SIZES'
+16 icon_16x16.png
+32 icon_16x16@2x.png
+32 icon_32x32.png
+64 icon_32x32@2x.png
+128 icon_128x128.png
+256 icon_128x128@2x.png
+256 icon_256x256.png
+512 icon_256x256@2x.png
+512 icon_512x512.png
+1024 icon_512x512@2x.png
+ICON_SIZES
+    iconutil -c icns "${iconset}" -o "${app_path}/Contents/Resources/Signal.icns"
+    plutil -insert CFBundleIconFile -string Signal "${plist}"
+  else
+    printf 'note: app icon generation skipped because source or macOS icon tools are unavailable\n'
+  fi
 fi
 
 if [[ -n "${SIGNAL_SIGN_IDENTITY:-}" ]]; then
