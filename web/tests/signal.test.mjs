@@ -64,7 +64,8 @@ test("renders the finished Signal landing page without starter metadata", async 
   assert.match(html, /<main id="main-content">/);
   assert.match(html, /aria-pressed="true"/);
   assert.match(html, /role="status"/);
-  assert.match(html, /New links are temporary until this worker restarts/);
+  assert.match(html, /Generated links use per-worker memory and may fail on the next request/);
+  assert.match(html, /durable public demo/);
   assert.match(html, /controlled reviewable[\s\S]*demo timeline/i);
   assert.match(html, /Generic network actions are disabled/);
   assert.match(html, /closes the output gate and requests macro cancellation/);

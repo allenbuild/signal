@@ -5,15 +5,15 @@ notes for every physical item; automated tests do not satisfy physical checks.
 
 ## Release candidate
 
-- [ ] Clean native Release build completed.
-- [ ] Native tests recorded with executed/failure/skip counts.
-- [ ] Web locked install, lint/typecheck, tests, and production build completed.
-- [ ] Shared v1 schemas and fixtures validate in Swift, TypeScript, and AJV.
-- [ ] Exact `.app`, ZIP, optional DMG, and SHA-256 recorded.
-- [ ] Signing/notarization/Gatekeeper status stated accurately.
-- [ ] Downloaded public artifact checksum and launch verified.
-- [ ] About version/commit and production HTTPS origin verified.
-- [ ] Bundle/source scans find no secret or release localhost dependency.
+- [x] Clean native Release build completed.
+- [x] Native tests recorded with executed/failure/skip counts.
+- [x] Web locked install, lint/typecheck, tests, and production build completed.
+- [x] Shared v1 schemas and fixtures validate in Swift, TypeScript, and AJV.
+- [x] Exact `.app`, ZIP, DMG, and SHA-256 recorded.
+- [x] Signing/notarization/Gatekeeper status stated accurately.
+- [x] Downloaded public artifact checksum and three-second launch smoke verified.
+- [x] About version/commit and production HTTPS origin verified.
+- [x] Bundle/source scans find no secret or release localhost dependency.
 
 ## Physical native matrix
 
@@ -50,11 +50,15 @@ notes for every physical item; automated tests do not satisfy physical checks.
 
 ## Public production
 
-- [ ] HTTPS landing/setup/privacy/download/profile pages load.
-- [ ] Health, planner, profile, malformed-input, and rate-limit smoke pass.
+- [x] HTTPS landing/setup/privacy/download/seeded-profile pages load.
+- [x] Health, planner planned/clarification, and malformed/future-version smoke pass.
 - [ ] Hard refresh and second-device/network smoke pass.
-- [ ] Download link names the exact verified artifact and checksum.
-- [ ] Public site and native release do not depend on localhost.
+- [x] Download link names the exact verified artifact and checksum.
+- [x] Public site and native release do not depend on localhost.
+
+User-created profile create succeeded but immediate cross-isolate read failed;
+therefore no durable create/read/revoke box is checked. The seeded profile is
+the durable judge path.
 
 ## Rehearsal
 

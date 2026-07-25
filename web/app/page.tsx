@@ -163,11 +163,13 @@ export default function Home() {
       <section className="studio-section" id="studio">
         <div className="section-shell">
           <div className="studio-heading">
-            <p className="eyebrow eyebrow-light">Try the local profile builder</p>
+          <p className="eyebrow eyebrow-light">Try the local profile builder</p>
             <h2>Say what you want.<br />Review every step.</h2>
             <p>
-              The planner returns a versioned action plan—not arbitrary code.
+            The planner returns a versioned action plan—not arbitrary code.
               Nothing runs from this website, and every native action still requires approval.
+              Generated share links are a best-effort per-worker prototype; use the seeded
+              profile for a durable public demo.
             </p>
           </div>
           <SignalStudio />
@@ -216,7 +218,8 @@ export default function Home() {
           <p>
             During the hackathon, we created Signal’s programmable gesture layer:
             nine command poses, validated macros, planning, a controlled reviewable
-            demo timeline, temporary profile links, a public API, and release packaging.
+            demo timeline, best-effort profile-link prototypes, a durable seeded profile,
+            a public API, and release packaging.
           </p>
           <Link className="text-link" href="/prior-work">Read the full disclosure <span>↗</span></Link>
         </div>

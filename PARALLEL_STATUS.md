@@ -10,13 +10,14 @@ allows one primary plus three spawned threads.
 | --- | --- | --- | --- |
 | Complete | Baseline evidence | Integration / top level | `7cb7e47` and `night-hack-start`; zero tracked files |
 | Integrated | Version 1 shared contracts | `codex/contracts-docs` / `shared/**` | Source `e5bcfde`; integrated and pushed on `codex/release-integration` as `75bc042` |
-| Active | Native application | Team A / `allen/native-signal` / `macos/**` | Report build/tests and commit before integration |
-| Active | Web/cloud service | Team B / `partner/web-cloud` / `web/**` | Report build/tests, preview URL, and commit |
-| Queued | Native integration audit | Integration | Run full build/test after branch merge |
-| Queued | Public production smoke | Team B + independent reviewer | Production URL, health, incognito profile, download |
-| Queued | Packaging/signing audit | Team A + independent reviewer | App/ZIP/optional DMG, checksum, identity, Gatekeeper |
+| Integrated | Native application | Team A / `allen/native-signal` / `macos/**` | Release commit `4dce639`; 41 tests and release build pass |
+| Integrated | Web/cloud service | Team B / `partner/web-cloud` / `web/**` | Public Sites version 2; 12 tests, lint/typecheck/build pass |
+| Complete | Native integration audit | Integration | CI run `30141064910` all green on macOS 14 / Swift 5.10 |
+| Complete | Public production smoke | Integration | Landing, download, health, planner, rejection, seeded profile and artifact pass |
+| Complete | Packaging/signing audit | Integration | ZIP/DMG checksums, ad-hoc signature, app icon/provenance, launch smoke recorded |
 | Queued | Physical verification | Human on demo Mac | Four touch controls, nine commands, planner, recorder, pause |
-| Blocked | Credentials/account actions | Human only if needed | Record one exact action; continue independent work |
+| Limited | Durable user profile storage | Web / hosting | Per-worker memory failed immediate cross-isolate read; seeded profile is durable |
+| Limited | Signing/notarization | Human account credentials | No Developer ID identity; release is ad-hoc and not notarized |
 | Rejected | Unsupported 32-agent project cap | Integration | Use the observed four-slot cap |
 
 ## State definitions

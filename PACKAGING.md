@@ -1,7 +1,8 @@
 # Native packaging
 
-This document defines release gates. It does not state that an artifact,
-signature, notarization, or physical test currently exists.
+This document defines release gates and records the automated evidence for the
+published version 0.1.0 artifacts. It does not turn automated evidence into a
+claim of physical gesture, permission, notarization, or Gatekeeper success.
 
 ## Release identity
 
@@ -56,3 +57,28 @@ Recovery/install instructions:
 Never recommend disabling Gatekeeper globally. Prefer a properly signed build;
 for an unsigned fallback, document the narrow per-artifact user action and
 clearly label the limitation.
+
+## Version 0.1.0 evidence
+
+```text
+Release commit: 4dce63912e6804a813f38159aa610e8e78f25829
+Version/build: 0.1.0 (1)
+Bundle/minimum/architecture: app.signal.hand / macOS 13.0 / arm64
+Packaging: SIGNAL_ADHOC_SIGN=1 SIGNAL_CREATE_DMG=1 ./scripts/package-macos.sh
+Tests: 41 executed, 0 failures, 0 skips
+Signing: ad-hoc; codesign deep/strict verification passed; no TeamIdentifier
+Notarization/stapling: not performed
+Gatekeeper: spctl rejected the ad-hoc build (exit 3)
+ZIP: https://github.com/allenbuild/signal/releases/download/v0.1.0/Signal-0.1.0-macOS.zip
+ZIP SHA-256: f72bf27e21d25ccec6bd4498aa212183ae27a132c661b0abb85908456677814f
+DMG: https://github.com/allenbuild/signal/releases/download/v0.1.0/Signal-0.1.0-macOS.dmg
+DMG SHA-256: abf54f45680f896b0d248c7596635b20e3ef22f194a2b85ee0ed7a9d7638781f
+Downloaded ZIP checksum: matched
+Launch smoke: alive after 3 seconds; stdout/stderr empty
+Physical artifact verification: not performed
+```
+
+Recovery/install instructions are deliberately narrow: download the ZIP, move
+Signal to Applications, then Control-click Signal and choose Open if macOS
+blocks the first launch. Do not disable Gatekeeper or remove quarantine
+globally.

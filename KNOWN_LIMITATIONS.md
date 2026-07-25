@@ -1,12 +1,12 @@
 # Known limitations
 
-## Contract-freeze checkpoint
+## Release evidence boundary
 
-At the version 1 contract checkpoint, the tagged repository baseline is empty
-and the contracts/documents alone do not prove a native build, gesture runtime,
-website, deployment, package, signature, or physical behavior. Replace this
-checkpoint section with integration evidence before submission; do not simply
-delete unresolved items.
+The inspected `night-hack-start` repository baseline is empty. Version 0.1.0 is
+published from commit `4dce63912e6804a813f38159aa610e8e78f25829`;
+its build, tests, archive integrity, public APIs, download, and short process
+launch are automated evidence. They do not prove physical camera gestures,
+permissions, real input effects, or Gatekeeper acceptance.
 
 ## Designed version 1 limits
 
@@ -20,22 +20,28 @@ delete unresolved items.
   exist on the user's Mac.
 - Share codes are unlisted read-only identifiers, not authentication. Do not
   share sensitive profiles.
-- HTTPS schema syntax does not prevent SSRF; the runtime DNS/redirect policy in
-  `SECURITY.md` is required.
+- The native planner is pinned to the production HTTPS endpoint and rejects a
+  redirected response. Generic HTTP actions are disabled. This is not a
+  general-purpose SSRF defense for future configurable network integrations.
 - The seeded Discord action needs a configured secret reference; otherwise it
   produces a local receipt explicitly labeled fallback.
 - The Spotify seed uses a public URL so it can fall back when the desktop app is
   absent.
 
-## Release-specific items to resolve honestly
+## Release-specific limitations
 
-- Exact minimum macOS version and supported hardware.
+- The artifact requires macOS 13+ and Apple Silicon (`arm64`); Intel is not
+  included.
 - Gesture reliability across lighting, skin tones, handedness, occlusion, and
-  camera placement, based on actual tests.
-- Whether global Teach by Demo is shipped or remains experimental; controlled
-  recording is the required path.
-- Signing identity, notarization, and external Gatekeeper experience.
-- Production planner/provider availability, storage retention, rate-limit
-  behavior, and share revocation.
+  camera placement has not been physically measured.
+- Teach by Demo is a controlled, explicitly started, reviewable timeline; no
+  global input recorder ships.
+- The artifact is ad-hoc signed, not Developer ID signed or notarized.
+  `spctl` rejects it; the download page documents Control-click -> Open.
+- Anthropic and Discord credentials are not configured. The deterministic
+  planner and local Discord receipt fallbacks are visibly labeled.
+- User-created profile links use per-worker memory and can fail between
+  requests; only seeded `SIG1-SGNL2626` is durable. Revocation, sign-in, and
+  cloud sync are not shipped.
 - Accessibility permission identity after replacing or updating the app.
 - Physical verification results for all four touch controls and nine commands.

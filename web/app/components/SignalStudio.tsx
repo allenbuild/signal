@@ -84,7 +84,7 @@ export function SignalStudio() {
   async function publish() {
     if (!plan) return;
     setStatus("loading");
-    setAnnouncement("Publishing a temporary unlisted profile link.");
+    setAnnouncement("Generating a best-effort prototype profile link.");
     try {
       const response = await fetch("/api/v1/profiles", {
         method: "POST",
@@ -117,7 +117,7 @@ export function SignalStudio() {
       setShareCode(data.shareCode);
       setStatus("idle");
       setAnnouncement(
-        `Temporary profile ${data.shareCode} is ready. It remains available only until this worker restarts.`,
+        `Prototype profile ${data.shareCode} was created in one worker. It may not resolve on a later request; use the durable seeded demo for judging.`,
       );
     } catch {
       setStatus("error");
@@ -178,11 +178,11 @@ export function SignalStudio() {
               ))}
             </ol>
             <button className="publish-button" type="button" onClick={publish} disabled={status === "loading"}>
-              Publish unlisted profile <span>↗</span>
+              Generate prototype link <span>↗</span>
             </button>
             {shareCode && (
               <Link className="share-result" href={`/p/${shareCode}`}>
-                Temporary link <b>{shareCode}</b> · open profile →
+                Best-effort link <b>{shareCode}</b> · try profile →
               </Link>
             )}
           </>
@@ -193,8 +193,9 @@ export function SignalStudio() {
           </div>
         )}
         <p className="share-lifetime">
-          New links are temporary until this worker restarts. The seeded demo
-          <Link href="/p/SIG1-SGNL2626"> SIG1-SGNL2626</Link> is durable.
+          Generated links use per-worker memory and may fail on the next request
+          or after a restart. The seeded demo
+          <Link href="/p/SIG1-SGNL2626"> SIG1-SGNL2626</Link> is the durable public profile.
         </p>
       </div>
     </div>

@@ -44,18 +44,18 @@ The integration owner records accepted/rejected status and evidence in
 
 ## Integration checklist
 
-- [ ] Both sides use `schemaVersion: 1` and reject other versions.
-- [ ] Swift and TypeScript action discriminators exactly match the v1 union.
-- [ ] Seed and planner example validate in both runtimes.
-- [ ] Duplicate gesture mappings and step IDs are rejected semantically.
-- [ ] Conditional actions are nonrecursive and count toward the 50-action
+- [x] Both sides use `schemaVersion: 1` and reject other versions.
+- [x] Swift and TypeScript action discriminators exactly match the v1 union.
+- [x] Seed and planner example validate in both runtimes.
+- [x] Duplicate gesture mappings and step IDs are rejected semantically.
+- [x] Conditional actions are nonrecursive and count toward the 50-action
   execution budget.
-- [ ] Secret reference resolution never serializes a secret into profiles,
+- [x] Secret reference resolution never serializes a secret into profiles,
   receipts, logs, screenshots, or URLs.
-- [ ] Production base URL is HTTPS and not localhost.
-- [ ] Runtime network policy checks literal host, DNS answers, redirects, and
-  origin-changing credential forwarding.
-- [ ] AI plan remains preview-only until approval.
-- [ ] API errors use stable codes and do not leak storage/provider details.
+- [x] Production base URL is HTTPS and not localhost.
+- [x] Native planning is pinned to that endpoint and redirected responses are
+  rejected; generic network actions are disabled.
+- [x] AI plan remains preview-only until approval.
+- [x] API errors use stable codes and do not leak storage/provider details.
 
 API examples and share-code rules live in `shared/README.md`.

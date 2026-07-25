@@ -1,8 +1,10 @@
 # Public web deployment
 
-This is the deployment procedure, not a claim that deployment has occurred.
-Record provider, project, URLs, commit, timestamps, and smoke evidence in
-`SUBMISSION.md` only after observing them.
+The public Sites deployment is live at
+`https://signal-hand-control.allenxtech.chatgpt.site`. Version 2 is sourced from
+release commit `4dce63912e6804a813f38159aa610e8e78f25829` and production
+environment revision 1 supplies the immutable release URL and evidence shown on
+the download page. Exact smoke evidence is recorded in `SUBMISSION.md`.
 
 ## Environment contract
 
@@ -32,6 +34,12 @@ debug-only configuration and cannot ship in the archive.
    redaction, and that health reveals no dependency details.
 8. Fetch the published native artifact, verify checksum, and test documented
    setup on the intended Mac before linking it from the landing page.
+
+Version 0.1.0 completed the automated and unauthenticated public portions of
+these gates. A second physical device/network, permission dialogs, and the full
+physical gesture matrix remain unverified. User-created profile persistence is
+not a completed gate: per-worker memory can lose a link between requests, so the
+seeded profile is the only durable public profile in this release.
 
 ## Required production smoke evidence
 
