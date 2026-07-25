@@ -1,106 +1,55 @@
 # Signal architecture
 
-This document describes the intended release architecture. At kickoff, the
-tagged repository contains no tracked implementation; module presence and
-runtime behavior must be verified after integration.
-
-## Product boundary
-
-Signal has two runtime surfaces:
-
-1. A native Swift/SwiftUI macOS application owns camera capture, Apple Vision
-   hand landmarks, deterministic touch and command classifiers, real macOS
-   input through public APIs, action execution, local profiles, permissions,
-   safety gates, and the live demo.
-2. A public HTTPS web service owns the landing/download site, planner API,
-   unlisted profile sharing, optional server integrations, and health status.
-
-The native app is the release of record. It may call public HTTPS endpoints but
-must launch and retain its seeded demo profile with every network interface
-unavailable. No localhost process is in the production dependency graph.
+Signal ships as one public HTTPS browser application.
 
 ```mermaid
 flowchart LR
-  camera["Camera frames (memory only)"] --> vision["Vision hand landmarks"]
-  vision --> tracking["Normalized tracking + confidence"]
-  tracking --> touch["Touch state machine"]
-  tracking --> classifier["Nine-command classifier"]
-  touch --> gate["Paused-by-default output gate"]
-  classifier --> activation["Hold, cooldown, release gate"]
-  activation --> validator["Version 1 plan validator"]
-  validator --> preview["Preview + user approval"]
-  preview --> executor["Cancellable action executor"]
-  gate --> quartz["Public macOS input APIs"]
-  executor --> quartz
-  executor --> local["AppKit, speech, clipboard, overlays"]
-  executor --> public["Public HTTPS only"]
-  planner["POST /api/v1/plan"] --> validator
-  profiles["Profiles/share service"] --> validator
-  seed["Seeded offline profile"] --> validator
+  click["User clicks Start Signal"] --> camera["getUserMedia camera track"]
+  camera --> video["Mirrored local video"]
+  camera --> landmarker["Self-hosted MediaPipe Hand Landmarker"]
+  landmarker --> landmarks["21 landmarks in memory"]
+  landmarks --> control["Control state machine"]
+  landmarks --> commands["Nine-pose recognizer"]
+  control --> page["Virtual cursor, click, scroll, zoom"]
+  commands --> hold["550 ms hold + cooldown + release gate"]
+  hold --> presets["Browser UI presets"]
+  hold --> validator["Reviewed custom plan"]
+  planner["Planner / Teach by Demo API"] --> validator
+  builder["Builder and profiles"] --> validator
+  validator --> executor["Browser-safe executor"]
+  executor --> page
+  executor --> public["Public HTTPS / typed server integration"]
 ```
 
-## Native separation
+## Runtime ownership
 
-- `Camera` captures and drops frames rather than queueing Vision work.
-- `Tracking` converts Vision output to a mirrored, scale-normalized, hand-local
-  model independent of UI and event output.
-- `TouchControl` implements pointer and the non-switching pinch axis-lock state
-  machine. It owns quick-click suppression after scroll, zoom, cancellation, or
-  tracking loss.
-- `Gestures` classifies `one`, `two`, `three`, `four`, `five`, `fist`,
-  `thumbs_up`, `thumbs_down`, and `c_shape` from geometry plus time.
-- `Commands` owns stable hold, progress, cooldown, release gating, plan review,
-  and macro cancellation.
-- `Actions` decodes only the v1 safe action union and produces typed receipts.
-- `Recorder` converts explicit controlled interactions, and optionally global
-  events, into the same validated plan model.
-- `Profiles` persists local non-secret data and resolves secret IDs through
-  Keychain.
-- `Networking` accepts environment-selected public HTTPS origins, validates
-  response envelopes, and applies SSRF/redirect policy.
-- `Permissions` and a single runtime lifecycle owner keep all output disabled
-  until camera/Accessibility state is safe.
+- `CameraControlPanel` owns permission requests, camera lifecycle, frame
+  scheduling, MediaPipe loading, landmark rendering, and telemetry.
+- `ControlGestureEngine` owns relative pointer motion, pinch hysteresis, one
+  quick-release click, dominant-axis locking, incremental scroll/zoom, and
+  tracking-loss reset.
+- `recognizeCommandPose` classifies One, Two, Three, Four, Five, Thumbs Up,
+  Thumbs Down, C, and Fist from landmark geometry.
+- `CommandGestureEngine` owns the 550 ms stable hold, 800 ms cooldown, one-shot
+  firing, and pose-change/hand-loss rearm.
+- The planner, Fist editor, visual builder, profiles, and sharing APIs accept
+  schema version 1 but enforce the smaller browser-safe action catalog.
+- The browser executor supports public HTTPS navigation, bounded waits,
+  notifications/overlays, speech, sound, Signal-page media control, and the
+  typed Discord route. It rejects legacy native actions.
 
-Pure geometry, touch, activation, schema, and macro engines should have no
-SwiftUI, AVFoundation, Vision request, or real output side effects. Tests inject
-monotonic clocks, fixtures, and mock executors.
+## Privacy and lifecycle
 
-## Modes and conflict ownership
+Camera frames and landmarks are not uploaded for gesture recognition and are
+not queued. Visibility loss pauses processing. Stop, permission failure, and
+unmount stop every media track, cancel animation, close the landmarker, clear
+gesture state, and reset controls.
 
-- Touch Mode enables pointer, click, vertical pinch scroll, and horizontal
-  pinch zoom; commands are disabled.
-- Command Mode disables the four touch controls and enables all nine command
-  gestures.
-- Hybrid Mode enables pinch click/scroll/zoom and eight non-`one` commands.
-  The default `one` behavior remains pointer; a profile may explicitly choose
-  command behavior.
+Teach by Demo is separately initiated and may send 6–10 compressed keyframes
+after disclosure and review; raw recordings remain local.
 
-Mode change, pause, sleep, camera stop, tracking loss, and app termination all
-cancel held touch state and command/macro execution.
+## Legacy source
 
-## Contract and trust boundaries
-
-`shared/action-plan.schema.json`, `profile.schema.json`, and
-`planner-response.schema.json` are frozen at `schemaVersion: 1`. Swift and
-TypeScript models must share fixtures and reject unsupported versions.
-
-The JSON Schema proves shape, bounds, and HTTPS syntax. It cannot prove DNS
-destinations, redirects, or whether text contains a credential. Native and
-server executors therefore apply the runtime rules in `SECURITY.md`.
-
-Planner output is untrusted input even when it came from the team's server.
-The service validates once; the native app validates again, shows the exact
-plan, and requires approval.
-
-## Public service
-
-- `POST /api/v1/plan`: size/rate-limited structured planner with deterministic
-  fallback for seeded phrases.
-- `POST /api/v1/profiles`: validate and redact before storing an unlisted
-  profile.
-- `GET /api/v1/profiles/:shareCode`: read-only redacted profile lookup.
-- `POST /api/v1/integrations/discord`: optional server-side secret integration.
-- `GET /api/v1/health`: deterministic, non-secret health response.
-
-The public site provides setup, permission, download, privacy, limitations, and
-submission information. Camera data never crosses this boundary.
+`macos/**`, native packaging scripts, and historical release documents are not
+in the production dependency graph. The exact pre-pivot merged commit is also
+preserved on `codex/archive-native-web-2026-07-24`.

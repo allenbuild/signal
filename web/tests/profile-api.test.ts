@@ -215,6 +215,53 @@ describe("profile sharing API", () => {
     expect((await responseJson<ErrorBody>(rawSecret)).error.code).toBe("invalid_profile");
   });
 
+  it("rejects profiles containing legacy native actions", async () => {
+    const response = await createProfile(
+      jsonRequest("http://local.test/api/v1/profiles", {
+        profile: {
+          ...validProfile,
+          mappings: [
+            {
+              gesture: "fist",
+              activation: "hold",
+              holdDurationMs: 550,
+              plan: {
+                schemaVersion: 1,
+                id: "legacy.native",
+                name: "Legacy native command",
+                description: "",
+                steps: [
+                  {
+                    id: "step-1",
+                    action: {
+                      type: "open_application",
+                      parameters: {
+                        applicationName: "TextEdit",
+                        bundleIdentifier: "com.apple.TextEdit",
+                      },
+                    },
+                    timeoutMs: 5_000,
+                    onFailure: "stop",
+                    confirmation: { mode: "none", reason: "" },
+                  },
+                ],
+                timeoutMs: 8_000,
+                onFailure: "stop",
+                confirmation: { mode: "none", reason: "" },
+                createdSource: "import",
+                secretReferences: [],
+              },
+            },
+          ],
+        },
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect((await responseJson<ErrorBody>(response)).error.code).toBe(
+      "invalid_profile",
+    );
+  });
+
   it("enforces the explicit 365-day active and 30-day revoked retention policy", async () => {
     expect(ACTIVE_PROFILE_RETENTION_MS).toBe(365 * 24 * 60 * 60 * 1000);
     expect(REVOKED_PROFILE_RETENTION_MS).toBe(30 * 24 * 60 * 60 * 1000);

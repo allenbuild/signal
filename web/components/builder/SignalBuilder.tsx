@@ -17,6 +17,10 @@ import {
   checkPublicHttpsLiteralHost,
   containsSecretMaterial,
 } from "@/lib/security";
+import {
+  browserActionTypeValues,
+  isBrowserSafeAction,
+} from "@/lib/commands/browser-actions";
 
 const GESTURES = [
   { id: "one", label: "One", mark: "1" },
@@ -30,32 +34,7 @@ const GESTURES = [
   { id: "c_shape", label: "C shape", mark: "C" },
 ] as const;
 
-const ACTION_CATALOG = [
-  "open_application",
-  "open_url",
-  "open_deep_link",
-  "keyboard_shortcut",
-  "type_text",
-  "wait",
-  "show_notification",
-  "speak_text",
-  "play_sound",
-  "set_clipboard",
-  "read_clipboard_and_transform",
-  "run_apple_shortcut",
-  "run_applescript_template",
-  "http_request",
-  "discord_webhook",
-  "slack_webhook",
-  "media_control",
-  "set_volume",
-  "show_overlay",
-  "focus_application",
-  "click_screen_point",
-  "scroll_amount",
-  "zoom_steps",
-  "conditional",
-] as const;
+const ACTION_CATALOG = browserActionTypeValues;
 
 const ACTION_CHOICES = [
   {
@@ -65,22 +44,16 @@ const ACTION_CHOICES = [
     capability: "Browser-safe",
   },
   {
-    type: "open_application",
-    label: "Open an app",
-    description: "Launch an installed Mac app.",
-    capability: "Native Mac required",
-  },
-  {
     type: "speak_text",
     label: "Speak text",
-    description: "Read a short local cue aloud.",
-    capability: "Native Mac required",
+    description: "Read a short cue through browser speech.",
+    capability: "Browser-safe",
   },
   {
     type: "show_notification",
     label: "Show notification",
-    description: "Present a native notification.",
-    capability: "Native Mac required",
+    description: "Present a browser or in-page notification.",
+    capability: "Browser-safe",
   },
   {
     type: "wait",
@@ -91,14 +64,8 @@ const ACTION_CHOICES = [
   {
     type: "media_control",
     label: "Media control",
-    description: "Play, pause, or change track.",
-    capability: "Native Mac required",
-  },
-  {
-    type: "set_volume",
-    label: "Set volume",
-    description: "Choose the Mac output volume.",
-    capability: "Native Mac required",
+    description: "Control media playing inside Signal.",
+    capability: "Browser-safe",
   },
   {
     type: "discord_webhook",
@@ -109,7 +76,7 @@ const ACTION_CHOICES = [
 ] as const;
 
 type Gesture = (typeof GESTURES)[number]["id"];
-type PreferredMode = "touch" | "commands" | "hybrid";
+type PreferredMode = "touch" | "commands";
 type FailurePolicy = "stop" | "continue" | "ask";
 type ConfirmationMode = "none" | "first_run" | "every_run";
 
@@ -192,14 +159,11 @@ type ShareResult = {
 
 type ManualFields = {
   url: string;
-  appName: string;
-  bundleIdentifier: string;
   text: string;
   title: string;
   body: string;
   durationMs: string;
   mediaCommand: "toggle_play_pause" | "play" | "pause" | "next" | "previous";
-  volume: string;
   discordMessage: string;
   secretRef: string;
 };
@@ -211,14 +175,11 @@ const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
 const defaultManualFields: ManualFields = {
   url: "https://",
-  appName: "TextEdit",
-  bundleIdentifier: "com.apple.TextEdit",
   text: "Focus mode",
   title: "Signal",
   body: "Your gesture command is complete.",
   durationMs: "1000",
   mediaCommand: "toggle_play_pause",
-  volume: "50",
   discordMessage: "Demo complete",
   secretRef: "my-discord-webhook",
 };
@@ -229,7 +190,7 @@ function newProfile(): SignalProfile {
     id: `signal.guest.${Date.now()}`,
     name: "My Signal profile",
     description: "A guest profile built in the browser.",
-    preferredMode: "hybrid",
+    preferredMode: "commands",
     hybridOneBehavior: "pointer",
     mappings: [],
     share: { visibility: "private" },
@@ -242,20 +203,35 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function readPlan(value: unknown): ActionPlan | null {
   const parsed = actionPlanSchema.safeParse(value);
-  return parsed.success ? (parsed.data as unknown as ActionPlan) : null;
+  return parsed.success &&
+    parsed.data.steps.every((step) => isBrowserSafeAction(step.action))
+    ? (parsed.data as unknown as ActionPlan)
+    : null;
 }
 
 function readProfile(value: unknown): SignalProfile | null {
   const parsed = profileSchema.safeParse(value);
-  return parsed.success ? (parsed.data as unknown as SignalProfile) : null;
+  return parsed.success &&
+    parsed.data.mappings.every((mapping) =>
+      mapping.plan.steps.every((step) => isBrowserSafeAction(step.action)),
+    )
+    ? ({
+        ...parsed.data,
+        preferredMode:
+          parsed.data.preferredMode === "touch" ? "touch" : "commands",
+        hybridOneBehavior: "pointer",
+      } as unknown as SignalProfile)
+    : null;
 }
 
 function capabilityFor(actionType: string) {
   if (["http_request", "discord_webhook", "slack_webhook"].includes(actionType)) {
     return "Cloud action";
   }
-  if (["open_url", "wait"].includes(actionType)) return "Browser-safe";
-  return "Native Mac required";
+  if ((browserActionTypeValues as readonly string[]).includes(actionType)) {
+    return "Browser-safe";
+  }
+  return "Unavailable on the web";
 }
 
 function titleForAction(actionType: string) {
@@ -270,10 +246,6 @@ function summarizeAction(action: SignalAction) {
   switch (action.type) {
     case "open_url":
       return `Open ${String(parameters.url ?? "a public URL")}`;
-    case "open_application":
-      return `Open ${String(
-        parameters.applicationName ?? parameters.bundleIdentifier ?? "an app",
-      )}`;
     case "speak_text":
       return `Say “${String(parameters.text ?? "")}”`;
     case "show_notification":
@@ -282,8 +254,6 @@ function summarizeAction(action: SignalAction) {
       return `Wait ${Number(parameters.durationMs ?? 0) / 1000} seconds`;
     case "media_control":
       return `Media: ${String(parameters.command ?? "").replaceAll("_", " ")}`;
-    case "set_volume":
-      return `Set volume to ${String(parameters.percent ?? 0)}%`;
     case "discord_webhook":
       return `Send “${String(parameters.message ?? "")}” to configured Discord`;
     case "type_text":
@@ -309,7 +279,7 @@ function actionConfirmation(type: string): Confirmation {
   }
   return {
     mode: "first_run",
-    reason: "Review this Mac action before its first run.",
+    reason: "Review this browser action before its first run.",
   };
 }
 
@@ -322,7 +292,7 @@ export function SignalBuilder() {
   const [profile, setProfile] = useState<SignalProfile>(() => newProfile());
   const [selectedGesture, setSelectedGesture] = useState<Gesture>("thumbs_up");
   const [instruction, setInstruction] = useState(
-    "When I give a thumbs up, open my focus playlist, say Focus mode, and send Demo complete to Discord.",
+    "When I give a thumbs up, open https://calendar.google.com, say Focus mode, and send Demo complete to Discord.",
   );
   const [previewPlan, setPreviewPlan] = useState<ActionPlan | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -535,22 +505,6 @@ export function SignalBuilder() {
           },
         };
       }
-      case "open_application":
-        if (
-          !/^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/.test(
-            manualFields.bundleIdentifier,
-          )
-        ) {
-          setManualError("Enter a bundle identifier such as com.apple.TextEdit.");
-          return null;
-        }
-        return {
-          type: "open_application",
-          parameters: {
-            bundleIdentifier: manualFields.bundleIdentifier,
-            applicationName: manualFields.appName.slice(0, 120),
-          },
-        };
       case "speak_text":
         if (!manualFields.text.trim()) {
           setManualError("Enter the text Signal should speak.");
@@ -585,14 +539,6 @@ export function SignalBuilder() {
           type: "media_control",
           parameters: { command: manualFields.mediaCommand },
         };
-      case "set_volume": {
-        const percent = Number(manualFields.volume);
-        if (!Number.isInteger(percent) || percent < 0 || percent > 100) {
-          setManualError("Volume must be a whole number from 0 to 100.");
-          return null;
-        }
-        return { type: "set_volume", parameters: { percent } };
-      }
       case "discord_webhook":
         if (
           !IDENTIFIER_PATTERN.test(manualFields.secretRef) ||
@@ -961,15 +907,14 @@ export function SignalBuilder() {
           <h1>Give every gesture a job.</h1>
           <p className="lede">
             Build, review, and share a Signal profile without an account. The
-            browser creates plans; only the Mac app can perform system-wide
-            actions.
+            browser creates and runs reviewed web-safe plans inside Signal.
           </p>
         </div>
         <div className="builder-safety-note" role="note">
           <span className="status-dot" aria-hidden="true" />
           <div>
-            <strong>Preview only</strong>
-            <p>Nothing on this page runs a Mac command.</p>
+            <strong>Browser boundary</strong>
+            <p>No command can control the operating system or launch native apps.</p>
           </div>
         </div>
       </header>
@@ -1013,7 +958,10 @@ export function SignalBuilder() {
         <fieldset className="mode-picker">
           <legend>Preferred mode</legend>
           <div className="segmented-control">
-            {(["touch", "commands", "hybrid"] as const).map((mode) => (
+            {([
+              ["touch", "Control"],
+              ["commands", "Commands"],
+            ] as const).map(([mode, label]) => (
               <label key={mode}>
                 <input
                   type="radio"
@@ -1028,30 +976,10 @@ export function SignalBuilder() {
                     }))
                   }
                 />
-                <span>{mode.charAt(0).toUpperCase() + mode.slice(1)}</span>
+                <span>{label}</span>
               </label>
             ))}
           </div>
-          {profile.preferredMode === "hybrid" && (
-            <label className="field compact-field">
-              <span>One gesture in Hybrid</span>
-              <select
-                value={profile.hybridOneBehavior}
-                onChange={(event) =>
-                  setProfile((current) => ({
-                    ...current,
-                    hybridOneBehavior: event.target.value as
-                      | "pointer"
-                      | "command",
-                    share: { visibility: "private" },
-                  }))
-                }
-              >
-                <option value="pointer">Keep pointer control</option>
-                <option value="command">Use its command</option>
-              </select>
-            </label>
-          )}
         </fieldset>
 
         <div className="profile-actions">
@@ -1135,14 +1063,6 @@ export function SignalBuilder() {
               );
             })}
           </div>
-          {profile.preferredMode === "hybrid" &&
-            selectedGesture === "one" &&
-            profile.hybridOneBehavior === "pointer" && (
-              <p className="inline-warning" role="note">
-                Hybrid Mode keeps One for pointer control. Change its behavior
-                above to use this command.
-              </p>
-            )}
         </aside>
 
         <section className="plan-panel" aria-labelledby="plan-heading">
@@ -1359,29 +1279,6 @@ export function SignalBuilder() {
                 />
               </label>
             )}
-            {manualType === "open_application" && (
-              <>
-                <label className="field">
-                  <span>Application name</span>
-                  <input
-                    value={manualFields.appName}
-                    maxLength={120}
-                    onChange={(event) =>
-                      updateManualField("appName", event.target.value)
-                    }
-                  />
-                </label>
-                <label className="field">
-                  <span>Bundle identifier</span>
-                  <input
-                    value={manualFields.bundleIdentifier}
-                    onChange={(event) =>
-                      updateManualField("bundleIdentifier", event.target.value)
-                    }
-                  />
-                </label>
-              </>
-            )}
             {manualType === "speak_text" && (
               <label className="field">
                 <span>Text to speak</span>
@@ -1451,21 +1348,6 @@ export function SignalBuilder() {
                   <option value="next">Next track</option>
                   <option value="previous">Previous track</option>
                 </select>
-              </label>
-            )}
-            {manualType === "set_volume" && (
-              <label className="field">
-                <span>Volume percentage</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={manualFields.volume}
-                  onChange={(event) =>
-                    updateManualField("volume", event.target.value)
-                  }
-                />
               </label>
             )}
             {manualType === "discord_webhook" && (

@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
+    "@mediapipe/tasks-vision": "0.10.35",
     "drizzle-orm": "0.45.2",
     "next": "^16.2.11",
     "react": "19.2.6",
@@ -50,11 +51,5 @@
     "wrangler": "4.92.0"
   },
   "type": "module",
-  "packageManager": "pnpm@10.29.3",
-  "pnpm": {
-    "overrides": {
-      "postcss": "8.5.18",
-      "sharp": "0.35.0"
-    }
-  }
+  "packageManager": "pnpm@10.29.3"
 }

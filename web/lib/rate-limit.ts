@@ -33,6 +33,7 @@ export type ApiErrorCode =
   | "rate_limited"
   | "storage_unavailable"
   | "unsafe_instruction"
+  | "unsupported_action_catalog"
   | "unsupported_schema_version"
   | "unsupported_media_type";
 

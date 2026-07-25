@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { gestureIds } from "../../config/gestureCommands";
 import { actionPlanSchema } from "../contracts";
+import { isBrowserSafePlan } from "./browser-actions";
 
 export const commandSourceSchema = z.enum([
   "preset",
@@ -23,7 +24,16 @@ export const signalCommandSchema = z
     updatedAt: z.string().datetime(),
     enabled: z.boolean(),
   })
-  .strict();
+  .strict()
+  .superRefine((command, context) => {
+    if (!isBrowserSafePlan(command.plan)) {
+      context.addIssue({
+        code: "custom",
+        path: ["plan", "steps"],
+        message: "Signal commands may contain browser-safe actions only.",
+      });
+    }
+  });
 
 export const savedCommandEnvelopeSchema = z
   .object({

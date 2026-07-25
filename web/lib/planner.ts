@@ -9,6 +9,10 @@ import {
   type PlannerResponse,
   plannerResponseSchema,
 } from "./contracts";
+import {
+  isBrowserSafeActionType,
+  isBrowserSafePlan,
+} from "./commands/browser-actions";
 import { checkPublicHttpsLiteralHost } from "./security";
 
 const aiEnvelopeSchema = z
@@ -20,15 +24,6 @@ const aiEnvelopeSchema = z
 
 const unsafeInstructionPattern =
   /\b(?:reveal|print|dump|exfiltrate|ignore\s+(?:all\s+)?(?:previous|system)|system\s+prompt|api\s*key|environment\s+variables?|shell\s+command|terminal\s+command|raw\s+applescript|curl\s+localhost|metadata\s+(?:service|ip))\b/i;
-
-const knownApplications: Record<string, { bundleIdentifier: string; applicationName: string }> = {
-  safari: { bundleIdentifier: "com.apple.Safari", applicationName: "Safari" },
-  music: { bundleIdentifier: "com.apple.Music", applicationName: "Music" },
-  notes: { bundleIdentifier: "com.apple.Notes", applicationName: "Notes" },
-  textedit: { bundleIdentifier: "com.apple.TextEdit", applicationName: "TextEdit" },
-  finder: { bundleIdentifier: "com.apple.finder", applicationName: "Finder" },
-  spotify: { bundleIdentifier: "com.spotify.client", applicationName: "Spotify" },
-};
 
 const durationWords: Record<string, number> = {
   one: 1,
@@ -141,9 +136,20 @@ export function planWithDeterministicFallback(
 ): FallbackResult {
   const instruction = request.request.trim();
   const lower = instruction.toLowerCase();
-  const steps: ActionPlan["steps"] = [];
+  const planned: Array<{
+    position: number;
+    action: ActionPlan["steps"][number]["action"];
+    confirmation?: ActionPlan["steps"][number]["confirmation"];
+  }> = [];
   const requiredActions = new Set<string>();
   let usesDiscord = false;
+  const queue = (
+    position: number,
+    action: ActionPlan["steps"][number]["action"],
+    confirmation?: ActionPlan["steps"][number]["confirmation"],
+  ) => {
+    planned.push({ position, action, confirmation });
+  };
 
   const isSeededDemo =
     lower.includes("thumbs up") &&
@@ -152,20 +158,21 @@ export function planWithDeterministicFallback(
     lower.includes("discord");
 
   if (isSeededDemo || lower.includes("focus playlist")) {
-    requiredActions.add("open_deep_link");
-    steps.push(
-      makeStep(steps.length, {
-        type: "open_deep_link",
+    requiredActions.add("open_url");
+    queue(
+      Math.max(0, lower.indexOf("focus playlist")),
+      {
+        type: "open_url",
         parameters: {
-          scheme: "spotify",
-          url: "spotify:playlist:37i9dQZF1DWZeKCadgRdKQ",
+          url: "https://open.spotify.com/",
+          networkPolicy: "public_https_only",
         },
-      }),
+      },
     );
   }
 
   const urlMatch = instruction.match(/https:\/\/[^\s,;"')]+/i);
-  if (urlMatch && !steps.some((step) => step.action.type === "open_deep_link")) {
+  if (urlMatch && !planned.some((step) => step.action.type === "open_url")) {
     const check = checkPublicHttpsLiteralHost(urlMatch[0]);
     if (!check.ok) {
       return {
@@ -178,39 +185,27 @@ export function planWithDeterministicFallback(
       };
     }
     requiredActions.add("open_url");
-    steps.push(
-      makeStep(steps.length, {
+    queue(
+      urlMatch.index ?? 0,
+      {
         type: "open_url",
         parameters: {
           url: check.canonicalUrl,
           networkPolicy: "public_https_only",
         },
-      }),
+      },
     );
   }
 
   if (/\bopen\b/i.test(instruction) && !urlMatch && !lower.includes("focus playlist")) {
-    const appMatch = instruction.match(
-      /\bopen\s+(?:the\s+)?(?:app\s+)?(Safari|Music|Notes|TextEdit|Finder|Spotify)\b/i,
-    );
-    if (!appMatch) {
-      return {
-        handled: true,
-        response: clarification(
-          request,
-          "Which Mac application or public HTTPS URL should Signal open?",
-          ["applicationOrUrl"],
-        ),
-      };
-    }
-    const application = knownApplications[appMatch[1].toLowerCase()];
-    requiredActions.add("open_application");
-    steps.push(
-      makeStep(steps.length, {
-        type: "open_application",
-        parameters: application,
-      }),
-    );
+    return {
+      handled: true,
+      response: clarification(
+        request,
+        "Which public HTTPS URL should Signal open?",
+        ["publicUrl"],
+      ),
+    };
   }
 
   const sayMatch = instruction.match(
@@ -220,11 +215,12 @@ export function planWithDeterministicFallback(
     const text = sayMatch[1].replace(/[,"”']+$/, "").trim();
     if (text) {
       requiredActions.add("speak_text");
-      steps.push(
-        makeStep(steps.length, {
+      queue(
+        sayMatch.index ?? 0,
+        {
           type: "speak_text",
           parameters: { text: text.slice(0, 500) },
-        }),
+        },
       );
     }
   }
@@ -234,14 +230,15 @@ export function planWithDeterministicFallback(
   );
   if (notificationMatch) {
     requiredActions.add("show_notification");
-    steps.push(
-      makeStep(steps.length, {
+    queue(
+      notificationMatch.index ?? 0,
+      {
         type: "show_notification",
         parameters: {
           title: "Signal",
           body: notificationMatch[1].replace(/["”']+$/, "").trim().slice(0, 500),
         },
-      }),
+      },
     );
   }
 
@@ -269,11 +266,12 @@ export function planWithDeterministicFallback(
       };
     }
     requiredActions.add("wait");
-    steps.push(
-      makeStep(steps.length, {
+    queue(
+      waitMatch.index ?? 0,
+      {
         type: "wait",
         parameters: { durationMs },
-      }),
+      },
     );
   }
 
@@ -287,23 +285,21 @@ export function planWithDeterministicFallback(
       .trim() ?? "Demo complete";
     requiredActions.add("discord_webhook");
     usesDiscord = true;
-    steps.push(
-      makeStep(
-        steps.length,
-        {
-          type: "discord_webhook",
-          parameters: {
-            secretRef: "discord.demo",
-            message: message.slice(0, 1800),
-            fallback: "local_receipt",
-          },
+    queue(
+      discordMatch?.index ?? Math.max(0, lower.indexOf("discord")),
+      {
+        type: "discord_webhook",
+        parameters: {
+          secretRef: "discord.demo",
+          message: message.slice(0, 1800),
+          fallback: "local_receipt",
         },
-        confirmationEveryRun,
-      ),
+      },
+      confirmationEveryRun,
     );
   }
 
-  if (steps.length === 0) return { handled: false };
+  if (planned.length === 0) return { handled: false };
 
   const unavailable = [...requiredActions].filter(
     (actionType) => !actionAvailable(request, actionType),
@@ -319,9 +315,15 @@ export function planWithDeterministicFallback(
     };
   }
 
+  const steps = planned
+    .toSorted((left, right) => left.position - right.position)
+    .slice(0, 50)
+    .map((entry, index) =>
+      makeStep(index, entry.action, entry.confirmation ?? confirmationNone),
+    );
   const plan = makePlan(
     request,
-    steps.slice(0, 50),
+    steps,
     usesDiscord
       ? [{
           id: "discord.demo",
@@ -362,7 +364,7 @@ export async function planWithAnthropic(
     request: request.request,
     targetGesture: request.targetGesture,
     actionCatalog: request.actionCatalog,
-    platform: "macOS",
+    platform: "browser",
     schemaVersion: 1,
     recordingContext:
       imageDataUrls.length > 0
@@ -399,10 +401,11 @@ export async function planWithAnthropic(
     model: process.env.ANTHROPIC_MODEL?.trim() || "claude-opus-5",
     max_tokens: 6_000,
     system: [
-      "You are Signal's macOS action-plan compiler.",
+      "You are Signal's browser-safe action-plan compiler.",
       "Return only a schema-valid version 1 plan preview and concise warnings.",
       "Use only action types advertised in actionCatalog.",
-      "Never emit shell commands, raw AppleScript, arbitrary auth headers, secret values, localhost, private-network URLs, or more than 50 actions.",
+      "Never emit native-app, operating-system, shell, raw AppleScript, arbitrary-auth-header, secret-value, localhost, private-network, or non-HTTPS navigation actions.",
+      "Emit no more than 50 actions.",
       "Plans are previews and are never executed by this service.",
       "Use secretRef identifiers only. For externally visible effects, require every_run confirmation.",
     ].join(" "),
@@ -422,7 +425,10 @@ export async function planWithAnthropic(
   }
   const { plan, warnings } = response.parsed_output;
   const usedTypes = new Set(plan.steps.map((step) => step.action.type));
-  if ([...usedTypes].some((type) => !request.actionCatalog.includes(type))) {
+  if (
+    [...usedTypes].some((type) => !request.actionCatalog.includes(type)) ||
+    !isBrowserSafePlan(plan)
+  ) {
     return null;
   }
   return responseForPlan(request, plan, warnings, false);
@@ -432,6 +438,13 @@ export async function createPlannerResponse(
   request: PlannerRequest,
   imageDataUrls: string[] = [],
 ): Promise<PlannerResponse> {
+  if (request.actionCatalog.some((type) => !isBrowserSafeActionType(type))) {
+    return clarification(
+      request,
+      "Signal only accepts browser-safe action types.",
+      ["actionCatalog"],
+    );
+  }
   const fallback = planWithDeterministicFallback(request);
   if (fallback.handled) return fallback.response;
 

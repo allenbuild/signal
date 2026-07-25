@@ -20,10 +20,10 @@ export default function DocsPage() {
     <main id="main-content" className="page-main">
       <section className="page-hero shell">
         <p className="eyebrow">Documentation · Schema v1</p>
-        <h1>Build in the browser. Run on the Mac.</h1>
+        <h1>Build and run in one browser tab.</h1>
         <p>
-          The website builds, previews, and shares commands. The Signal Mac app
-          recognizes gestures and performs system-wide actions.
+          Signal recognizes gestures locally, controls its own interface, and
+          runs reviewed browser-safe commands from the public website.
         </p>
       </section>
       <div className="shell docs-layout">
@@ -45,13 +45,13 @@ export default function DocsPage() {
               <li>Describe the workflow or add safe actions visually.</li>
               <li>Review every step, warning, timeout, and confirmation rule.</li>
               <li>Save locally, export JSON, or publish a redacted unlisted profile.</li>
-              <li>Import into the Mac app and explicitly approve before the first run.</li>
+              <li>Return to Signal, click Start Signal, and use Commands mode.</li>
             </ol>
           </section>
           <section id="modes">
             <p className="eyebrow">Modes</p>
-            <h2>Touch, Commands, or Hybrid.</h2>
-            <p><strong>Touch</strong> keeps pointer controls primary. <strong>Commands</strong> focuses on mapped poses. <strong>Hybrid</strong> combines both and lets the One pose remain pointer control or become a command.</p>
+            <h2>Control or Commands.</h2>
+            <p><strong>Control</strong> moves a virtual cursor, clicks, scrolls, and zooms inside Signal. <strong>Commands</strong> recognizes nine held poses and dispatches each once until the hand changes or leaves view.</p>
           </section>
           <section id="controls">
             <p className="eyebrow">Gesture vocabulary</p>
@@ -66,9 +66,9 @@ export default function DocsPage() {
             <h2>Everything is inspectable.</h2>
             <p>
               Natural language and Teach by Demo both produce portable version 1
-              plans. They never execute in the planner service. The client
-              validates again, previews each effect, and requests the configured
-              confirmation before save or first run.
+              plans from a browser-only action catalog. The planner never
+              executes a plan. The client validates again, previews each effect,
+              and requests the configured confirmation before save or first run.
             </p>
           </section>
           <section id="sharing">
@@ -83,7 +83,7 @@ export default function DocsPage() {
           </section>
           <section id="api">
             <p className="eyebrow">HTTP API</p>
-            <h2>Native-friendly, no browser login required.</h2>
+            <h2>Browser-safe, no login required.</h2>
             <div className="api-table">
               {api.map(([method, path, purpose]) => (
                 <div key={path}><code>{method}</code><code>{path}</code><span>{purpose}</span></div>
@@ -103,6 +103,7 @@ export default function DocsPage() {
               <li>300 second plan timeout; 60 second step timeout</li>
               <li>30 second wait action; 20 secret references</li>
               <li>9 gesture mappings; schema version 1 only</li>
+              <li>Public HTTPS navigation only; no native or operating-system actions</li>
             </ul>
           </section>
         </article>

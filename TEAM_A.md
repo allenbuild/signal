@@ -1,5 +1,8 @@
 # Team A: native control and integration
 
+> Historical workstream record. Native work is archived and is not part of the
+> current Signal product, CI, or deployment.
+
 ## Exclusive write scope
 
 - Native app source, tests, Xcode project, entitlements, fixtures, and app assets

@@ -13,22 +13,22 @@ export const gestures = [
 export const touchControls = [
   {
     title: "Point to move",
-    description: "Index-point relative cursor movement across the active display.",
+    description: "Index-point relative cursor movement across the Signal page.",
     glyph: "↗",
   },
   {
     title: "Pinch to click",
-    description: "Quick thumb-index pinch and release for a native click.",
+    description: "Quick thumb-index pinch and release for an in-page click.",
     glyph: "◎",
   },
   {
     title: "Hold + move to scroll",
-    description: "Keep the pinch held and move vertically for system scroll.",
+    description: "Keep the pinch held and move vertically to scroll the page.",
     glyph: "↕",
   },
   {
     title: "Hold + move to zoom",
-    description: "Keep the pinch held and move horizontally for system zoom.",
+    description: "Keep the pinch held and move horizontally to zoom Signal.",
     glyph: "↔",
   },
 ] as const;

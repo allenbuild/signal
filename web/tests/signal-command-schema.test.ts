@@ -114,6 +114,20 @@ describe("configured command contract", () => {
     });
     expect(signalCommandSchema.safeParse(unsafe).success).toBe(false);
   });
+
+  it("rejects schema-valid legacy native actions", () => {
+    const command = commandFor(
+      "fist",
+      planFor({
+        type: "open_application",
+        parameters: {
+          applicationName: "TextEdit",
+          bundleIdentifier: "com.apple.TextEdit",
+        },
+      }),
+    );
+    expect(signalCommandSchema.safeParse(command).success).toBe(false);
+  });
 });
 
 describe("fist command persistence", () => {
@@ -167,10 +181,10 @@ describe("fallback planner compatibility", () => {
       schemaVersion: 1,
       requestId: "fist-fallback-test",
       request:
-        "When I give a thumbs up, open my focus playlist, say Focus mode, and send Demo complete to Discord.",
+        "When I give a thumbs up, open https://open.spotify.com/, say Focus mode, and send Demo complete to Discord.",
       targetGesture: "fist",
       actionCatalog: [
-        "open_deep_link",
+        "open_url",
         "speak_text",
         "discord_webhook",
       ],

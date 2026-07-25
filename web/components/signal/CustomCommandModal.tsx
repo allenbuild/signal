@@ -4,10 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   actionPlanSchema,
-  actionTypeValues,
   plannerResponseSchema,
   type ActionPlan,
 } from "../../lib/contracts";
+import { browserActionTypeValues } from "../../lib/commands/browser-actions";
 import {
   signalCommandSchema,
   type CommandSource,
@@ -16,7 +16,7 @@ import {
 import { ScreenRecorder, type BrowserRecording } from "./ScreenRecorder";
 
 const DEFAULT_INSTRUCTION =
-  "When I make a fist, open Spotify, wait one second, and start my focus playlist.";
+  "When I make a fist, open https://calendar.google.com, wait one second, and say focus time.";
 
 export function CustomCommandModal({
   existingCommand,
@@ -52,6 +52,8 @@ export function CustomCommandModal({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [testReceipt, setTestReceipt] = useState("");
+  const [editingStepId, setEditingStepId] = useState<string | null>(null);
+  const [editingParameters, setEditingParameters] = useState("");
   const dialogRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -118,7 +120,7 @@ export function CustomCommandModal({
       requestId,
       request: requestText,
       targetGesture: "fist",
-      actionCatalog: actionTypeValues,
+      actionCatalog: browserActionTypeValues,
       ...(recording
         ? {
             recording: {
@@ -221,6 +223,49 @@ export function CustomCommandModal({
     updateSteps(next);
   }
 
+  function beginStepEdit(step: ActionPlan["steps"][number]) {
+    setEditingStepId(step.id);
+    setEditingParameters(JSON.stringify(step.action.parameters, null, 2));
+    setError("");
+  }
+
+  function saveStepEdit(index: number) {
+    if (!plan) return;
+    let parameters: unknown;
+    try {
+      parameters = JSON.parse(editingParameters);
+    } catch {
+      setError("Step parameters must be valid JSON.");
+      return;
+    }
+    const nextPlan = {
+      ...plan,
+      steps: plan.steps.map((step, stepIndex) =>
+        stepIndex === index
+          ? {
+              ...step,
+              action: {
+                type: step.action.type,
+                parameters,
+              },
+            }
+          : step,
+      ),
+    };
+    const parsed = actionPlanSchema.safeParse(nextPlan);
+    if (!parsed.success) {
+      setError(
+        "Those parameters are not valid for this browser-safe action.",
+      );
+      return;
+    }
+    setPlan(parsed.data);
+    setEditingStepId(null);
+    setEditingParameters("");
+    setTestReceipt("");
+    setError("");
+  }
+
   function saveCommand() {
     if (!plan) return;
     const now = new Date().toISOString();
@@ -268,7 +313,7 @@ export function CustomCommandModal({
             <p id="signal-command-description">
               {stage === "compose"
                 ? "Describe it, teach it by recording, or combine both."
-                : "This plan is data to review. Saving does not execute it."}
+                : "Review the browser-safe steps. Saving assigns them to Fist."}
             </p>
           </div>
           <button
@@ -309,7 +354,7 @@ export function CustomCommandModal({
                 value={instruction}
                 onChange={(event) => setInstruction(event.target.value)}
                 maxLength={4000}
-                placeholder="When I make a fist, open Spotify, wait one second, and start my focus playlist."
+                placeholder="When I make a fist, open https://calendar.google.com, wait one second, and say focus time."
               />
               <p>
                 Signal generates allowlisted actions only—never shell commands
@@ -364,6 +409,13 @@ export function CustomCommandModal({
                   <div className="signal-step-buttons">
                     <button
                       type="button"
+                      aria-label={`Edit step ${index + 1}`}
+                      onClick={() => beginStepEdit(step)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
                       aria-label={`Move step ${index + 1} up`}
                       onClick={() => moveStep(index, -1)}
                       disabled={index === 0}
@@ -392,14 +444,50 @@ export function CustomCommandModal({
                       ×
                     </button>
                   </div>
+                  {editingStepId === step.id && (
+                    <div className="signal-step-editor">
+                      <label>
+                        Edit {step.action.type.replaceAll("_", " ")} parameters
+                        <textarea
+                          value={editingParameters}
+                          onChange={(event) =>
+                            setEditingParameters(event.target.value)
+                          }
+                          spellCheck={false}
+                        />
+                      </label>
+                      <p>
+                        Signal validates this JSON against the browser-safe
+                        action schema before accepting it.
+                      </p>
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingStepId(null);
+                            setEditingParameters("");
+                            setError("");
+                          }}
+                        >
+                          Cancel edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => saveStepEdit(index)}
+                        >
+                          Save step
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </li>
               ))}
             </ol>
             <div className="signal-plan-note">
-              <strong>Native boundary</strong>
+              <strong>Browser boundary</strong>
               <span>
-                The browser can preview this plan. Allen’s native app validates
-                it again before any system-wide action.
+                Signal runs only the reviewed, allowlisted web actions shown
+                here. It cannot control the operating system or launch native apps.
               </span>
             </div>
           </div>
@@ -426,7 +514,7 @@ export function CustomCommandModal({
                 className="signal-button signal-button-secondary"
                 onClick={() =>
                   setTestReceipt(
-                    "Simulated preview complete. Native system actions performed: 0.",
+                    "Simulated preview complete. Browser actions performed: 0.",
                   )
                 }
               >
@@ -469,11 +557,11 @@ export function CustomCommandModal({
 function summarizeAction(action: ActionPlan["steps"][number]["action"]) {
   switch (action.type) {
     case "open_application":
-      return `Open ${action.parameters.applicationName ?? action.parameters.bundleIdentifier}`;
+      return "Unavailable legacy native action";
     case "open_url":
       return `Open ${action.parameters.url}`;
     case "open_deep_link":
-      return `Open reviewed ${action.parameters.scheme} link`;
+      return "Unavailable legacy deep-link action";
     case "wait":
       return `Wait ${action.parameters.durationMs / 1000} seconds`;
     case "speak_text":
@@ -485,9 +573,9 @@ function summarizeAction(action: ActionPlan["steps"][number]["action"]) {
     case "media_control":
       return `Media: ${action.parameters.command.replaceAll("_", " ")}`;
     case "set_volume":
-      return `Set volume to ${action.parameters.percent}%`;
+      return "Unavailable legacy system-volume action";
     case "type_text":
-      return `Type reviewed text`;
+      return "Unavailable legacy system-typing action";
     default:
       return action.type.replaceAll("_", " ");
   }

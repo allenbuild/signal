@@ -6,11 +6,11 @@ export const metadata: Metadata = {
 };
 
 const rows = [
-  ["Camera frames", "Memory-only in the native Mac app", "Never uploaded by this service"],
-  ["Hand landmarks and gesture state", "Processed locally", "Not stored by default"],
+  ["Camera frames", "Memory-only in the active browser tab", "Never uploaded by Signal"],
+  ["Hand landmarks and gesture state", "Processed locally in the browser", "Not stored by default"],
   ["Planner text", "Sent only when you choose Generate", "Used to return a reviewed plan"],
   ["Profiles", "Local until you export or publish", "Unlisted shares contain redacted profile data"],
-  ["Integration secrets", "Keychain or managed server environment", "Never portable profile JSON"],
+  ["Integration secrets", "Managed server environment", "Never portable profile JSON"],
   ["Telemetry", "Off by default", "No camera or raw recording telemetry"],
 ] as const;
 
@@ -21,8 +21,8 @@ export default function PrivacyPage() {
         <p className="eyebrow">Privacy</p>
         <h1>Your camera is not cloud input.</h1>
         <p>
-          The website builds and shares commands. The Mac app observes your hand
-          locally. Camera frames do not cross that boundary.
+          The public website observes your hand and recognizes gestures locally.
+          Camera frames do not leave the browser for gesture recognition.
         </p>
       </section>
       <section className="shell policy-table" aria-label="Signal data handling">
@@ -51,8 +51,8 @@ export default function PrivacyPage() {
           <h2>References travel. Values do not.</h2>
           <p>
             Plans can name a secret reference such as a Discord connection.
-            The actual value is resolved from Keychain or the service
-            environment at execution time and is never returned in a profile,
+            The actual value is resolved from the service environment at
+            execution time and is never returned in a profile,
             receipt, share code, or planner response.
           </p>
         </article>

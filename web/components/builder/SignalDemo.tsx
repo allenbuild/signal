@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 
 const DEMO_GESTURES = [
@@ -19,7 +20,7 @@ type DemoGesture = (typeof DEMO_GESTURES)[number]["id"];
 type DemoStep = {
   title: string;
   detail: string;
-  capability: "Browser-safe" | "Native Mac required" | "Cloud action";
+  capability: "Browser-safe" | "Cloud action";
   receipt: string;
 };
 
@@ -36,9 +37,9 @@ const focusDemo: DemoStep[] = [
   },
   {
     title: "Say “Focus mode”",
-    detail: "Local speech action",
-    capability: "Native Mac required",
-    receipt: "Speech caption simulated",
+    detail: "Browser speech synthesis",
+    capability: "Browser-safe",
+    receipt: "Browser speech preview simulated",
   },
   {
     title: "Send “Demo complete”",
@@ -50,22 +51,22 @@ const focusDemo: DemoStep[] = [
 
 const teachDemo: DemoStep[] = [
   {
-    title: "Open TextEdit",
-    detail: "com.apple.TextEdit",
-    capability: "Native Mac required",
-    receipt: "App launch simulated",
+    title: "Open a public note page",
+    detail: "https://docs.new/",
+    capability: "Browser-safe",
+    receipt: "Browser navigation previewed",
   },
   {
-    title: "Create a new document",
-    detail: "Command-N",
-    capability: "Native Mac required",
-    receipt: "Keyboard shortcut simulated",
+    title: "Wait for the page",
+    detail: "500 milliseconds",
+    capability: "Browser-safe",
+    receipt: "Bounded delay simulated",
   },
   {
-    title: "Type reviewed demo text",
-    detail: "“Signal replayed this workflow with a hand gesture.”",
-    capability: "Native Mac required",
-    receipt: "Text entry simulated",
+    title: "Announce completion",
+    detail: "“Signal opened your browser workflow.”",
+    capability: "Browser-safe",
+    receipt: "Browser speech preview simulated",
   },
 ];
 
@@ -83,10 +84,10 @@ function stepsForGesture(gesture: DemoGesture): DemoStep[] {
       receipt: `${label} recognition simulated`,
     },
     {
-      title: "Show a completion overlay",
+      title: "Show an in-page completion overlay",
       detail: `${label} command is ready`,
-      capability: "Native Mac required",
-      receipt: "Mac overlay simulated",
+      capability: "Browser-safe",
+      receipt: "In-page overlay simulated",
     },
   ];
 }
@@ -137,7 +138,7 @@ export function SignalDemo() {
     if (runToken.current !== token) return;
     setRunning(false);
     setStatus(
-      `Simulation complete. ${steps.length} simulated receipts. System actions performed: 0.`,
+      `Simulation complete. ${steps.length} simulated receipts. External effects performed: 0.`,
     );
   }
 
@@ -160,8 +161,7 @@ export function SignalDemo() {
           <h1>Try a command, safely.</h1>
           <p className="lede">
             See how a gesture becomes a reviewed timeline and typed receipt.
-            This browser demo never moves your Mac cursor, launches an app, or
-            sends an integration message.
+            This preview never leaves the page or sends an integration message.
           </p>
         </div>
         <div className="demo-boundary-card" role="note">
@@ -170,7 +170,7 @@ export function SignalDemo() {
           </span>
           <div>
             <strong>Page-local simulation</strong>
-            <p>Camera off · Mac control unavailable · No external effects</p>
+            <p>Camera off · Browser only · No external effects</p>
           </div>
         </div>
       </header>
@@ -309,13 +309,13 @@ export function SignalDemo() {
         <div>
           <p className="eyebrow">The honest boundary</p>
           <h2 id="demo-boundary-heading">
-            The browser explains. The Mac app acts.
+            Signal lives entirely in your browser.
           </h2>
         </div>
         <div className="demo-boundary-grid">
           <article>
             <span aria-hidden="true">01</span>
-            <h3>Browser</h3>
+            <h3>Plan</h3>
             <p>
               Build profiles, preview plans, simulate receipts, and share
               redacted mappings.
@@ -323,10 +323,10 @@ export function SignalDemo() {
           </article>
           <article>
             <span aria-hidden="true">02</span>
-            <h3>Signal for Mac</h3>
+            <h3>Run</h3>
             <p>
-              Recognize live gestures and perform approved system-wide actions
-              with a visible safety gate.
+              Recognize live gestures locally and perform approved browser-safe
+              actions with a visible safety gate.
             </p>
           </article>
           <article>
@@ -340,16 +340,16 @@ export function SignalDemo() {
         </div>
         <div className="demo-cta">
           <div>
-            <strong>Ready for real system-wide control?</strong>
-            <p>Download the verified Mac release or build your own profile.</p>
+            <strong>Ready to use the live browser controller?</strong>
+            <p>Open Signal, start the camera, or build your own profile.</p>
           </div>
           <div className="demo-cta-actions">
-            <a className="button button-secondary secondary" href="/builder">
+            <Link className="button button-secondary secondary" href="/builder">
               Open builder
-            </a>
-            <a className="button button-primary primary" href="/download">
-              Download Signal
-            </a>
+            </Link>
+            <Link className="button button-primary primary" href="/">
+              Open Signal
+            </Link>
           </div>
         </div>
       </section>

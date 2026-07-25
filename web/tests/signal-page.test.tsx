@@ -1,6 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -52,19 +58,19 @@ const fallbackPlan: ActionPlan = {
   description: "A deterministic reviewed command.",
   steps: [
     {
-      id: "open-spotify",
+      id: "open-calendar",
       action: {
-        type: "open_application",
+        type: "open_url",
         parameters: {
-          bundleIdentifier: "com.spotify.client",
-          applicationName: "Spotify",
+          url: "https://calendar.google.com/",
+          networkPolicy: "public_https_only",
         },
       },
       timeoutMs: 8_000,
       onFailure: "stop",
       confirmation: {
         mode: "first_run",
-        reason: "Review before opening Spotify.",
+        reason: "Review before opening Calendar.",
       },
     },
     {
@@ -144,18 +150,18 @@ describe("Signal one-page gesture surface", () => {
     render(<SignalPage />);
 
     await user.click(
-      screen.getByRole("button", { name: "One: Open Spotify" }),
+      screen.getByRole("button", { name: "One: Show control guide" }),
     );
     expect(
-      screen.getByRole("heading", { name: "Open Spotify" }),
+      screen.getByRole("heading", { name: "Show control guide" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     await user.click(
-      screen.getByRole("button", { name: "Two: Open Gmail" }),
+      screen.getByRole("button", { name: "Two: Focus custom command" }),
     );
     expect(
-      screen.getByRole("heading", { name: "Open Gmail" }),
+      screen.getByRole("heading", { name: "Focus custom command" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
@@ -232,8 +238,23 @@ describe("Signal one-page gesture surface", () => {
     const reviewDialog = screen.getByRole("dialog", {
       name: "Confirm every step.",
     });
-    expect(within(reviewDialog).getByText("Open Spotify")).toBeInTheDocument();
+    expect(
+      within(reviewDialog).getByText("Open https://calendar.google.com/"),
+    ).toBeInTheDocument();
     expect(within(reviewDialog).getByText("Wait 1 seconds")).toBeInTheDocument();
+    await user.click(
+      within(reviewDialog).getByRole("button", { name: "Edit step 2" }),
+    );
+    const waitParameters = within(reviewDialog).getByLabelText(
+      "Edit wait parameters",
+    );
+    fireEvent.change(waitParameters, {
+      target: { value: '{"durationMs":2000}' },
+    });
+    await user.click(
+      within(reviewDialog).getByRole("button", { name: "Save step" }),
+    );
+    expect(within(reviewDialog).getByText("Wait 2 seconds")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Save to Fist" }));
 
@@ -249,7 +270,19 @@ describe("Signal one-page gesture surface", () => {
       command: {
         gesture: "fist",
         name: "Fallback focus command",
-        plan: fallbackPlan,
+        plan: {
+          ...fallbackPlan,
+          steps: [
+            fallbackPlan.steps[0],
+            {
+              ...fallbackPlan.steps[1],
+              action: {
+                type: "wait",
+                parameters: { durationMs: 2000 },
+              },
+            },
+          ],
+        },
       },
     });
     expect(fetchMock).toHaveBeenCalledWith(

@@ -3,7 +3,7 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 const fallbackBaseURL =
   process.env.PLAYWRIGHT_BASE_URL ??
   process.env.BASE_URL ??
-  "http://127.0.0.1:3000";
+  "http://localhost:3000";
 
 const gestureIds = [
   "one",
@@ -25,6 +25,47 @@ function appURL(pathname: string, testInfo: TestInfo) {
 }
 
 async function openSignal(page: Page, testInfo: TestInfo) {
+  await page.addInitScript(() => {
+    const cameraState = window as typeof window & {
+      __signalFakeCamera?: {
+        canvas: HTMLCanvasElement;
+        timer: number;
+      };
+    };
+    Object.defineProperty(navigator.mediaDevices, "getUserMedia", {
+      configurable: true,
+      value: async () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 640;
+        canvas.height = 480;
+        const context = canvas.getContext("2d");
+        let frame = 0;
+        const draw = () => {
+          if (!context) return;
+          const hue = (frame * 3) % 360;
+          context.fillStyle = `hsl(${hue} 35% 18%)`;
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.fillStyle = "#f7fbff";
+          context.font = "32px sans-serif";
+          context.fillText("Signal deterministic camera", 90, 230);
+          context.fillRect(80 + (frame % 200), 280, 80, 20);
+          frame += 1;
+        };
+        draw();
+        const timer = window.setInterval(draw, 33);
+        const stream = canvas.captureStream(30);
+        for (const track of stream.getTracks()) {
+          const stop = track.stop.bind(track);
+          track.stop = () => {
+            window.clearInterval(timer);
+            stop();
+          };
+        }
+        cameraState.__signalFakeCamera = { canvas, timer };
+        return stream;
+      },
+    });
+  });
   const response = await page.goto(appURL("/", testInfo), {
     waitUntil: "domcontentloaded",
   });
@@ -36,6 +77,19 @@ async function openSignal(page: Page, testInfo: TestInfo) {
   await page.waitForFunction(
     () => typeof window.signalGestureBridge?.emit === "function",
   );
+}
+
+async function startSignal(page: Page) {
+  await page.context().grantPermissions(["camera"], {
+    origin: new URL(page.url()).origin,
+  });
+  await page.getByRole("button", { name: "Start Signal" }).click();
+  await expect(
+    page.getByRole("button", { name: "Stop Signal" }),
+  ).toBeVisible({ timeout: 30_000 });
+  await expect(
+    page.getByText("Camera and local landmark tracking are active."),
+  ).toBeVisible();
 }
 
 function fistCard(page: Page) {
@@ -60,7 +114,7 @@ async function generateFallbackPlan(page: Page) {
   await expect(
     dialog.getByLabel("What should happen when you make a fist?"),
   ).toHaveValue(
-    /open Spotify, wait one second, and start my focus playlist/i,
+    /open https:\/\/calendar\.google\.com, wait one second, and say focus time/i,
   );
   await dialog
     .getByRole("button", { name: "Generate structured command" })
@@ -114,13 +168,15 @@ test.describe("signal single-page command interface", () => {
   }, testInfo) => {
     await openSignal(page, testInfo);
 
-    await page.getByRole("button", { name: "One: Open Spotify" }).click();
+    await page
+      .getByRole("button", { name: "One: Show control guide" })
+      .click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(
-      page.getByText(/Locked preset · Open app/i),
+      page.getByText(/Browser preset · Signal UI/i),
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { level: 2, name: "Open Spotify" }),
+      page.getByRole("heading", { level: 2, name: "Show control guide" }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Close preset preview" }),
@@ -143,7 +199,7 @@ test.describe("signal single-page command interface", () => {
     const commandName = dialog.getByLabel("Command name");
     await commandName.fill("Launch deep work");
     await expect(
-      dialog.getByText(/Saving does not execute it/i),
+      dialog.getByText(/Saving assigns them to Fist/i),
     ).toBeVisible();
     await dialog.getByRole("button", { name: "Save to Fist" }).click();
 
@@ -152,7 +208,7 @@ test.describe("signal single-page command interface", () => {
       page.getByRole("button", { name: "Fist: Launch deep work" }),
     ).toBeVisible();
     await expect(
-      page.getByText("Launch deep work assigned to Fist and saved locally."),
+      page.getByText("Launch deep work assigned to Fist and saved in this browser."),
     ).toBeVisible();
 
     const stored = await page.evaluate(() => {
@@ -244,6 +300,8 @@ test.describe("signal single-page command interface", () => {
     page,
   }, testInfo) => {
     await openSignal(page, testInfo);
+    await startSignal(page);
+    await page.getByRole("button", { name: "Commands" }).click();
 
     const twoCard = page.locator('button[data-gesture="two"]');
     await page.evaluate(() => {
@@ -260,12 +318,14 @@ test.describe("signal single-page command interface", () => {
       );
     });
     await expect(twoCard).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByRole("status")).toContainText(
-      "Two detected at 96% confidence.",
+    await expect(page.locator(".signal-bridge-status")).toContainText(
+      "Two held at 96% confidence.",
     );
 
     const dialog = await openFistEditor(page);
-    const statusBefore = await page.getByRole("status").first().textContent();
+    const statusBefore = await page
+      .locator(".signal-bridge-status")
+      .textContent();
     const threeCard = page.locator('button[data-gesture="three"]');
     await page.evaluate(() => {
       window.dispatchEvent(
@@ -282,7 +342,9 @@ test.describe("signal single-page command interface", () => {
     });
     await page.waitForTimeout(100);
     await expect(threeCard).toHaveAttribute("aria-pressed", "false");
-    await expect(page.getByRole("status").first()).toHaveText(statusBefore ?? "");
+    await expect(page.locator(".signal-bridge-status")).toHaveText(
+      statusBefore ?? "",
+    );
 
     await dialog
       .getByRole("button", { name: "Close custom command editor" })
@@ -303,8 +365,91 @@ test.describe("signal single-page command interface", () => {
       );
     });
     await expect(threeCard).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByRole("status")).toContainText(
-      "Three command fired.",
+    await expect(page.locator(".signal-bridge-status")).toContainText(
+      "Three command fired in Signal.",
+    );
+  });
+
+  test("starts the browser camera only after click and loads self-hosted MediaPipe assets", async ({
+    page,
+  }, testInfo) => {
+    const requestedAssets: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("/mediapipe/")) {
+        requestedAssets.push(request.url());
+      }
+    });
+    await openSignal(page, testInfo);
+
+    expect(
+      await page
+        .getByLabel("Mirrored live camera preview")
+        .evaluate((video) => (video as HTMLVideoElement).srcObject),
+    ).toBeNull();
+
+    await startSignal(page);
+
+    await expect
+      .poll(
+        () =>
+          requestedAssets.some((url) => url.endsWith("hand_landmarker.task")),
+        { timeout: 20_000 },
+      )
+      .toBe(true);
+    await expect
+      .poll(() => requestedAssets.some((url) => url.includes("/wasm/")), {
+        timeout: 20_000,
+      })
+      .toBe(true);
+    await expect
+      .poll(async () =>
+        page
+          .getByLabel("Mirrored live camera preview")
+          .evaluate((video) => Boolean((video as HTMLVideoElement).srcObject)),
+      )
+      .toBe(true);
+    await expect
+      .poll(
+        async () => {
+          const value = await page
+            .getByLabel("Tracking telemetry")
+            .locator("div")
+            .filter({ hasText: "Processed" })
+            .locator("dd")
+            .textContent();
+          return Number.parseFloat(value ?? "0");
+        },
+        { timeout: 20_000 },
+      )
+      .toBeGreaterThan(0);
+
+    await page.getByRole("button", { name: "Stop Signal" }).click();
+    await expect(
+      page.getByRole("button", { name: "Start Signal" }),
+    ).toBeVisible();
+  });
+
+  test("does not execute command-mode events before Signal starts", async ({
+    page,
+  }, testInfo) => {
+    await openSignal(page, testInfo);
+    await page.getByRole("button", { name: "Commands" }).click();
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent("signal:gesture", {
+          detail: {
+            gesture: "three",
+            confidence: 0.99,
+            phase: "fired",
+            progress: 1,
+            timestamp: Date.now(),
+          },
+        }),
+      );
+    });
+    await expect(page.getByText("Signal zoom reset to 100%.")).toHaveCount(0);
+    await expect(page.locator(".signal-bridge-status")).toContainText(
+      /Start Signal/i,
     );
   });
 
@@ -333,5 +478,19 @@ test.describe("signal single-page command interface", () => {
       schemaVersion: 1,
       status: "ok",
     });
+  });
+
+  test("security headers allow local camera and self-hosted WebAssembly", async ({
+    request,
+  }, testInfo) => {
+    const response = await request.get(appURL("/", testInfo));
+
+    expect(response.status()).toBe(200);
+    expect(response.headers()["permissions-policy"]).toContain(
+      "camera=(self)",
+    );
+    expect(response.headers()["content-security-policy"]).toContain(
+      "'wasm-unsafe-eval'",
+    );
   });
 });

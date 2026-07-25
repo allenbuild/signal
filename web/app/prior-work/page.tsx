@@ -12,11 +12,10 @@ export default function PriorWorkPage() {
         <p className="eyebrow">Night Hack disclosure</p>
         <h1>Built on HandPilot. Extended as Signal.</h1>
         <p>
-          Before Night Hack, the team built a separate native macOS experiment
-          named HandPilot. The disclosed baseline included camera capture,
-          Apple Vision hand-landmark tracking, deterministic gestures, macOS
-          input events, permission and safety handling, calibration diagnostics,
-          and touchless pointer, click, scroll, and zoom controls.
+          Before Night Hack, the team built a separate native experiment named
+          HandPilot with early pointer, click, scroll, and zoom work. That
+          prototype is prior work; it is not the architecture shipped by this
+          public browser product.
         </p>
       </section>
       <section className="section shell prose-grid">
@@ -24,10 +23,11 @@ export default function PriorWorkPage() {
           <p className="eyebrow">Signal additions</p>
           <h2>A programmable command layer.</h2>
           <p>
-            Signal adds nine programmable gestures, natural-language workflow
-            creation, Teach by Demo, validated macro planning, typed
-            integrations, durable profile sharing, a public command interface,
-            and native release packaging.
+            During Night Hack, Signal became one public browser application with
+            local MediaPipe hand tracking, Control and Commands modes, nine
+            deterministic command gestures, natural-language workflow creation,
+            Teach by Demo, reviewed browser-safe plans, typed integrations,
+            durable profile sharing, deployment, and tests.
           </p>
         </article>
         <article>

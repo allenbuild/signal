@@ -1,5 +1,8 @@
 # Team B: public web, cloud, sharing, and release operations
 
+> Historical workstream record. Current ownership and architecture are defined
+> by `AGENTS.md` and `ARCHITECTURE.md`.
+
 ## Exclusive write scope
 
 - `web/**`, its package/lock files, public assets, tests, server routes, storage,

@@ -14,5 +14,6 @@
 | D-010 | Set project Codex concurrency to three spawned threads. | The observed environment cap is four total slots including the primary. The prompt's proposed 32 is not valid for this session. |
 | D-011 | Use `gpt-5.6-sol`, `xhigh`, priority service, and stable multi-agent/fast flags in project config. | Installed Codex is `0.145.0`; current user config confirms the model/tier, and the current manual identifies the project config and stable feature keys. |
 | D-012 | Do not treat schema validation as authorization. | A shape-valid plan still needs policy checks, preview, confirmation, output gates, cancellation, and typed receipts. |
+| D-013 | Supersede D-002: Signal is one public browser application. | The exact merged native/web state is preserved on `codex/archive-native-web-2026-07-24`. Current `main`, CI, navigation, camera tracking, controls, command execution, and deployment are browser-only; native source is legacy history. |
 
 Add dated entries rather than rewriting history when a decision changes.

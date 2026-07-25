@@ -21,9 +21,9 @@ export function GestureCard({
 }) {
   const availability =
     command.availability === "ready"
-      ? "Ready"
-      : command.availability === "native_required"
-        ? "Native companion"
+      ? "Browser ready"
+      : command.availability === "permission"
+        ? "Permission"
         : "Unavailable";
 
   return (
@@ -38,6 +38,7 @@ export function GestureCard({
         updated ? "is-updated" : "",
       ].filter(Boolean).join(" ")}
       data-gesture={command.gesture}
+      data-signal-interactive
       aria-label={`${command.label}: ${assignedName ?? command.commandName}`}
       aria-pressed={active}
       onClick={onClick}

@@ -1,5 +1,8 @@
 # Five-hour team plan
 
+> Historical planning record. Superseded by the browser-only decision in
+> `DECISIONS.md` D-013; do not use this file as current architecture.
+
 ## Ownership
 
 Team A owns native control and final integration. Team B owns public web, cloud,

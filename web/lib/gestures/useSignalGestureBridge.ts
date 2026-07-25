@@ -26,12 +26,19 @@ const initialState: BridgeState = {
 export function useSignalGestureBridge({
   disabled,
   cooldownMs = 900,
+  onFire,
 }: {
   disabled: boolean;
   cooldownMs?: number;
+  onFire?(gesture: GestureId): void;
 }) {
   const [state, setState] = useState(initialState);
   const lastFireAt = useRef<Record<string, number>>({});
+  const onFireRef = useRef(onFire);
+
+  useEffect(() => {
+    onFireRef.current = onFire;
+  }, [onFire]);
 
   useEffect(() => {
     window.signalGestureBridge = {
@@ -68,7 +75,10 @@ export function useSignalGestureBridge({
         detail.phase === "fired" || detail.phase === "recognized";
       const previousFire = lastFireAt.current[gesture] ?? 0;
       const acceptedFire = shouldFire && now - previousFire >= cooldownMs;
-      if (acceptedFire) lastFireAt.current[gesture] = now;
+      if (acceptedFire) {
+        lastFireAt.current[gesture] = now;
+        onFireRef.current?.(gesture);
+      }
 
       setState((current) => ({
         activeGesture: gesture,

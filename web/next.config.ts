@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
               "frame-ancestors 'none'",
               "img-src 'self' data: blob:",
               "object-src 'none'",
-              "script-src 'self' 'unsafe-inline'",
+              "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
               "upgrade-insecure-requests",
             ].join("; "),
@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value:
-              "display-capture=(self), camera=(), microphone=(), geolocation=()",
+              "display-capture=(self), camera=(self), microphone=(), geolocation=()",
           },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {

@@ -41,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: "%s · Signal",
     },
     description:
-      "A private, reviewable gesture command interface for Signal on macOS.",
+      "A private, reviewable hand-gesture controller that runs in your browser.",
     icons: { icon: "/favicon.png", shortcut: "/favicon.png" },
     openGraph: {
       title: "signal — Show a gesture. Run a command.",
@@ -53,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
           url: socialImage,
           width: 1731,
           height: 909,
-          alt: "Signal gesture command interface for macOS",
+          alt: "Signal browser gesture command interface",
         },
       ],
     },

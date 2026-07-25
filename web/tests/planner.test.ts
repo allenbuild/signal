@@ -13,10 +13,10 @@ const seededRequest: PlannerRequest = {
   schemaVersion: 1,
   requestId: "planner-seeded-test",
   request:
-    "When I give a thumbs up, open my focus playlist, say Focus mode, and send Demo complete to Discord.",
+    "When I give a thumbs up, open https://open.spotify.com/, say Focus mode, and send Demo complete to Discord.",
   targetGesture: "thumbs_up",
   actionCatalog: [
-    "open_deep_link",
+    "open_url",
     "speak_text",
     "discord_webhook",
   ],
@@ -63,7 +63,7 @@ describe("deterministic planner", () => {
 
     expect(first.response.usedDeterministicFallback).toBe(true);
     expect(first.response.plan.steps.map((step) => step.action.type)).toEqual([
-      "open_deep_link",
+      "open_url",
       "speak_text",
       "discord_webhook",
     ]);
@@ -83,18 +83,18 @@ describe("deterministic planner", () => {
     );
   });
 
-  it("asks for clarification when a required app, wait, or catalog entry is missing", () => {
+  it("asks for clarification when a public URL, wait, or catalog entry is missing", () => {
     const missingApplication = planWithDeterministicFallback({
       ...seededRequest,
-      requestId: "missing-app",
+      requestId: "missing-url",
       request: "Open my writing app",
-      actionCatalog: ["open_application"],
+      actionCatalog: ["open_url"],
     });
     expect(missingApplication).toMatchObject({
       handled: true,
       response: {
         status: "needs_clarification",
-        missingFields: ["applicationOrUrl"],
+        missingFields: ["publicUrl"],
       },
     });
 
@@ -131,9 +131,9 @@ describe("deterministic planner", () => {
       ...seededRequest,
       requestId: "word-form-wait",
       request:
-        "When I make a fist, open Spotify, wait one second, and start my focus playlist.",
+        "When I make a fist, open https://open.spotify.com/, wait one second, and say focus time.",
       targetGesture: "fist",
-      actionCatalog: ["open_deep_link", "wait"],
+      actionCatalog: ["open_url", "wait", "speak_text"],
     });
 
     expect(result.handled).toBe(true);
@@ -141,8 +141,9 @@ describe("deterministic planner", () => {
       throw new Error("Expected the default fist prompt to produce a plan");
     }
     expect(result.response.plan.steps.map((step) => step.action.type)).toEqual([
-      "open_deep_link",
+      "open_url",
       "wait",
+      "speak_text",
     ]);
     expect(result.response.plan.steps[1]?.action).toEqual({
       type: "wait",
@@ -229,6 +230,18 @@ describe("planner API boundary", () => {
     );
     expect(unknown.status).toBe(422);
     expect(await errorCode(unknown)).toBe("invalid_request");
+  });
+
+  it("rejects legacy native action catalogs", async () => {
+    const response = await postPlan(
+      plannerRequest({
+        ...seededRequest,
+        requestId: "native-catalog",
+        actionCatalog: ["open_application"],
+      }),
+    );
+    expect(response.status).toBe(422);
+    expect(await errorCode(response)).toBe("unsupported_action_catalog");
   });
 
   it("enforces the raw 16 KiB cap before planner validation", async () => {

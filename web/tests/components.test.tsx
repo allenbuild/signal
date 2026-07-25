@@ -58,8 +58,9 @@ describe("SignalBuilder", () => {
     expect(thumbsUp).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByText("Step 2 · One")).toBeInTheDocument();
     expect(
-      screen.getByText(/Hybrid Mode keeps One for pointer control/),
+      screen.getByRole("radio", { name: "Commands" }),
     ).toBeInTheDocument();
+    expect(screen.queryByText(/Hybrid Mode/)).not.toBeInTheDocument();
   });
 
   it("surfaces a typed planner clarification without creating a preview", async () => {
@@ -122,9 +123,11 @@ describe("SignalBuilder", () => {
     ).toHaveTextContent(
       "This file is not a strict Signal version 1 profile. Unknown fields, actions, and versions are rejected.",
     );
-    expect(screen.getByText("Nothing on this page runs a Mac command.")).toBe(
-      screen.getByText("Nothing on this page runs a Mac command."),
-    );
+    expect(
+      screen.getByText(
+        "No command can control the operating system or launch native apps.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("requires a public-summary review and shows the publishing warning", async () => {
@@ -263,17 +266,17 @@ describe("SignalDemo honest boundary", () => {
     render(<SignalDemo />);
     expect(screen.getByText("Page-local simulation")).toBeInTheDocument();
     expect(
-      screen.getByText("Camera off · Mac control unavailable · No external effects"),
+      screen.getByText("Camera off · Browser only · No external effects"),
     ).toBeInTheDocument();
     expect(screen.getByText("External effects: 0")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "The browser explains. The Mac app acts.",
+        name: "Signal lives entirely in your browser.",
       }),
     ).toBeInTheDocument();
   });
 
-  it("finishes the Discord demo with a local fallback and zero system effects", async () => {
+  it("finishes the Discord demo with a local fallback and zero external effects", async () => {
     vi.useFakeTimers();
     render(<SignalDemo />);
 
@@ -286,7 +289,7 @@ describe("SignalDemo honest boundary", () => {
 
     expect(
       screen.getByText(
-        "Simulation complete. 3 simulated receipts. System actions performed: 0.",
+        "Simulation complete. 3 simulated receipts. External effects performed: 0.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("LOCAL FALLBACK")).toBeInTheDocument();

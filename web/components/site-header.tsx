@@ -3,8 +3,8 @@ import Link from "next/link";
 const links = [
   ["/builder", "Builder"],
   ["/demo", "Demo"],
-  ["/download", "Download"],
   ["/docs", "Docs"],
+  ["/privacy", "Privacy"],
 ] as const;
 
 export function SiteHeader() {
@@ -21,7 +21,7 @@ export function SiteHeader() {
           ))}
         </nav>
         <Link className="nav-cta" href="/builder">
-          Open builder <span aria-hidden="true">↗</span>
+          Open Signal <span aria-hidden="true">↗</span>
         </Link>
       </div>
     </header>

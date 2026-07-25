@@ -1,4 +1,5 @@
 import { profileCreateRequestSchema } from "../../../../lib/contracts";
+import { isBrowserSafePlan } from "../../../../lib/commands/browser-actions";
 import {
   createSharedProfile,
   ProfileStoreUnavailableError,
@@ -113,7 +114,10 @@ export async function POST(request: Request) {
   if (
     !parsed.success ||
     parsed.data.profile.share.visibility !== "unlisted" ||
-    parsed.data.profile.share.shareCode !== undefined
+    parsed.data.profile.share.shareCode !== undefined ||
+    parsed.data.profile.mappings.some(
+      (mapping) => !isBrowserSafePlan(mapping.plan),
+    )
   ) {
     return apiError(
       "invalid_profile",

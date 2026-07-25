@@ -6,6 +6,7 @@ import {
   plannerRequestSchema,
   requestIdSchema,
 } from "../../../../../lib/contracts";
+import { isBrowserSafeActionType } from "../../../../../lib/commands/browser-actions";
 import {
   createPlannerResponse,
   rejectUnsafePlannerInstruction,
@@ -109,6 +110,15 @@ export async function POST(request: Request) {
     );
   }
   requestId = parsed.data.requestId;
+  if (parsed.data.actionCatalog.some((type) => !isBrowserSafeActionType(type))) {
+    return apiError(
+      "unsupported_action_catalog",
+      "Signal only accepts browser-safe action types.",
+      422,
+      requestId,
+      headers,
+    );
+  }
   const plannerRequest = plannerRequestSchema.safeParse({
     schemaVersion: parsed.data.schemaVersion,
     requestId,

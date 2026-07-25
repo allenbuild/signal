@@ -2,25 +2,25 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Setup",
-  description: "Install Signal and grant the narrow macOS permissions it needs.",
+  description: "Start Signal in a desktop browser and allow camera access.",
 };
 
 const steps = [
   [
-    "Install and open",
-    "Move Signal to Applications, open it, and follow macOS’s first-launch prompt. If Gatekeeper asks, use the release page’s signing-specific instructions.",
+    "Open Signal over HTTPS",
+    "Use the public Signal website in a current desktop browser. Nothing needs to be downloaded or installed.",
   ],
   [
-    "Allow Camera",
-    "Open System Settings → Privacy & Security → Camera, then enable the exact Signal app you installed. Frames remain in memory on your Mac.",
+    "Start Signal",
+    "Choose Control or Commands, then click Start Signal. The page never requests the camera before this explicit action.",
   ],
   [
-    "Allow Accessibility",
-    "Open Privacy & Security → Accessibility and enable Signal. If you replace the app, remove the old entry and add the new release.",
+    "Allow the camera",
+    "Approve the browser camera prompt. Video frames and hand landmarks stay in this browser tab and are not uploaded.",
   ],
   [
-    "Calibrate, then enable",
-    "Choose Hybrid mode, confirm the landmark view is stable, and explicitly enable output. Control–Option–Command–H closes the output gate and requests macro cancellation.",
+    "Calibrate, then stop safely",
+    "Keep one hand visible in the camera card, verify the landmark overlay, and use Stop Signal whenever you want to close the camera track and reset gesture state.",
   ],
 ] as const;
 
@@ -28,12 +28,12 @@ export default function SetupPage() {
   return (
     <main className="page-main" id="main-content">
       <section className="page-hero shell">
-        <p className="eyebrow">Setup · About five minutes</p>
-        <h1>Give Signal permission to help.</h1>
+        <p className="eyebrow">Setup · About one minute</p>
+        <h1>Start with one browser permission.</h1>
         <p>
-          Signal uses the camera to understand hand landmarks and Accessibility
-          to control the real cursor and frontmost app. Output starts paused and
-          must be enabled explicitly.
+          Signal uses the camera to understand hand landmarks locally. It does
+          not need Accessibility access, a native companion, or a localhost
+          service.
         </p>
       </section>
       <section className="section shell">

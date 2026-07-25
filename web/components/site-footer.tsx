@@ -14,14 +14,13 @@ export function SiteFooter() {
         <div className="footer-links">
           <Link href="/builder">Builder</Link>
           <Link href="/demo">Demo</Link>
-          <Link href="/download">Download</Link>
           <Link href="/docs">Docs</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/security">Security</Link>
         </div>
         <p className="footer-note">
-          Camera frames stay on device. Plans remain previews until you approve
-          them in the Signal Mac app.
+          Camera frames stay in your browser tab. Plans remain previews until
+          you review and approve browser-safe actions.
         </p>
       </div>
     </footer>

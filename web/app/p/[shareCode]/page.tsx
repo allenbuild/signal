@@ -21,11 +21,11 @@ export const metadata: Metadata = {
 function actionSummary(action: { type: string; parameters: Record<string, unknown> }) {
   switch (action.type) {
     case "open_application":
-      return `Open ${String(action.parameters.applicationName ?? "a Mac app")}`;
+      return "Unavailable legacy native action";
     case "open_url":
       return `Open ${String(action.parameters.url ?? "a public HTTPS URL")}`;
     case "open_deep_link":
-      return `Open a reviewed ${String(action.parameters.scheme ?? "")} link`;
+      return "Unavailable legacy deep-link action";
     case "speak_text":
       return `Say “${String(action.parameters.text ?? "")}”`;
     case "show_notification":
@@ -35,7 +35,7 @@ function actionSummary(action: { type: string; parameters: Record<string, unknow
     case "discord_webhook":
       return `Send “${String(action.parameters.message ?? "")}” using your Discord connection`;
     case "slack_webhook":
-      return `Send “${String(action.parameters.message ?? "")}” using your Slack connection`;
+      return "Unavailable legacy integration action";
     default:
       return action.type.replaceAll("_", " ");
   }

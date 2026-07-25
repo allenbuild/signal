@@ -1,5 +1,8 @@
 # Parallel status
 
+> Historical integration board. The native/web merge it records is preserved on
+> `codex/archive-native-web-2026-07-24`; current `main` is browser-only.
+
 This is the coordination board, not proof of release completion. Owners update a
 row with branch, commit, evidence, and handoff state. The effective environment
 allows one primary plus three spawned threads.
