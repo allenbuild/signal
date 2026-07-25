@@ -77,7 +77,7 @@ try {
   const controlledTabUrl = controlledPage.url();
   const panel = await context.newPage();
   await panel.goto(`chrome-extension://${extensionId}/sidepanel/index.html`);
-  await panel.getByRole("heading", { name: /Show a gesture/i }).waitFor();
+  await panel.getByRole("heading", { name: "signal", exact: true }).waitFor();
   await panel.getByRole("button", { name: "Start Signal" }).waitFor();
 
   const runtimeStatus = await panel.evaluate(async () => {
