@@ -1,0 +1,16 @@
+# Project-scoped settings for the observed Codex 0.145.0 environment.
+# The effective cap is four total threads, so one primary may spawn three.
+model = "gpt-5.6-sol"
+model_reasoning_effort = "xhigh"
+service_tier = "priority"
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
+default_subagent_model = "gpt-5.6-sol"
+default_subagent_reasoning_effort = "high"
+interrupt_message = true
+
+[features]
+multi_agent = true
+fast_mode = true
