@@ -113,13 +113,13 @@ final class SignalAppModel: ObservableObject {
         guard !runtimeStarted else { return }
         runtimeStarted = true
         hotkey.start { [weak self] in
-            Task { @MainActor in self?.emergencyStop() }
+            Task { @MainActor [weak self] in self?.emergencyStop() }
         }
         camera.onHand = { [weak self] hand, metrics in
-            Task { @MainActor in self?.process(hand, metrics: metrics) }
+            Task { @MainActor [weak self] in self?.process(hand, metrics: metrics) }
         }
         camera.onTrackingLoss = { [weak self] in
-            Task { @MainActor in self?.trackingLost() }
+            Task { @MainActor [weak self] in self?.trackingLost() }
         }
         statusMessage = "Runtime ready; output remains paused"
     }
