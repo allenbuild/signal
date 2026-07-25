@@ -73,6 +73,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="preload"
+          href="/mediapipe/hand_landmarker.task"
+          as="fetch"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/mediapipe/0.10.35/wasm/vision_wasm_internal.wasm"
+          as="fetch"
+          type="application/wasm"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${signalSerif.variable} antialiased`}
       >

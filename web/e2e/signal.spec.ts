@@ -79,14 +79,14 @@ async function openSignal(page: Page, testInfo: TestInfo) {
   );
 }
 
-async function startSignal(page: Page) {
+async function startSignal(page: Page, timeoutMs = 30_000) {
   await page.context().grantPermissions(["camera"], {
     origin: new URL(page.url()).origin,
   });
   await page.getByRole("button", { name: "Start Signal" }).click();
   await expect(
     page.getByRole("button", { name: "Stop Signal" }),
-  ).toBeVisible({ timeout: 30_000 });
+  ).toBeVisible({ timeout: timeoutMs });
   await expect(
     page.getByText("Camera and local landmark tracking are active."),
   ).toBeVisible();
@@ -373,6 +373,10 @@ test.describe("signal single-page command interface", () => {
   test("starts the browser camera only after click and loads self-hosted MediaPipe assets", async ({
     page,
   }, testInfo) => {
+    const startupTimeout = appURL("/", testInfo).startsWith("https://")
+      ? 90_000
+      : 30_000;
+    testInfo.setTimeout(startupTimeout + 30_000);
     const requestedAssets: string[] = [];
     page.on("request", (request) => {
       if (request.url().includes("/mediapipe/")) {
@@ -387,7 +391,7 @@ test.describe("signal single-page command interface", () => {
         .evaluate((video) => (video as HTMLVideoElement).srcObject),
     ).toBeNull();
 
-    await startSignal(page);
+    await startSignal(page, startupTimeout);
 
     await expect
       .poll(
