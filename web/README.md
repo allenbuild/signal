@@ -364,8 +364,11 @@ capability:
 }
 ```
 
-The displayed values above are illustrative, not working credentials. Capture
-the real `revokeToken` once; only its SHA-256 hash is stored. Revoke with:
+The displayed values above are illustrative, not working credentials. The
+browser publisher keeps the real `revokeToken` only in open-page memory, offers
+explicit copy/revoke controls, and never writes it into profile JSON or local
+storage. Copy it before reloading if later revocation may be needed. Only its
+SHA-256 hash is stored in D1. Revoke with:
 
 ```http
 POST /api/v1/profiles/SIG1-ABCDEFGH/revoke
@@ -383,9 +386,14 @@ migration is `drizzle/0000_careful_tarantula.sql`; it creates
 marks revocation with `revoked_at_ms`.
 
 In development and tests only, a process-memory fallback is used when D1 is
-unavailable. Production fails closed with `storage_unavailable`. Revocation
-hides a row but does not physically delete it; no automatic retention job is
-implemented.
+unavailable. Production fails closed with `storage_unavailable`.
+
+The retention policy expires active shares 365 days after creation and revoked
+rows 30 days after revocation. Profile API access runs the purge
+opportunistically. Schedule `db/purge-expired-profiles.sql` at least once every
+24 hours in production so dormant databases are also bounded; without that
+operator schedule, the source-level opportunistic purge alone cannot guarantee
+physical deletion on an idle service.
 
 ## Deployment
 

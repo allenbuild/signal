@@ -183,6 +183,11 @@ type ShareResult = {
   schemaVersion: 1;
   shareCode: string;
   profileURL: string;
+  /**
+   * Present only for a share created in this open page. It is intentionally
+   * excluded from SignalProfile and therefore never reaches localStorage.
+   */
+  revokeToken?: string;
 };
 
 type ManualFields = {
@@ -201,6 +206,7 @@ type ManualFields = {
 
 const STORAGE_KEY = "signal.guest-profile.v1";
 const SHARE_CODE_PATTERN = /^SIG1-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$/;
+const REVOKE_TOKEN_PATTERN = /^SRV1_[0-9a-f]{64}$/;
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
 const defaultManualFields: ManualFields = {
@@ -343,6 +349,10 @@ export function SignalBuilder() {
   const [publishMessage, setPublishMessage] = useState("");
   const [shareResult, setShareResult] = useState<ShareResult | null>(null);
   const [copyNotice, setCopyNotice] = useState("");
+  const [revokeState, setRevokeState] = useState<
+    "idle" | "loading" | "error"
+  >("idle");
+  const [revokeMessage, setRevokeMessage] = useState("");
   const importInput = useRef<HTMLInputElement>(null);
 
   const selectedGestureLabel =
@@ -836,7 +846,9 @@ export function SignalBuilder() {
         payload.schemaVersion !== 1 ||
         typeof payload.shareCode !== "string" ||
         !SHARE_CODE_PATTERN.test(payload.shareCode) ||
-        typeof payload.profileURL !== "string"
+        typeof payload.profileURL !== "string" ||
+        typeof payload.revokeToken !== "string" ||
+        !REVOKE_TOKEN_PATTERN.test(payload.revokeToken)
       ) {
         throw new Error(
           isRecord(payload) && typeof payload.message === "string"
@@ -852,6 +864,7 @@ export function SignalBuilder() {
         schemaVersion: 1,
         shareCode: payload.shareCode,
         profileURL: payload.profileURL,
+        revokeToken: payload.revokeToken,
       };
       setShareResult(result);
       setProfile((current) => ({
@@ -868,6 +881,65 @@ export function SignalBuilder() {
         error instanceof Error
           ? error.message
           : "The profile could not be published.",
+      );
+    }
+  }
+
+  async function revokePublishedProfile() {
+    if (!shareResult?.revokeToken) {
+      setRevokeState("error");
+      setRevokeMessage(
+        "This page does not have the create-only revocation key for that share.",
+      );
+      return;
+    }
+    const confirmed = window.confirm(
+      `Revoke ${shareResult.shareCode}? Its public link will stop working immediately.`,
+    );
+    if (!confirmed) return;
+
+    setRevokeState("loading");
+    setRevokeMessage("Revoking the unlisted profile…");
+    try {
+      const response = await fetch(
+        `/api/v1/profiles/${encodeURIComponent(shareResult.shareCode)}/revoke`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ revokeToken: shareResult.revokeToken }),
+        },
+      );
+      const payload: unknown = await response.json();
+      if (
+        !response.ok ||
+        !isRecord(payload) ||
+        payload.schemaVersion !== 1 ||
+        payload.revoked !== true
+      ) {
+        throw new Error(
+          isRecord(payload) &&
+              isRecord(payload.error) &&
+              typeof payload.error.message === "string"
+            ? payload.error.message
+            : "The profile could not be revoked.",
+        );
+      }
+      setProfile((current) => ({
+        ...current,
+        share: { visibility: "private" },
+      }));
+      setShareResult(null);
+      setRevokeState("idle");
+      setRevokeMessage("");
+      setSavedNotice(
+        "Unlisted profile revoked. Its public link no longer resolves.",
+      );
+    } catch (error) {
+      setRevokeState("error");
+      setRevokeMessage(
+        error instanceof Error
+          ? error.message
+          : "The profile could not be revoked.",
       );
     }
   }
@@ -1487,6 +1559,58 @@ export function SignalBuilder() {
           <p className="copy-notice" role="status" aria-live="polite">
             {copyNotice}
           </p>
+          {shareResult.revokeToken ? (
+            <div className="publish-warning" role="note">
+              <strong>Save your revocation key now.</strong>
+              <p>
+                Signal keeps it only in memory on this open page. It is never
+                added to your saved profile or local storage. Copy it before
+                reloading if you may need to revoke this link later.
+              </p>
+              <div className="share-result-actions">
+                <button
+                  className="button button-secondary secondary"
+                  type="button"
+                  onClick={() =>
+                    copyText(
+                      shareResult.revokeToken as string,
+                      "Revocation key",
+                    )
+                  }
+                >
+                  Copy revocation key
+                </button>
+                <button
+                  className="button button-secondary quiet"
+                  type="button"
+                  disabled={revokeState === "loading"}
+                  onClick={revokePublishedProfile}
+                >
+                  {revokeState === "loading"
+                    ? "Revoking…"
+                    : "Revoke profile"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="publish-warning" role="note">
+              <strong>Revocation key unavailable.</strong>
+              <p>
+                Imported profile JSON never contains a revocation key. Use the
+                key copied when this share was first published.
+              </p>
+            </div>
+          )}
+          {revokeMessage && (
+            <p
+              className={`form-message${
+                revokeState === "error" ? " error" : ""
+              }`}
+              role={revokeState === "error" ? "alert" : "status"}
+            >
+              {revokeMessage}
+            </p>
+          )}
         </section>
       )}
 

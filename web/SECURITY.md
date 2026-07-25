@@ -115,8 +115,12 @@ SHA-256 hash and compares fixed-length hashes without early exit. Missing,
 revoked, malformed, and unauthorized lookups use nondisclosing
 `profile_not_found` responses.
 
-Revocation currently marks rather than deletes a D1 row. A production retention
-and purge policy is still required.
+The publisher retains the raw token only in open-page memory. It offers
+user-initiated copy and revocation controls but never serializes the token into
+the profile or local storage. Active rows expire after 365 days; revoked rows
+expire after 30 days. API access purges expired rows opportunistically, and
+`db/purge-expired-profiles.sql` must also be scheduled at least daily in
+production to bound retention for an idle database.
 
 ### Discord integration
 
@@ -174,7 +178,8 @@ Before public release, record evidence for all of the following:
 - clean locked install, tests, typecheck, lint, and production build;
 - deployed HTTPS, certificate, HSTS, CSP, CORS/preflight behavior, and hard
   refresh;
-- D1 migration application, create/read/revoke, rollback, and retention purge;
+- D1 migration application, create/read/revoke, rollback, and the scheduled
+  daily retention purge;
 - distributed rate limiting and spoofed-forwarded-address behavior;
 - prompt/keyframe and application-log redaction;
 - live Anthropic timeout/refusal/invalid-output behavior;

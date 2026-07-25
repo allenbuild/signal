@@ -173,6 +173,89 @@ describe("SignalBuilder", () => {
     );
     expect(publishButton).toBeEnabled();
   });
+
+  it("keeps the create-only revoke token out of local storage and can revoke the share", async () => {
+    const revokeToken = `SRV1_${"a".repeat(64)}`;
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            schemaVersion: 1,
+            shareCode: "SIG1-ABCDEFGH",
+            profileURL: "https://signal.example/p/SIG1-ABCDEFGH",
+            revokeToken,
+          }),
+          {
+            status: 201,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ schemaVersion: 1, revoked: true }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const user = userEvent.setup();
+    render(<SignalBuilder />);
+
+    await user.click(
+      screen.getByRole("button", { name: /^Show notification/ }),
+    );
+    await user.click(screen.getByRole("button", { name: "Add reviewed step" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Save to Thumbs up" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Review & publish" }),
+    );
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /I reviewed the public summary/,
+      }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Publish unlisted profile" }),
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "SIG1-ABCDEFGH" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Copy revocation key" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/only in memory on this open page/i)).toBeInTheDocument();
+    expect(window.localStorage.getItem("signal.guest-profile.v1")).not.toContain(
+      revokeToken,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Revoke profile" }));
+    expect(
+      await screen.findByText(
+        "Unlisted profile revoked. Its public link no longer resolves.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "SIG1-ABCDEFGH" }),
+    ).not.toBeInTheDocument();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const [revokeUrl, revokeInit] = fetchMock.mock.calls[1] as [
+      string,
+      RequestInit,
+    ];
+    expect(revokeUrl).toBe(
+      "/api/v1/profiles/SIG1-ABCDEFGH/revoke",
+    );
+    expect(JSON.parse(String(revokeInit.body))).toEqual({ revokeToken });
+    expect(window.localStorage.getItem("signal.guest-profile.v1")).not.toContain(
+      revokeToken,
+    );
+  });
 });
 
 describe("SignalDemo honest boundary", () => {

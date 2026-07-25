@@ -144,8 +144,10 @@ and tests can use the process-memory fallback.
 
 Before deployment, confirm the platform packages and applies this migration.
 After deployment, verify create/read/revoke and query the schema through the
-provider. Revocation does not delete a row; establish a purge and retention
-procedure.
+provider. Active shares expire after 365 days and revoked rows after 30 days.
+API activity purges opportunistically; schedule
+`db/purge-expired-profiles.sql` at least daily to bound a completely idle D1
+database.
 
 ## Security decisions
 
@@ -170,12 +172,13 @@ See `SECURITY.md` and `PRIVACY.md` for the full threat/data model.
 1. The one-page Fist UI saves the generated command but does not execute or
    transmit it to native. Export/import is the only implemented retrieval
    handoff.
-2. The existing profile publisher discards the create-only `revokeToken`; the
-   API supports revocation, but that browser flow cannot currently revoke.
+2. The profile publisher keeps `revokeToken` only in open-page memory. Users
+   must copy it before reload if they may need to revoke later.
 3. Raw Teach by Demo video remains local, but compressed keyframes can contain
    sensitive data and can leave the browser.
 4. Rate limiting resets across isolates and process restarts.
-5. Revoked D1 rows remain stored with no automated purge.
+5. Retention purge logic exists, but the daily D1 operator schedule remains a
+   deployment requirement.
 6. No production provider, public URL, live D1 database, or live integration has
    been verified.
 7. No native artifact, public checksum, signing, notarization, Gatekeeper, or

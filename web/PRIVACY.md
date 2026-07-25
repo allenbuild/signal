@@ -27,8 +27,8 @@ narrow surface and close unrelated content before recording.
 | Raw Teach by Demo video | Browser-memory Blob/object URL until reset, modal teardown, or page close | Never uploaded by this code |
 | Demo keyframes | Browser memory, then request memory | Posted to `/api/v1/plan/demo`; may go to Anthropic |
 | Planner text, target gesture, action catalog, request ID | Request memory | Posted to the Signal planner; may go to Anthropic |
-| Unlisted profile | D1 sanitized JSON until operator deletion; revocation only hides it | Readable by anyone with its share code |
-| Revoke token | Create response/client memory; only SHA-256 stored | Returned once by profile create |
+| Unlisted profile | D1 sanitized JSON for at most 365 days under the retention policy | Readable by anyone with its share code until revocation or expiry |
+| Revoke token | Create response/open-page memory; only SHA-256 stored in D1 | Returned once by profile create; copied only on explicit user action |
 | Client IP | In-memory rate-limit key until bucket expiry/pruning | Not intentionally logged by application code |
 | Discord message | Request memory | Sent to configured Discord webhook only after typed approval |
 | Provider secrets | Managed server environment | Used server-side; never returned in portable JSON |
@@ -105,14 +105,17 @@ Anyone with the 40-bit share code can view the profile. "Unlisted" is not
 be published.
 
 Revocation immediately makes reads return the same not-found response as an
-unknown code, but the database row is retained with `revoked_at_ms`. No
-automatic deletion or retention schedule exists yet. A production policy,
-operator purge procedure, and user-accessible revocation flow are required.
+unknown code. The retention policy deletes active shares 365 days after
+creation and revoked rows 30 days after revocation. Profile API activity
+performs this purge opportunistically. Production operators must additionally
+run `db/purge-expired-profiles.sql` at least once every 24 hours so a completely
+idle database cannot retain rows beyond the policy window plus one day.
 
-The API returns a revoke capability only on create. At this snapshot the legacy
-browser profile publisher does not preserve or display that token, so its users
-cannot revoke without another client capturing the raw create response. This is
-a known release gap, not a privacy control.
+The API returns a revoke capability only on create. The publisher keeps that
+capability only in open-page memory, offers an explicit copy control, and can
+revoke the share during that page session. It is not rendered, included in
+profile JSON, or written to local storage. Reloading loses the in-memory copy,
+so users who may need it later must copy and protect it when publishing.
 
 ## Integrations
 
@@ -144,7 +147,10 @@ what is logged, who can access it, retention, deletion, region, and redaction.
 - Closing the editor/page stops capture tracks and releases in-memory media.
 - Export gives the user a portable copy; deleting it is the user's
   responsibility.
-- Profile revocation requires the create-only token.
+- **Copy revocation key** explicitly copies the create-only token; Signal does
+  not persist it in the saved profile.
+- **Revoke profile** immediately hides a newly published share when its
+  in-memory key is still available.
 
 ## Production privacy work still open
 
@@ -152,8 +158,7 @@ Before public release:
 
 - publish a reviewed operator identity, privacy contact, and policy;
 - verify provider logging and retention for hosting, D1, Anthropic, and Discord;
-- implement/publish D1 retention and deletion procedures;
-- make the profile revoke capability usable without exposing it;
+- schedule and verify the documented daily D1 retention purge;
 - inspect the production bundle and environment for secrets;
 - verify no raw recording is transmitted and that keyframe disclosure is clear;
 - confirm the native app keeps camera frames and landmarks memory-only;

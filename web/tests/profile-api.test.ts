@@ -1,10 +1,15 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET as getHealth } from "../app/api/v1/health/route";
 import { POST as createProfile } from "../app/api/v1/profiles/route";
 import { GET as getProfile } from "../app/api/v1/profiles/[shareCode]/route";
 import { POST as revokeProfile } from "../app/api/v1/profiles/[shareCode]/revoke/route";
-import { resetProfileStoreForTests } from "../lib/profile-store";
+import {
+  ACTIVE_PROFILE_RETENTION_MS,
+  REVOKED_PROFILE_RETENTION_MS,
+  readSharedProfile,
+  resetProfileStoreForTests,
+} from "../lib/profile-store";
 import { resetRateLimitsForTests } from "../lib/rate-limit";
 
 type ErrorBody = { error: { code: string } };
@@ -62,6 +67,10 @@ async function createTestShare() {
 beforeEach(() => {
   resetProfileStoreForTests();
   resetRateLimitsForTests();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("profile sharing API", () => {
@@ -204,6 +213,19 @@ describe("profile sharing API", () => {
     );
     expect(rawSecret.status).toBe(400);
     expect((await responseJson<ErrorBody>(rawSecret)).error.code).toBe("invalid_profile");
+  });
+
+  it("enforces the explicit 365-day active and 30-day revoked retention policy", async () => {
+    expect(ACTIVE_PROFILE_RETENTION_MS).toBe(365 * 24 * 60 * 60 * 1000);
+    expect(REVOKED_PROFILE_RETENTION_MS).toBe(30 * 24 * 60 * 60 * 1000);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+    const created = await createTestShare();
+
+    vi.setSystemTime(
+      new Date(Date.now() + ACTIVE_PROFILE_RETENTION_MS + 1),
+    );
+    await expect(readSharedProfile(created.shareCode)).resolves.toBeNull();
   });
 });
 

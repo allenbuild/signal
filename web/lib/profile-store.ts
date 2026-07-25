@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, lt, or } from "drizzle-orm";
 
 import { sharedProfiles } from "../db/schema";
 import {
@@ -11,6 +11,8 @@ const SHARE_CODE_PREFIX = "SIG1-";
 const SHARE_CODE_PATTERN =
   /^SIG1-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$/;
 const MAX_INSERT_ATTEMPTS = 8;
+export const ACTIVE_PROFILE_RETENTION_MS = 365 * 24 * 60 * 60 * 1000;
+export const REVOKED_PROFILE_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
 type StoredProfile = {
   shareCode: string;
@@ -67,6 +69,44 @@ async function getPersistentDb() {
 
   if (allowMemoryFallback()) return null;
   throw new ProfileStoreUnavailableError();
+}
+
+/**
+ * Enforces the data-lifetime boundary whenever the profile service is used.
+ * Operators must additionally schedule the documented daily D1 statement so a
+ * completely idle database is purged within the policy window.
+ */
+export async function purgeExpiredSharedProfiles(nowMs = Date.now()) {
+  const activeCutoffMs = nowMs - ACTIVE_PROFILE_RETENTION_MS;
+  const revokedCutoffMs = nowMs - REVOKED_PROFILE_RETENTION_MS;
+  const db = await getPersistentDb();
+  if (db) {
+    try {
+      await db
+        .delete(sharedProfiles)
+        .where(
+          or(
+            lt(sharedProfiles.createdAtMs, activeCutoffMs),
+            and(
+              isNotNull(sharedProfiles.revokedAtMs),
+              lt(sharedProfiles.revokedAtMs, revokedCutoffMs),
+            ),
+          ),
+        );
+      return;
+    } catch (error) {
+      throw new ProfileStoreUnavailableError({ cause: error });
+    }
+  }
+
+  for (const [shareCode, row] of memoryState.profiles) {
+    if (
+      row.createdAtMs < activeCutoffMs ||
+      (row.revokedAtMs !== null && row.revokedAtMs < revokedCutoffMs)
+    ) {
+      memoryState.profiles.delete(shareCode);
+    }
+  }
 }
 
 function randomBytes(length: number): Uint8Array {
@@ -153,6 +193,7 @@ export async function createSharedProfile(
     );
   }
 
+  await purgeExpiredSharedProfiles();
   const revokeToken = generateRevokeToken();
   const revokeTokenHash = await sha256(revokeToken);
   const db = await getPersistentDb();
@@ -200,6 +241,7 @@ export async function readSharedProfile(
   const normalized = normalizeShareCode(shareCode);
   if (!normalized) return null;
 
+  await purgeExpiredSharedProfiles();
   const db = await getPersistentDb();
   if (db) {
     try {
@@ -232,6 +274,7 @@ export async function revokeSharedProfile(
   const normalized = normalizeShareCode(shareCode);
   if (!normalized || !revokeToken || revokeToken.length > 256) return false;
 
+  await purgeExpiredSharedProfiles();
   const providedHash = await sha256(revokeToken);
   const db = await getPersistentDb();
   if (db) {
