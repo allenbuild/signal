@@ -96,6 +96,7 @@ else
   plutil -insert CFBundleShortVersionString -string "${version}" "${plist}"
   plutil -insert CFBundleVersion -string "${build_number}" "${plist}"
   plutil -insert LSMinimumSystemVersion -string "${minimum_macos}" "${plist}"
+  plutil -insert SignalCommit -string "${commit}" "${plist}"
   plutil -insert NSCameraUsageDescription -string \
     'Signal processes hand gestures on this Mac. Camera frames remain in memory.' "${plist}"
 fi

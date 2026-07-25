@@ -368,6 +368,14 @@ private struct ProfilesView: View {
 
 struct SignalSettingsView: View {
     @EnvironmentObject private var model: SignalAppModel
+    private var versionLabel: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "development"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "local"
+        return "\(version) (\(build))"
+    }
+    private var commitLabel: String {
+        Bundle.main.object(forInfoDictionaryKey: "SignalCommit") as? String ?? "development"
+    }
 
     var body: some View {
         Form {
@@ -388,6 +396,13 @@ struct SignalSettingsView: View {
             Section("Safety") {
                 Text("Emergency shortcut: Control–Option–Command–H")
                 Button("Emergency Stop", role: .destructive) { model.emergencyStop() }
+            }
+            Section("About") {
+                LabeledContent("Version", value: versionLabel)
+                LabeledContent("Commit", value: commitLabel)
+                Text("Signal is a native macOS app. Camera frames stay in memory on this Mac.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
