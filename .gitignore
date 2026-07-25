@@ -1,0 +1,9 @@
+.worktrees/
+.DS_Store
+DerivedData/
+.build/
+*.xcresult
+artifacts/
+web/node_modules/
+web/dist/
+web/.env
