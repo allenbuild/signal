@@ -92,7 +92,7 @@ public struct ControlledDemoRecorder: Sendable {
             timeoutMs: Int(max(30, items.last.map { $0.offset + 10 } ?? 30) * 1_000),
             confirmation: Confirmation(mode: .firstRun, reason: "Review the recorded timeline."),
             createdSource: .demoRecording,
-            approved: false,
+            approved: false
         )
     }
 
