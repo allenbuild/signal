@@ -1,6 +1,7 @@
 .worktrees/
 .DS_Store
 DerivedData/
+.derivedData/
 .build/
 *.xcresult
 artifacts/

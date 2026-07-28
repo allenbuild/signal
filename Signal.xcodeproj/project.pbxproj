@@ -1,0 +1,731 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C0000000C0000000C0000001 /* DomainTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000001 /* DomainTypes.swift */; };
+		C0000000C0000000C0000002 /* GestureEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000002 /* GestureEvent.swift */; };
+		C0000000C0000000C0000003 /* GestureTuning.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000003 /* GestureTuning.swift */; };
+		C0000000C0000000C0000004 /* ServiceProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000004 /* ServiceProtocols.swift */; };
+		C0000000C0000000C0000005 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000005 /* AppState.swift */; };
+		C0000000C0000000C0000006 /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000006 /* AppCoordinator.swift */; };
+		C0000000C0000000C0000007 /* SignalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000007 /* SignalApp.swift */; };
+		C0000000C0000000C0000010 /* GesturePipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000010 /* GesturePipeline.swift */; };
+		C0000000C0000000C0000011 /* ZoomProfileAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000011 /* ZoomProfileAdapter.swift */; };
+		C0000000C0000000C0000012 /* CameraPreviewLayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000012 /* CameraPreviewLayerController.swift */; };
+		C0000000C0000000C0000013 /* CameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000013 /* CameraService.swift */; };
+		C0000000C0000000C0000014 /* CameraTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000014 /* CameraTypes.swift */; };
+		C0000000C0000000C0000015 /* CapturedFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000015 /* CapturedFrame.swift */; };
+		C0000000C0000000C0000016 /* CalibrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000016 /* CalibrationView.swift */; };
+		C0000000C0000000C0000017 /* CalibrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000017 /* CalibrationViewModel.swift */; };
+		C0000000C0000000C0000018 /* LandmarkOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000018 /* LandmarkOverlayView.swift */; };
+		C0000000C0000000C0000019 /* MirroredPreviewHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000019 /* MirroredPreviewHost.swift */; };
+		C0000000C0000000C000001A /* GestureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000001A /* GestureEngine.swift */; };
+		C0000000C0000000C000001B /* HandGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000001B /* HandGeometry.swift */; };
+		C0000000C0000000C000001C /* CGInputEventBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000001C /* CGInputEventBackend.swift */; };
+		C0000000C0000000C000001D /* InputBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000001D /* InputBackend.swift */; };
+		C0000000C0000000C000001E /* MacOSInputController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000001E /* MacOSInputController.swift */; };
+		C0000000C0000000C000001F /* ZoomController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000001F /* ZoomController.swift */; };
+		C0000000C0000000C0000020 /* AppLifecycleMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000020 /* AppLifecycleMonitor.swift */; };
+		C0000000C0000000C0000021 /* EmergencyShortcutMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000021 /* EmergencyShortcutMonitor.swift */; };
+		C0000000C0000000C0000022 /* LaunchAtLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000022 /* LaunchAtLoginController.swift */; };
+		C0000000C0000000C0000023 /* PermissionStatusService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000023 /* PermissionStatusService.swift */; };
+		C0000000C0000000C0000024 /* LaunchAtLoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000024 /* LaunchAtLoginViewModel.swift */; };
+		C0000000C0000000C0000025 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000025 /* SettingsStore.swift */; };
+		C0000000C0000000C0000026 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000026 /* SettingsView.swift */; };
+		C0000000C0000000C0000027 /* ZoomProfilesEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000027 /* ZoomProfilesEditor.swift */; };
+		C0000000C0000000C0000028 /* HandAssociator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000028 /* HandAssociator.swift */; };
+		C0000000C0000000C0000029 /* OneEuroFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000029 /* OneEuroFilter.swift */; };
+		C0000000C0000000C000002A /* PalmGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000002A /* PalmGeometry.swift */; };
+		C0000000C0000000C000002B /* TrackingDiagnosticsAccumulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000002B /* TrackingDiagnosticsAccumulator.swift */; };
+		C0000000C0000000C000002C /* TrackingMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000002C /* TrackingMath.swift */; };
+		C0000000C0000000C000002D /* TrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000002D /* TrackingService.swift */; };
+		C0000000C0000000C000002E /* VisionHandPoseMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000002E /* VisionHandPoseMapper.swift */; };
+		C0000000C0000000C000002F /* SignalUIModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000002F /* SignalUIModel.swift */; };
+		C0000000C0000000C0000030 /* MenuBarContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000030 /* MenuBarContentView.swift */; };
+		C0000000C0000000C0000031 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000031 /* OnboardingView.swift */; };
+		C0000000C0000000C0000032 /* InputTestDoubles.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000032 /* InputTestDoubles.swift */; };
+		C0000000C0000000C0000033 /* SyntheticHandFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000033 /* SyntheticHandFixtures.swift */; };
+		C0000000C0000000C0000034 /* GeometryAndTrackingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000034 /* GeometryAndTrackingTests.swift */; };
+		C0000000C0000000C0000035 /* GestureEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000035 /* GestureEngineTests.swift */; };
+		C0000000C0000000C0000036 /* InputControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000036 /* InputControllerTests.swift */; };
+		C0000000C0000000C0000037 /* SettingsAndCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000037 /* SettingsAndCoordinatorTests.swift */; };
+		C0000000C0000000C0000038 /* Wave6RegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000038 /* Wave6RegressionTests.swift */; };
+		C0000000C0000000C0000039 /* Wave6DeterministicAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000039 /* Wave6DeterministicAdapterTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A0000000A0000000A0000010 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A0000000A0000000A0000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E0000000E0000000E0000001;
+			remoteInfo = Signal;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		B0000000B0000000B0000001 /* DomainTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainTypes.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000002 /* GestureEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureEvent.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000003 /* GestureTuning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureTuning.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000004 /* ServiceProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceProtocols.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000005 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000006 /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000007 /* SignalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalApp.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B0000000B0000000B0000009 /* Signal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Signal.entitlements; sourceTree = "<group>"; };
+		B0000000B0000000B000000A /* Signal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Signal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0000000B0000000B000000B /* SignalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SignalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0000000B0000000B0000010 /* GesturePipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GesturePipeline.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000011 /* ZoomProfileAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomProfileAdapter.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000012 /* CameraPreviewLayerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewLayerController.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000013 /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000014 /* CameraTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraTypes.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000015 /* CapturedFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturedFrame.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000016 /* CalibrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationView.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000017 /* CalibrationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationViewModel.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000018 /* LandmarkOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkOverlayView.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000019 /* MirroredPreviewHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirroredPreviewHost.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000001A /* GestureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureEngine.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000001B /* HandGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandGeometry.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000001C /* CGInputEventBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGInputEventBackend.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000001D /* InputBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputBackend.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000001E /* MacOSInputController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSInputController.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000001F /* ZoomController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomController.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000020 /* AppLifecycleMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLifecycleMonitor.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000021 /* EmergencyShortcutMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyShortcutMonitor.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000022 /* LaunchAtLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginController.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000023 /* PermissionStatusService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionStatusService.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000024 /* LaunchAtLoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginViewModel.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000025 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000026 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000027 /* ZoomProfilesEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomProfilesEditor.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000028 /* HandAssociator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandAssociator.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000029 /* OneEuroFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneEuroFilter.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000002A /* PalmGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PalmGeometry.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000002B /* TrackingDiagnosticsAccumulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingDiagnosticsAccumulator.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000002C /* TrackingMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingMath.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000002D /* TrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingService.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000002E /* VisionHandPoseMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionHandPoseMapper.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000002F /* SignalUIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalUIModel.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000030 /* MenuBarContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContentView.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000031 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000032 /* InputTestDoubles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputTestDoubles.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000033 /* SyntheticHandFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntheticHandFixtures.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000034 /* GeometryAndTrackingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometryAndTrackingTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000035 /* GestureEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureEngineTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000036 /* InputControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputControllerTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000037 /* SettingsAndCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAndCoordinatorTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000038 /* Wave6RegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wave6RegressionTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000039 /* Wave6DeterministicAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wave6DeterministicAdapterTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D0000000D0000000D0000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0000000D0000000D0000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A0000000A0000000A0000002 = {
+			isa = PBXGroup;
+			children = (
+				A0000000A0000000A0000004 /* Signal */,
+				A0000000A0000000A000000F /* SignalTests */,
+				A0000000A0000000A0000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B000000A /* Signal.app */,
+				B0000000B0000000B000000B /* SignalTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000004 /* Signal */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000A0000000A0000005 /* App */,
+				A0000000A0000000A0000006 /* Core */,
+				A0000000A0000000A0000007 /* Camera */,
+				A0000000A0000000A0000008 /* Tracking */,
+				A0000000A0000000A0000009 /* Gestures */,
+				A0000000A0000000A000000A /* Input */,
+				A0000000A0000000A000000B /* Permissions */,
+				A0000000A0000000A000000C /* Lifecycle */,
+				A0000000A0000000A000000D /* UI */,
+				A0000000A0000000A000000E /* Settings */,
+				A0000000A0000000A0000011 /* Debug */,
+				A0000000A0000000A0000012 /* Resources */,
+			);
+			path = Signal;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000005 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000005 /* AppState.swift */,
+				B0000000B0000000B0000006 /* AppCoordinator.swift */,
+				B0000000B0000000B0000010 /* GesturePipeline.swift */,
+				B0000000B0000000B0000007 /* SignalApp.swift */,
+				B0000000B0000000B0000011 /* ZoomProfileAdapter.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000006 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000001 /* DomainTypes.swift */,
+				B0000000B0000000B0000002 /* GestureEvent.swift */,
+				B0000000B0000000B0000003 /* GestureTuning.swift */,
+				B0000000B0000000B0000004 /* ServiceProtocols.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000007 /* Camera */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000012 /* CameraPreviewLayerController.swift */,
+				B0000000B0000000B0000013 /* CameraService.swift */,
+				B0000000B0000000B0000014 /* CameraTypes.swift */,
+				B0000000B0000000B0000015 /* CapturedFrame.swift */,
+			);
+			path = Camera;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000008 /* Tracking */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000028 /* HandAssociator.swift */,
+				B0000000B0000000B0000029 /* OneEuroFilter.swift */,
+				B0000000B0000000B000002A /* PalmGeometry.swift */,
+				B0000000B0000000B000002B /* TrackingDiagnosticsAccumulator.swift */,
+				B0000000B0000000B000002C /* TrackingMath.swift */,
+				B0000000B0000000B000002D /* TrackingService.swift */,
+				B0000000B0000000B000002E /* VisionHandPoseMapper.swift */,
+			);
+			path = Tracking;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000009 /* Gestures */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B000001A /* GestureEngine.swift */,
+				B0000000B0000000B000001B /* HandGeometry.swift */,
+			);
+			path = Gestures;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A000000A /* Input */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B000001C /* CGInputEventBackend.swift */,
+				B0000000B0000000B000001D /* InputBackend.swift */,
+				B0000000B0000000B000001E /* MacOSInputController.swift */,
+				B0000000B0000000B000001F /* ZoomController.swift */,
+			);
+			path = Input;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A000000B /* Permissions */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000022 /* LaunchAtLoginController.swift */,
+				B0000000B0000000B0000023 /* PermissionStatusService.swift */,
+			);
+			path = Permissions;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A000000C /* Lifecycle */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000020 /* AppLifecycleMonitor.swift */,
+				B0000000B0000000B0000021 /* EmergencyShortcutMonitor.swift */,
+			);
+			path = Lifecycle;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A000000D /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B000002F /* SignalUIModel.swift */,
+				B0000000B0000000B0000030 /* MenuBarContentView.swift */,
+				B0000000B0000000B0000031 /* OnboardingView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A000000E /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000024 /* LaunchAtLoginViewModel.swift */,
+				B0000000B0000000B0000025 /* SettingsStore.swift */,
+				B0000000B0000000B0000026 /* SettingsView.swift */,
+				B0000000B0000000B0000027 /* ZoomProfilesEditor.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A000000F /* SignalTests */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000A0000000A0000014 /* Fixtures */,
+				B0000000B0000000B0000034 /* GeometryAndTrackingTests.swift */,
+				B0000000B0000000B0000035 /* GestureEngineTests.swift */,
+				B0000000B0000000B0000036 /* InputControllerTests.swift */,
+				B0000000B0000000B0000037 /* SettingsAndCoordinatorTests.swift */,
+				B0000000B0000000B0000038 /* Wave6RegressionTests.swift */,
+				B0000000B0000000B0000039 /* Wave6DeterministicAdapterTests.swift */,
+			);
+			path = SignalTests;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000011 /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000016 /* CalibrationView.swift */,
+				B0000000B0000000B0000017 /* CalibrationViewModel.swift */,
+				B0000000B0000000B0000018 /* LandmarkOverlayView.swift */,
+				B0000000B0000000B0000019 /* MirroredPreviewHost.swift */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000012 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000008 /* Info.plist */,
+				B0000000B0000000B0000009 /* Signal.entitlements */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000014 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000032 /* InputTestDoubles.swift */,
+				B0000000B0000000B0000033 /* SyntheticHandFixtures.swift */,
+			);
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E0000000E0000000E0000001 /* Signal */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F0000000F0000000F0000011 /* Build configuration list for PBXNativeTarget "Signal" */;
+			buildPhases = (
+				D0000000D0000000D0000001 /* Sources */,
+				D0000000D0000000D0000002 /* Frameworks */,
+				D0000000D0000000D0000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Signal;
+			productName = Signal;
+			productReference = B0000000B0000000B000000A /* Signal.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E0000000E0000000E0000002 /* SignalTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F0000000F0000000F0000012 /* Build configuration list for PBXNativeTarget "SignalTests" */;
+			buildPhases = (
+				D0000000D0000000D0000004 /* Sources */,
+				D0000000D0000000D0000005 /* Frameworks */,
+				D0000000D0000000D0000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A0000000A0000000A0000013 /* PBXTargetDependency */,
+			);
+			name = SignalTests;
+			productName = SignalTests;
+			productReference = B0000000B0000000B000000B /* SignalTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A0000000A0000000A0000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					E0000000E0000000E0000001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					E0000000E0000000E0000002 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = E0000000E0000000E0000001;
+					};
+				};
+			};
+			buildConfigurationList = F0000000F0000000F0000010 /* Build configuration list for PBXProject "Signal" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A0000000A0000000A0000002;
+			productRefGroup = A0000000A0000000A0000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E0000000E0000000E0000001 /* Signal */,
+				E0000000E0000000E0000002 /* SignalTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D0000000D0000000D0000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0000000D0000000D0000006 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D0000000D0000000D0000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0000000C0000000C0000001 /* DomainTypes.swift in Sources */,
+				C0000000C0000000C0000002 /* GestureEvent.swift in Sources */,
+				C0000000C0000000C0000003 /* GestureTuning.swift in Sources */,
+				C0000000C0000000C0000004 /* ServiceProtocols.swift in Sources */,
+				C0000000C0000000C0000005 /* AppState.swift in Sources */,
+				C0000000C0000000C0000006 /* AppCoordinator.swift in Sources */,
+				C0000000C0000000C0000007 /* SignalApp.swift in Sources */,
+				C0000000C0000000C0000010 /* GesturePipeline.swift in Sources */,
+				C0000000C0000000C0000011 /* ZoomProfileAdapter.swift in Sources */,
+				C0000000C0000000C0000012 /* CameraPreviewLayerController.swift in Sources */,
+				C0000000C0000000C0000013 /* CameraService.swift in Sources */,
+				C0000000C0000000C0000014 /* CameraTypes.swift in Sources */,
+				C0000000C0000000C0000015 /* CapturedFrame.swift in Sources */,
+				C0000000C0000000C0000016 /* CalibrationView.swift in Sources */,
+				C0000000C0000000C0000017 /* CalibrationViewModel.swift in Sources */,
+				C0000000C0000000C0000018 /* LandmarkOverlayView.swift in Sources */,
+				C0000000C0000000C0000019 /* MirroredPreviewHost.swift in Sources */,
+				C0000000C0000000C000001A /* GestureEngine.swift in Sources */,
+				C0000000C0000000C000001B /* HandGeometry.swift in Sources */,
+				C0000000C0000000C000001C /* CGInputEventBackend.swift in Sources */,
+				C0000000C0000000C000001D /* InputBackend.swift in Sources */,
+				C0000000C0000000C000001E /* MacOSInputController.swift in Sources */,
+				C0000000C0000000C000001F /* ZoomController.swift in Sources */,
+				C0000000C0000000C0000020 /* AppLifecycleMonitor.swift in Sources */,
+				C0000000C0000000C0000021 /* EmergencyShortcutMonitor.swift in Sources */,
+				C0000000C0000000C0000022 /* LaunchAtLoginController.swift in Sources */,
+				C0000000C0000000C0000023 /* PermissionStatusService.swift in Sources */,
+				C0000000C0000000C0000024 /* LaunchAtLoginViewModel.swift in Sources */,
+				C0000000C0000000C0000025 /* SettingsStore.swift in Sources */,
+				C0000000C0000000C0000026 /* SettingsView.swift in Sources */,
+				C0000000C0000000C0000027 /* ZoomProfilesEditor.swift in Sources */,
+				C0000000C0000000C0000028 /* HandAssociator.swift in Sources */,
+				C0000000C0000000C0000029 /* OneEuroFilter.swift in Sources */,
+				C0000000C0000000C000002A /* PalmGeometry.swift in Sources */,
+				C0000000C0000000C000002B /* TrackingDiagnosticsAccumulator.swift in Sources */,
+				C0000000C0000000C000002C /* TrackingMath.swift in Sources */,
+				C0000000C0000000C000002D /* TrackingService.swift in Sources */,
+				C0000000C0000000C000002E /* VisionHandPoseMapper.swift in Sources */,
+				C0000000C0000000C000002F /* SignalUIModel.swift in Sources */,
+				C0000000C0000000C0000030 /* MenuBarContentView.swift in Sources */,
+				C0000000C0000000C0000031 /* OnboardingView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0000000D0000000D0000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0000000C0000000C0000032 /* InputTestDoubles.swift in Sources */,
+				C0000000C0000000C0000033 /* SyntheticHandFixtures.swift in Sources */,
+				C0000000C0000000C0000034 /* GeometryAndTrackingTests.swift in Sources */,
+				C0000000C0000000C0000035 /* GestureEngineTests.swift in Sources */,
+				C0000000C0000000C0000036 /* InputControllerTests.swift in Sources */,
+				C0000000C0000000C0000037 /* SettingsAndCoordinatorTests.swift in Sources */,
+				C0000000C0000000C0000038 /* Wave6RegressionTests.swift in Sources */,
+				C0000000C0000000C0000039 /* Wave6DeterministicAdapterTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A0000000A0000000A0000013 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E0000000E0000000E0000001 /* Signal */;
+			targetProxy = A0000000A0000000A0000010 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		F0000000F0000000F0000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F0000000F0000000F0000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F0000000F0000000F0000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Signal/Resources/Signal.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Signal/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.allenxu.Signal;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F0000000F0000000F0000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Signal/Resources/Signal.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Signal/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.allenxu.Signal;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		F0000000F0000000F0000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.allenxu.SignalTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Signal.app/Contents/MacOS/Signal";
+				TEST_TARGET_NAME = Signal;
+			};
+			name = Debug;
+		};
+		F0000000F0000000F0000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.allenxu.SignalTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Signal.app/Contents/MacOS/Signal";
+				TEST_TARGET_NAME = Signal;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F0000000F0000000F0000010 /* Build configuration list for PBXProject "Signal" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F0000000F0000000F0000001 /* Debug */,
+				F0000000F0000000F0000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F0000000F0000000F0000011 /* Build configuration list for PBXNativeTarget "Signal" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F0000000F0000000F0000003 /* Debug */,
+				F0000000F0000000F0000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F0000000F0000000F0000012 /* Build configuration list for PBXNativeTarget "SignalTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F0000000F0000000F0000005 /* Debug */,
+				F0000000F0000000F0000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A0000000A0000000A0000001 /* Project object */;
+}
