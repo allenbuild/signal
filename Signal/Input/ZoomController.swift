@@ -76,14 +76,13 @@ public struct ZoomApplicationProfile: Codable, Equatable, Sendable {
         self.reset = reset
     }
 
-    /// macOS Accessibility screen magnification. Unlike Command-plus/minus,
-    /// these shortcuts do not change an application's document or page zoom.
-    /// The user enables them in System Settings > Accessibility > Zoom.
-    // ANSI equal/plus = 24 and minus = 27.
+    /// Broad frontmost-application fallback. Individual applications can
+    /// override these chords through a persisted zoom profile.
+    // ANSI equal/plus = 24, minus = 27, and zero = 29.
     public static let standard = Self(
-        zoomIn: ZoomShortcut(keyCode: 24, modifiers: [.command, .option]),
-        zoomOut: ZoomShortcut(keyCode: 27, modifiers: [.command, .option]),
-        reset: nil
+        zoomIn: ZoomShortcut(keyCode: 24, modifiers: [.command]),
+        zoomOut: ZoomShortcut(keyCode: 27, modifiers: [.command]),
+        reset: ZoomShortcut(keyCode: 29, modifiers: [.command])
     )
 }
 

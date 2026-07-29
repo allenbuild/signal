@@ -65,8 +65,8 @@ public struct ZoomShortcutSetting: Codable, Equatable, Sendable {
         self.shift = shift
     }
 
-    public static let zoomInDefault = Self(keyEquivalent: "=", command: true, option: true)
-    public static let zoomOutDefault = Self(keyEquivalent: "-", command: true, option: true)
+    public static let zoomInDefault = Self(keyEquivalent: "=", command: true)
+    public static let zoomOutDefault = Self(keyEquivalent: "-", command: true)
     public static let resetDefault = Self(keyEquivalent: "0", command: true)
 
     public var displayText: String {
@@ -189,7 +189,7 @@ public final class SettingsStore: ObservableObject {
             } else if migratedOneHandAxisMapping {
                 lastValidationMessage = "Gesture settings were updated for one-hand pinch control."
             } else if migratedMiddleThumbDefaults {
-                lastValidationMessage = "Gesture settings were updated for middle-thumb control."
+                lastValidationMessage = "Gesture settings were updated for thumb–index control."
             } else {
                 lastValidationMessage = nil
             }

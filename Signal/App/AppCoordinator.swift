@@ -21,6 +21,11 @@ final class AppCoordinator {
     private let launchAtLoginViewModel: LaunchAtLoginViewModel?
     private let lifecycleMonitor: AppLifecycleMonitor?
     private let emergencyMonitor: EmergencyShortcutMonitor?
+    private let commandRecognitionRuntime: SignalCommandRecognitionRuntime?
+    private let commandRepository: SignalCommandRepository?
+    private let commandExecutor: SignalCommandExecutor?
+    private let commandPerformer: (any SignalCommandActionPerforming)?
+    private let cancelTeachByDemoCapture: @MainActor () -> Void
     private weak var previewLayerController: CameraPreviewLayerController?
 
     private var cancellables: Set<AnyCancellable> = []
@@ -43,9 +48,15 @@ final class AppCoordinator {
     private var calibrationMetrics = CalibrationMetricAccumulator()
     private let trackingWatchdog: TrackingLossWatchdog
     private let trackingDelivery = LatestOnlyMainActorDelivery<TrackingDelivery>()
+    private let commandDelivery =
+        LatestOnlyMainActorDelivery<SignalCommandRecognitionEvent>()
     private let safetyEnableLease = SafetyEnableLease()
     private var activeEnableToken: SafetyEnableLease.Token?
     private var producerSafetyFence: ProducerSafetyFence?
+    private var commandDocument: SignalCommandDocument?
+    private var commandLoadTask: Task<Void, Never>?
+    private var commandExecutionTask: Task<Void, Never>?
+    private var commandExecutionGeneration: UInt64 = 0
 
     /// Test/support initializer. The ordering here is deliberately the same
     /// safety fence used by the production composition.
@@ -62,7 +73,12 @@ final class AppCoordinator {
         initialEmergencyHealth: EmergencyMonitorHealth = EmergencyMonitorHealth(
             globalMonitorInstalled: false,
             localMonitorInstalled: false
-        )
+        ),
+        commandRecognitionRuntime: SignalCommandRecognitionRuntime? = nil,
+        commandRepository: SignalCommandRepository? = nil,
+        commandExecutor: SignalCommandExecutor? = nil,
+        commandPerformer: (any SignalCommandActionPerforming)? = nil,
+        cancelTeachByDemoCapture: @escaping @MainActor () -> Void = {}
     ) {
         self.state = state
         self.trackingWatchdog = trackingWatchdog
@@ -82,11 +98,20 @@ final class AppCoordinator {
         launchAtLoginViewModel = nil
         lifecycleMonitor = nil
         emergencyMonitor = nil
+        self.commandRecognitionRuntime = commandRecognitionRuntime
+        self.commandRepository = commandRepository
+        self.commandExecutor = commandExecutor
+        self.commandPerformer = commandPerformer
+        self.cancelTeachByDemoCapture = cancelTeachByDemoCapture
         if let input = inputController as? MacOSInputController {
             let delivery = trackingDelivery
+            let commandDelivery = commandDelivery
             producerSafetyFence = ProducerSafetyFence(
                 lease: safetyEnableLease,
-                invalidateDeliveries: { delivery.invalidate() },
+                invalidateDeliveries: {
+                    delivery.invalidate()
+                    commandDelivery.invalidate()
+                },
                 releaseInput: { [weak input] in input?.releaseAllInputs() }
             )
         }
@@ -109,6 +134,11 @@ final class AppCoordinator {
         launchAtLoginViewModel: LaunchAtLoginViewModel,
         lifecycleMonitor: AppLifecycleMonitor,
         emergencyMonitor: EmergencyShortcutMonitor,
+        commandRecognitionRuntime: SignalCommandRecognitionRuntime,
+        commandRepository: SignalCommandRepository,
+        commandExecutor: SignalCommandExecutor,
+        commandPerformer: any SignalCommandActionPerforming,
+        cancelTeachByDemoCapture: @escaping @MainActor () -> Void,
         trackingWatchdog: TrackingLossWatchdog = TrackingLossWatchdog()
     ) {
         self.state = state
@@ -127,11 +157,20 @@ final class AppCoordinator {
         self.launchAtLoginViewModel = launchAtLoginViewModel
         self.lifecycleMonitor = lifecycleMonitor
         self.emergencyMonitor = emergencyMonitor
+        self.commandRecognitionRuntime = commandRecognitionRuntime
+        self.commandRepository = commandRepository
+        self.commandExecutor = commandExecutor
+        self.commandPerformer = commandPerformer
+        self.cancelTeachByDemoCapture = cancelTeachByDemoCapture
 
         let delivery = trackingDelivery
+        let commandDelivery = commandDelivery
         producerSafetyFence = ProducerSafetyFence(
             lease: safetyEnableLease,
-            invalidateDeliveries: { delivery.invalidate() },
+            invalidateDeliveries: {
+                delivery.invalidate()
+                commandDelivery.invalidate()
+            },
             releaseInput: { [weak inputController] in inputController?.releaseAllInputs() }
         )
     }
@@ -151,6 +190,7 @@ final class AppCoordinator {
         if let emergencyMonitor {
             emergencyHealth = emergencyMonitor.start()
         }
+        reloadCommands()
         refreshExternalStatus(refreshEmergencyMonitor: false)
     }
 
@@ -160,9 +200,12 @@ final class AppCoordinator {
 
     func makeActions(
         openCalibrationWindow: @escaping @MainActor () -> Void,
-        openSettingsWindow: @escaping @MainActor () -> Void
+        openSettingsWindow: @escaping @MainActor () -> Void,
+        openMainWindow: @escaping @MainActor () -> Void = {}
     ) -> SignalUIActions {
         SignalUIActions(
+            setMode: { [weak self] mode in self?.setMode(mode) },
+            openMainWindow: openMainWindow,
             enableControl: { [weak self] in self?.enableControl() },
             disableControl: { [weak self] in self?.quiesce(reason: .userDisabled) },
             pauseControl: { [weak self] in self?.quiesce(reason: .paused) },
@@ -178,14 +221,42 @@ final class AppCoordinator {
                 self?.requestAccessibilityPermission()
             },
             retryCamera: { [weak self] in self?.retryCalibrationCamera() },
-            emergencyStop: { [weak self] in self?.emergencyStopFromMenu() },
+            emergencyStop: { [weak self] in self?.emergencyStop() },
             quit: { [weak self] in self?.quit() }
         )
     }
 
+    func setMode(_ mode: SignalMode) {
+        switch mode {
+        case .paused:
+            quiesce(reason: .paused)
+        case .control:
+            state.setMode(.control)
+            enableControl()
+        case .commands:
+            enterCommandsMode()
+        }
+    }
+
+    func emergencyStop() {
+        emergencyMonitor?.triggerFromMenu()
+        // The menu path is already on MainActor. Quiesce synchronously instead
+        // of waiting for the monitor callback to hop back to MainActor.
+        quiesce(reason: .emergency)
+    }
+
     func enableControl() {
+        transitionCommandRuntime(to: .control)
         safetyEnableLease.revoke()
         activeEnableToken = nil
+        inputEnableRequested = false
+        inputController?.setOutputGate(enabled: false)
+        let terminalEvents = gestureResetter?.reset(reason: .paused) ?? []
+        terminalEvents.forEach { inputController?.handle($0) }
+        inputController?.releaseAllInputs()
+        trackingService?.reset(reason: .extendedGap)
+        latestTrackingQuality = .absent
+        state.setMode(.control)
         if let refreshed = permissionService?.refresh() {
             handlePermissions(refreshed)
         }
@@ -214,6 +285,57 @@ final class AppCoordinator {
         reconcileCameraDemand()
     }
 
+    private func enterCommandsMode() {
+        transitionCommandRuntime(to: .commands)
+        safetyEnableLease.revoke()
+        activeEnableToken = nil
+        trackingWatchdog.disarm()
+        trackingDelivery.invalidate()
+        inputEnableRequested = false
+        latestTrackingQuality = .absent
+        inputController?.setOutputGate(enabled: false)
+        let terminalEvents = gestureResetter?.reset(reason: .paused) ?? []
+        terminalEvents.forEach { inputController?.handle($0) }
+        inputController?.releaseAllInputs()
+        trackingService?.reset(reason: .extendedGap)
+        calibrationMetrics.reset()
+        restoreSuddenTerminationIfNeeded()
+
+        state.setMode(.commands)
+        if let refreshed = permissionService?.refresh() {
+            permissions = refreshed
+        }
+        guard permissions.cameraAuthorized else {
+            apply(controlIntent: .disabled, status: .cameraPermissionMissing)
+            reconcileCameraDemand()
+            return
+        }
+        guard permissions.accessibilityTrusted else {
+            state.setMode(.paused)
+            apply(
+                controlIntent: .disabled,
+                status: .accessibilityPermissionMissing
+            )
+            reconcileCameraDemand()
+            return
+        }
+        guard emergencyHealth.permitsEnable(accessibilityTrusted: true) else {
+            state.setMode(.paused)
+            apply(controlIntent: .disabled, status: .emergencyStopped)
+            reconcileCameraDemand()
+            return
+        }
+        guard sessionIsActive else {
+            state.setMode(.paused)
+            apply(controlIntent: .paused, status: .paused)
+            reconcileCameraDemand()
+            return
+        }
+
+        apply(controlIntent: .disabled, status: .waitingForHand)
+        reconcileCameraDemand()
+    }
+
     func calibrationDidOpen() {
         state.setCalibrationOpen(true)
         publishUI()
@@ -233,6 +355,7 @@ final class AppCoordinator {
     }
 
     func quiesce(reason: SafetyStopReason, resetGesture: Bool = true) {
+        transitionCommandRuntime(to: .paused)
         safetyEnableLease.revoke()
         activeEnableToken = nil
         trackingWatchdog.disarm()
@@ -254,6 +377,7 @@ final class AppCoordinator {
             cameraController?.stop()
         }
 
+        state.setMode(.paused)
         apply(
             controlIntent: reason == .paused ? .paused : .disabled,
             status: status(for: reason)
@@ -276,8 +400,26 @@ final class AppCoordinator {
             }
         }
         let trackingDelivery = trackingDelivery
+        let commandDelivery = commandDelivery
+        let commandRecognitionRuntime = commandRecognitionRuntime
         trackingService?.onSnapshot = { [weak gesturePipeline] snapshot in
             guard let gesturePipeline else { return }
+            if let commandEvent = commandRecognitionRuntime?.process(snapshot) {
+                let handle: @MainActor @Sendable (
+                    SignalCommandRecognitionEvent
+                ) -> Void = { [weak self] event in
+                    self?.handleCommandRecognition(event)
+                }
+                switch commandEvent {
+                case .triggered:
+                    commandDelivery.submitUncoalesced(
+                        commandEvent,
+                        handler: handle
+                    )
+                case .reset, .idle, .progressing, .waitingForRelease:
+                    commandDelivery.submit(commandEvent, handler: handle)
+                }
+            }
             let gesture = gesturePipeline.process(snapshot)
             if gesture.events.contains(.trackingLost) {
                 safetyFence?.revoke(for: .trackingLost)
@@ -345,7 +487,16 @@ final class AppCoordinator {
         emergencyMonitor?.onEmergency = { [weak self] in
             watchdog.disarm()
             safetyFence?.revoke(for: .emergency)
-            Task { @MainActor [weak self] in self?.quiesce(reason: .emergency) }
+            let stop: @MainActor () -> Void = { [weak self] in
+                self?.quiesce(reason: .emergency)
+            }
+            if Thread.isMainThread {
+                MainActor.assumeIsolated(stop)
+            } else {
+                DispatchQueue.main.sync {
+                    MainActor.assumeIsolated(stop)
+                }
+            }
         }
         emergencyMonitor?.onHealthChange = { [weak self] health in
             if !health.globalMonitorInstalled || !health.localMonitorInstalled {
@@ -372,6 +523,173 @@ final class AppCoordinator {
             .store(in: &cancellables)
     }
 
+    func reloadCommands() {
+        guard let commandRepository else { return }
+        commandLoadTask?.cancel()
+        commandLoadTask = Task { @MainActor [weak self, commandRepository] in
+            do {
+                let document = try await commandRepository.loadOrInstallDefaults()
+                try Task.checkCancellation()
+                guard let self else { return }
+                self.commandDocument = document
+                self.uiModel?.updateCommandDocument(document)
+            } catch is CancellationError {
+                return
+            } catch {
+                guard let self else { return }
+                self.uiModel?.reportCommand(
+                    name: "Command catalog",
+                    result: error.localizedDescription,
+                    succeeded: false
+                )
+            }
+        }
+    }
+
+    /// Editing is an explicit output boundary: no held native input, pending
+    /// activation, or in-flight command may survive opening the editor.
+    func prepareForCommandEditing() {
+        quiesce(reason: .paused)
+    }
+
+    func handleCommandRecognition(
+        _ event: SignalCommandRecognitionEvent
+    ) {
+        guard state.mode == .commands else {
+            uiModel?.updateCommandActivation(cardID: nil, progress: 0)
+            return
+        }
+
+        switch event {
+        case .reset, .idle:
+            uiModel?.updateCommandActivation(cardID: nil, progress: 0)
+        case .progressing(_, let match, let progress):
+            uiModel?.updateCommandActivation(
+                cardID: match.cardID,
+                progress: progress
+            )
+        case .waitingForRelease(_, let match):
+            uiModel?.updateCommandActivation(
+                cardID: match.cardID,
+                progress: 1
+            )
+        case .triggered(_, let match):
+            uiModel?.updateCommandActivation(
+                cardID: match.cardID,
+                progress: 1
+            )
+            beginCommandExecution(for: match)
+        }
+    }
+
+    private func beginCommandExecution(
+        for match: SignalCommandRecognitionMatch
+    ) {
+        guard commandExecutionTask == nil else {
+            uiModel?.reportCommand(
+                name: match.commandGesture.rawValue,
+                result: "Another Signal command is already running.",
+                succeeded: false
+            )
+            return
+        }
+        guard let commandRepository,
+              let commandExecutor,
+              let commandPerformer else {
+            uiModel?.reportCommand(
+                name: match.commandGesture.rawValue,
+                result: "The local command runtime is unavailable.",
+                succeeded: false
+            )
+            return
+        }
+
+        commandExecutionGeneration &+= 1
+        let generation = commandExecutionGeneration
+        commandExecutionTask = Task {
+            do {
+                let document = try await commandRepository.loadOrInstallDefaults()
+                try Task.checkCancellation()
+                guard generation == commandExecutionGeneration,
+                      state.mode == .commands else {
+                    throw CancellationError()
+                }
+                commandDocument = document
+                uiModel?.updateCommandDocument(document)
+
+                guard let command = document.profile[match.commandGesture] else {
+                    throw SignalCommandValidationError.missingGesture(
+                        match.commandGesture
+                    )
+                }
+                guard let plan = command.plan else {
+                    uiModel?.reportCommand(
+                        name: command.name,
+                        result: "Configure and save this command before running it.",
+                        succeeded: false
+                    )
+                    finishCommandExecution(generation: generation)
+                    return
+                }
+
+                let receipt = await commandExecutor.execute(
+                    plan,
+                    performer: commandPerformer
+                )
+                try Task.checkCancellation()
+                guard generation == commandExecutionGeneration,
+                      state.mode == .commands else {
+                    throw CancellationError()
+                }
+                let detail = receipt.stepReceipts.last?.message
+                    ?? receipt.message
+                uiModel?.reportCommand(
+                    name: command.name,
+                    result: detail,
+                    succeeded: receipt.status == .success
+                )
+            } catch is CancellationError {
+                // Safety transitions intentionally do not append a stale
+                // failure after they have already paused the runtime.
+            } catch {
+                guard generation == commandExecutionGeneration else { return }
+                uiModel?.reportCommand(
+                    name: match.commandGesture.rawValue,
+                    result: error.localizedDescription,
+                    succeeded: false
+                )
+            }
+            finishCommandExecution(generation: generation)
+        }
+    }
+
+    private func finishCommandExecution(generation: UInt64) {
+        guard generation == commandExecutionGeneration else { return }
+        commandExecutionTask = nil
+    }
+
+    private func transitionCommandRuntime(to mode: SignalMode) {
+        cancelTeachByDemoCapture()
+        commandDelivery.invalidate()
+        if commandRecognitionRuntime?.mode == mode {
+            _ = commandRecognitionRuntime?.reset()
+        } else {
+            _ = commandRecognitionRuntime?.setMode(mode)
+        }
+        uiModel?.updateCommandActivation(cardID: nil, progress: 0)
+        cancelCommandExecution()
+    }
+
+    private func cancelCommandExecution() {
+        commandExecutionGeneration &+= 1
+        commandExecutionTask?.cancel()
+        commandExecutionTask = nil
+        guard let commandExecutor else { return }
+        Task {
+            await commandExecutor.cancel()
+        }
+    }
+
     func handleTracking(
         snapshot: TrackingSnapshot,
         gesture: GestureFrameResult
@@ -381,6 +699,11 @@ final class AppCoordinator {
             return
         }
         latestTrackingQuality = snapshot.quality
+        uiModel?.updateTracking(
+            snapshot: snapshot,
+            gesture: gesture,
+            cameraState: cameraStateDisplayText
+        )
         if state.calibrationIsOpen {
             calibrationViewModel?.submit(
                 tracking: snapshot,
@@ -399,6 +722,11 @@ final class AppCoordinator {
             )
         }
 
+        if state.mode == .commands,
+           snapshot.degradationReason == .visionFailure {
+            quiesce(reason: .trackingLost)
+            return
+        }
         guard state.controlIntent == .enabled else { return }
         if snapshot.degradationReason == .visionFailure {
             quiesce(reason: .trackingLost)
@@ -467,6 +795,7 @@ final class AppCoordinator {
         cameraStateRevision = update.revision
         let nextState = update.state
         cameraState = nextState
+        let commandsWereActive = state.mode == .commands
         switch nextState {
         case let .running(generation, _):
             cameraStartRequested = true
@@ -480,24 +809,26 @@ final class AppCoordinator {
             break
         case .stopped:
             cameraStartRequested = false
-            if state.controlIntent == .enabled {
+            if state.controlIntent == .enabled || commandsWereActive {
                 quiesce(reason: .cameraStopped)
             } else if state.calibrationIsOpen {
                 reconcileCameraDemand()
             }
         case .permissionRequired:
             cameraStartRequested = false
-            if state.controlIntent == .enabled {
+            if state.controlIntent == .enabled || commandsWereActive {
                 quiesce(reason: .cameraPermissionLost)
             } else {
                 apply(controlIntent: .disabled, status: .cameraPermissionMissing)
             }
         case .interrupted:
             cameraStartRequested = false
-            if state.controlIntent == .enabled { quiesce(reason: .cameraInterrupted) }
+            if state.controlIntent == .enabled || commandsWereActive {
+                quiesce(reason: .cameraInterrupted)
+            }
         case .unavailable, .failed:
             cameraStartRequested = false
-            if state.controlIntent == .enabled {
+            if state.controlIntent == .enabled || commandsWereActive {
                 quiesce(reason: .cameraFailed)
             } else {
                 apply(controlIntent: .disabled, status: .cameraUnavailable)
@@ -523,8 +854,11 @@ final class AppCoordinator {
             let nextStatus: AppStatus
             if !snapshot.cameraAuthorized {
                 nextStatus = .cameraPermissionMissing
-            } else if !snapshot.accessibilityTrusted {
+            } else if !snapshot.accessibilityTrusted,
+                      state.mode == .control || state.mode == .commands {
                 nextStatus = .accessibilityPermissionMissing
+            } else if state.mode == .commands {
+                nextStatus = .waitingForHand
             } else if state.controlIntent == .paused {
                 nextStatus = .paused
             } else {
@@ -548,6 +882,7 @@ final class AppCoordinator {
         quiesceInputAndGestures(reason: .cameraStopped)
         cameraStartRequested = false
         if !state.calibrationIsOpen { cameraController?.stop() }
+        state.setMode(.paused)
         apply(controlIntent: .disabled, status: .error("Input unavailable: \(fault)"))
     }
 
@@ -579,10 +914,12 @@ final class AppCoordinator {
 
     private func handleEmergencyHealth(_ health: EmergencyMonitorHealth) {
         emergencyHealth = health
-        if state.controlIntent == .enabled,
-           !health.permitsEnable(accessibilityTrusted: permissions.accessibilityTrusted) {
-            quiesce(reason: .emergency)
+        guard !health.permitsEnable(
+            accessibilityTrusted: permissions.accessibilityTrusted
+        ) else {
+            return
         }
+        quiesce(reason: .emergency)
     }
 
     func applySettingsConfiguration(
@@ -596,14 +933,13 @@ final class AppCoordinator {
         gesturePipeline?.update(tuning: tuning)
         concreteInputController?.updateConfiguration(
             tuning: tuning,
-            // Per-application shortcuts can change browser page zoom. Keep
-            // production output locked to the standard screen-zoom profile.
             zoomProfiles: ZoomOutputPolicy.productionProfiles(ignoring: profiles),
-            screenZoomShortcutsEnabled: screenZoomShortcutsEnabled
+            screenZoomShortcutsEnabled: true
         )
     }
 
     private func quiesceForSettingsChange() {
+        transitionCommandRuntime(to: .paused)
         safetyEnableLease.revoke()
         activeEnableToken = nil
         inputEnableRequested = false
@@ -618,6 +954,7 @@ final class AppCoordinator {
             cameraStartRequested = false
             cameraController?.stop()
         }
+        state.setMode(.paused)
         apply(controlIntent: .disabled, status: .disabled)
     }
 
@@ -628,7 +965,7 @@ final class AppCoordinator {
     private func reconcileCameraDemand() {
         let desired = permissions.cameraAuthorized
             && sessionIsActive
-            && (state.controlIntent == .enabled || state.calibrationIsOpen)
+            && (state.mode == .control || state.mode == .commands || state.calibrationIsOpen)
         if desired, !cameraStartRequested {
             cameraStartRequested = true
             cameraController?.start()
@@ -656,6 +993,7 @@ final class AppCoordinator {
     }
 
     private func requestCameraPermission() {
+        quiesce(reason: .paused)
         permissionService?.requestCameraAccess { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -667,6 +1005,7 @@ final class AppCoordinator {
     }
 
     private func requestAccessibilityPermission() {
+        quiesce(reason: .paused)
         permissionService?.promptForAccessibility()
         if let refreshed = permissionService?.refresh() {
             handlePermissions(refreshed)
@@ -689,14 +1028,6 @@ final class AppCoordinator {
         reconcileCameraDemand()
     }
 
-    private func emergencyStopFromMenu() {
-        if let emergencyMonitor {
-            emergencyMonitor.triggerFromMenu()
-        } else {
-            quiesce(reason: .emergency)
-        }
-    }
-
     private func quit() {
         quiesce(reason: .shutdown)
         lifecycleMonitor?.stop()
@@ -705,6 +1036,7 @@ final class AppCoordinator {
     }
 
     private func quiesceInputAndGestures(reason: GestureResetReason) {
+        transitionCommandRuntime(to: .paused)
         safetyEnableLease.revoke()
         activeEnableToken = nil
         trackingWatchdog.disarm()
@@ -729,8 +1061,22 @@ final class AppCoordinator {
             cameraAuthorized: permissions.cameraAuthorized,
             cameraPermission: permissions.camera,
             accessibilityTrusted: permissions.accessibilityTrusted,
-            calibrationIsOpen: state.calibrationIsOpen
+            calibrationIsOpen: state.calibrationIsOpen,
+            mode: state.mode
         )
+    }
+
+    private var cameraStateDisplayText: String {
+        switch cameraState {
+        case .stopped: "Stopped"
+        case .starting: "Starting"
+        case .running: "Running"
+        case .stopping: "Stopping"
+        case .permissionRequired: "Permission required"
+        case .interrupted: "Interrupted"
+        case .unavailable: "Unavailable"
+        case .failed: "Failed"
+        }
     }
 
     private func disableSuddenTerminationIfNeeded() {

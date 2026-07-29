@@ -124,24 +124,25 @@ public struct HandPoseClassifier: Sendable {
             && adjacentTipSeparation(in: hand, tuning: tuning) >= 0.55
 
         let fistThreshold = min(0.30, foldedThreshold)
-        let middleThumbContactLikely = activePinchEpisode
+        let indexThumbContactLikely = activePinchEpisode
             || (pinchRatio.map { $0 <= pinchIntentMaximum(tuning) } ?? false)
         let fist = allFingerTipsAvailable
             && nonThumbScores.allSatisfy { $0 <= fistThreshold }
             && foldedTipCount(in: hand, wrist: wrist, tuning: tuning) >= 3
-            && !middleThumbContactLikely
+            && !indexThumbContactLikely
 
         let pointer = indexValue != nil
             && index.extensionScore >= extendedThreshold
             && isConfidentlyFolded(middleProximal, threshold: foldedThreshold)
             && isConfidentlyFolded(ringProximal, threshold: foldedThreshold)
             && isConfidentlyFolded(littleProximal, threshold: foldedThreshold)
-            && !middleThumbContactLikely
+            && !indexThumbContactLikely
 
-        // Pinch semantics are exclusively thumb-to-middle. Index posture is
-        // deliberately irrelevant. The open threshold is the outer edge of
-        // ambiguous contact; wider separations remain available to pointer
-        // classification while the state machine separately rearms there.
+        // Pinch semantics are exclusively thumb-to-index. Index extension is
+        // deliberately irrelevant once the fingertip pair approaches contact.
+        // The open threshold is the outer edge of ambiguous contact; wider
+        // separations remain available to pointer classification while the
+        // state machine separately rearms there.
         let pinchReady = pinchRatio.map { $0 <= pinchIntentMaximum(tuning) } ?? false
 
         let pose: PoseKind
@@ -294,15 +295,15 @@ public struct HandPoseClassifier: Sendable {
     ) -> Double? {
         let required: [LandmarkName] = [
             .thumbMP, .thumbIP, .thumbTip,
-            .middleMCP, .middlePIP, .middleDIP, .middleTip,
+            .indexMCP, .indexPIP, .indexDIP, .indexTip,
             .wrist
         ]
         guard required.allSatisfy({ position($0, in: hand, tuning: tuning) != nil }),
               let thumb = position(.thumbTip, in: hand, tuning: tuning),
-              let middle = position(.middleTip, in: hand, tuning: tuning) else {
+              let index = position(.indexTip, in: hand, tuning: tuning) else {
             return nil
         }
-        let ratio = thumb.distance(to: middle) / hand.palmWidth
+        let ratio = thumb.distance(to: index) / hand.palmWidth
         return ratio.isFinite ? ratio.clamped(to: 0 ... 10) : nil
     }
 
@@ -384,7 +385,7 @@ public struct HandPoseClassifier: Sendable {
             required = [
                 .wrist,
                 .thumbMP, .thumbIP, .thumbTip,
-                .middleMCP, .middlePIP, .middleDIP, .middleTip
+                .indexMCP, .indexPIP, .indexDIP, .indexTip
             ]
         case .openPalm, .fist, .scroll, .unknown, .lowConfidence:
             return minimumAvailableConfidence(in: hand)

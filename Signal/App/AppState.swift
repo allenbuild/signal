@@ -3,6 +3,7 @@ import Foundation
 
 @MainActor
 final class AppState: ObservableObject {
+    @Published private(set) var mode: SignalMode = .paused
     @Published private(set) var controlIntent: ControlIntent = .disabled
     @Published private(set) var status: AppStatus = .disabled
     @Published private(set) var calibrationIsOpen = false
@@ -39,6 +40,10 @@ final class AppState: ObservableObject {
     func apply(controlIntent: ControlIntent, status: AppStatus) {
         self.controlIntent = controlIntent
         self.status = status
+    }
+
+    func setMode(_ mode: SignalMode) {
+        self.mode = mode
     }
 
     func setCalibrationOpen(_ isOpen: Bool) {

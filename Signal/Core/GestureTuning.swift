@@ -52,7 +52,7 @@ public struct GestureTuning: Codable, Equatable, Sendable {
     private var oneHandAxisMappingVersionStorage: Int? = 2
 
     /// Number of reliable frames used to settle the stable scroll anchor after
-    /// a middle-thumb pinch closes. The optional backing keeps v1 settings
+    /// a thumb-index pinch closes. The optional backing keeps v1 settings
     /// decodable; a missing value reads as the new safe default.
     public var scrollStabilizationFrames: Int {
         get { scrollStabilizationFramesStorage ?? 2 }
@@ -78,6 +78,8 @@ public struct GestureTuning: Codable, Equatable, Sendable {
     }
 
     mutating func applyMiddleThumbDefaultsMigration() {
+        // Historical persisted-settings migration name. Its tuning values now
+        // apply to the authoritative thumb-index Control transaction.
         scrollStabilizationFramesStorage = 2
         if pointerSensitivity == 600 {
             pointerSensitivity = 400

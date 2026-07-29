@@ -397,14 +397,6 @@ public final class MacOSInputController: InputControlling, CaptureGenerationInpu
     }
 
     private func postZoom(delta: Double, generation: UInt64) {
-        // Accessibility trust does not prove that macOS screen-zoom shortcuts
-        // are enabled. Fail closed until the user explicitly confirms the
-        // separate System Settings toggle, otherwise this chord could fall
-        // through to the frontmost application.
-        guard screenZoomShortcutsEnabled else {
-            zoomController.reset()
-            return
-        }
         let events = zoomController.events(
             for: delta,
             tuning: tuning,

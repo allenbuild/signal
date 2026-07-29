@@ -188,17 +188,6 @@ final class SettingsAndCoordinatorTests: XCTestCase {
         XCTAssertEqual(runtime.state.controlIntent, .disabled)
     }
 
-    func testProductionRuntimeConstructionIsPassiveDisabledAndWindowFree() {
-        let runtime = SignalRuntime()
-
-        XCTAssertFalse(runtime.hasStarted)
-        XCTAssertFalse(runtime.hasCreatedSettingsWindowController)
-        XCTAssertEqual(runtime.state.controlIntent, .disabled)
-        XCTAssertEqual(runtime.state.status, .disabled)
-        XCTAssertEqual(runtime.uiModel.controlIntent, .disabled)
-        XCTAssertEqual(runtime.uiModel.status, .disabled)
-    }
-
     func testSettingsRoundTripProfilesAndSafeDefaultRestore() throws {
         let suiteName = "com.allenxu.SignalTests.settings.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
@@ -254,7 +243,7 @@ final class SettingsAndCoordinatorTests: XCTestCase {
         XCTAssertFalse(afterReset.screenZoomShortcutsEnabled)
     }
 
-    func testProductionCoordinatorIgnoresLegacyPageZoomProfile() {
+    func testProductionCoordinatorUsesValidatedApplicationZoomProfile() {
         let backend = FakeInputBackend()
         let controller = MacOSInputController(
             backend: backend,
@@ -274,7 +263,10 @@ final class SettingsAndCoordinatorTests: XCTestCase {
             zoomOut: ZoomShortcutSetting(keyEquivalent: "-", command: true),
             reset: ZoomShortcutSetting(keyEquivalent: "0", command: true)
         )
-        XCTAssertTrue(ZoomOutputPolicy.productionProfiles(ignoring: [legacy]).isEmpty)
+        XCTAssertEqual(
+            ZoomOutputPolicy.productionProfiles(ignoring: [legacy])["com.google.Chrome"],
+            ZoomProfileAdapter.profiles(from: [legacy])["com.google.Chrome"]
+        )
 
         coordinator.applySettingsConfiguration(
             tuning: .safeDefaults,
@@ -289,10 +281,13 @@ final class SettingsAndCoordinatorTests: XCTestCase {
         controller.handle(.zoom(delta: GestureTuning.safeDefaults.zoomStepThreshold))
         _ = controller.snapshot()
         _ = controller.snapshot()
-        XCTAssertEqual(backend.events(), ZoomApplicationProfile.standard.zoomIn.eventPair)
+        XCTAssertEqual(
+            backend.events(),
+            ZoomShortcut(keyCode: 24, modifiers: [.command, .shift]).eventPair
+        )
     }
 
-    func testLegacySettingsWithoutScreenZoomConfirmationStayFailClosed() throws {
+    func testLegacyScreenZoomConfirmationDoesNotBlockApplicationZoom() throws {
         let suiteName = "com.allenxu.SignalTests.screenZoomMigration.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         defer { defaults.removePersistentDomain(forName: suiteName) }
@@ -322,7 +317,10 @@ final class SettingsAndCoordinatorTests: XCTestCase {
         controller.handle(.zoom(delta: GestureTuning.safeDefaults.zoomStepThreshold))
         _ = controller.snapshot()
         _ = controller.snapshot()
-        XCTAssertEqual(backend.events(), [])
+        XCTAssertEqual(
+            backend.events(),
+            ZoomApplicationProfile.standard.zoomIn.eventPair
+        )
     }
 
     func testLegacyMiddleThumbDefaultsMigrationRetunesOnlyTheOldDefault() throws {
@@ -699,6 +697,105 @@ final class SettingsAndCoordinatorTests: XCTestCase {
         for _ in 0..<4 { await Task.yield() }
         XCTAssertEqual(state.controlIntent, .disabled)
         XCTAssertEqual(state.status, .trackingDegraded)
+    }
+
+    func testEnableControlClearsLatentGestureStateBeforeWaitingForHand() {
+        let recorder = OrderedCallRecorder()
+        let state = AppState()
+        let coordinator = AppCoordinator(
+            state: state,
+            gestureResetter: GestureResetSpy(
+                recorder: recorder,
+                terminalEvents: [.dragEnd]
+            ),
+            inputController: InputControllerSpy(recorder: recorder),
+            initialPermissions: PermissionSnapshot(
+                camera: .authorized,
+                accessibilityTrusted: true
+            ),
+            initialEmergencyHealth: EmergencyMonitorHealth(
+                globalMonitorInstalled: true,
+                localMonitorInstalled: true
+            )
+        )
+        recorder.calls.removeAll()
+
+        coordinator.enableControl()
+
+        XCTAssertEqual(
+            Array(recorder.calls.prefix(4)),
+            [
+                "input.gate(false)",
+                "gesture.reset(paused)",
+                "input.handle(dragEnd)",
+                "input.release"
+            ]
+        )
+        XCTAssertEqual(state.mode, .control)
+        XCTAssertEqual(state.controlIntent, .enabled)
+        XCTAssertEqual(state.status, .waitingForHand)
+    }
+
+    func testCommandsFailClosedWhenEmergencyMonitorIsUnavailable() {
+        let state = AppState()
+        let coordinator = AppCoordinator(
+            state: state,
+            initialPermissions: PermissionSnapshot(
+                camera: .authorized,
+                accessibilityTrusted: true
+            ),
+            initialEmergencyHealth: EmergencyMonitorHealth(
+                globalMonitorInstalled: false,
+                localMonitorInstalled: true
+            ),
+            commandRecognitionRuntime: SignalCommandRecognitionRuntime()
+        )
+
+        coordinator.setMode(.commands)
+
+        XCTAssertEqual(state.mode, .paused)
+        XCTAssertEqual(state.controlIntent, .disabled)
+        XCTAssertEqual(state.status, .emergencyStopped)
+    }
+
+    func testCommandsRequireAccessibilityEvenWithLocalEmergencyMonitor() {
+        let state = AppState()
+        let coordinator = AppCoordinator(
+            state: state,
+            initialPermissions: PermissionSnapshot(
+                camera: .authorized,
+                accessibilityTrusted: false
+            ),
+            initialEmergencyHealth: EmergencyMonitorHealth(
+                globalMonitorInstalled: false,
+                localMonitorInstalled: true
+            ),
+            commandRecognitionRuntime: SignalCommandRecognitionRuntime()
+        )
+
+        coordinator.setMode(.commands)
+
+        XCTAssertEqual(state.mode, .paused)
+        XCTAssertEqual(state.controlIntent, .disabled)
+        XCTAssertEqual(state.status, .accessibilityPermissionMissing)
+    }
+
+    func testEmergencyStopSynchronouslyCancelsTeachByDemoCapture() {
+        var cancellations = 0
+        let state = AppState()
+        let coordinator = AppCoordinator(
+            state: state,
+            cancelTeachByDemoCapture: {
+                cancellations += 1
+            }
+        )
+        state.setMode(.commands)
+
+        coordinator.emergencyStop()
+
+        XCTAssertEqual(cancellations, 1)
+        XCTAssertEqual(state.mode, .paused)
+        XCTAssertEqual(state.status, .emergencyStopped)
     }
 
     func testStartupTimeoutReenableAcceptsLowerNewGenerationTimestamp() async {

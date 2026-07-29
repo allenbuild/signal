@@ -1,7 +1,8 @@
 # Parallel status
 
-> Historical integration board. The native/web merge it records is preserved on
-> `codex/archive-native-web-2026-07-24`; current `main` is browser-only.
+> Historical integration board. The native/web and browser-only work it records
+> remains preserved in repository history. Decision D-015 makes the local native
+> `Signal.app` canonical; current release work is on `signal-native-local`.
 
 This is the coordination board, not proof of release completion. Owners update a
 row with branch, commit, evidence, and handoff state. The effective environment
@@ -22,6 +23,17 @@ allows one primary plus three spawned threads.
 | Limited | Durable user profile storage | Web / hosting | Per-worker memory failed immediate cross-isolate read; seeded profile is durable |
 | Limited | Signing/notarization | Human account credentials | No Developer ID identity; release is ad-hoc and not notarized |
 | Rejected | Unsupported 32-agent project cap | Integration | Use the observed four-slot cap |
+
+## Current native release track
+
+- The production graph is the root `Signal.xcodeproj` and `Signal` scheme.
+- The shipping modes are Paused, Control, and Commands.
+- Commands contains exactly eight poses: One, Two, Three, Four, Thumbs Up,
+  Thumbs Down, C, and Fist. Five is not a command.
+- Browser, extension, web, cloud, and older `macos/` work are retained as
+  history, not included in the native package or required at runtime.
+- Final automated results, package provenance, and physical observations belong
+  in `HANDOFF.md`; this historical board is not release evidence.
 
 ## State definitions
 

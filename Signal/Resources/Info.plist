@@ -28,6 +28,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Signal uses the camera to recognize hand gestures locally. Frames are processed in memory and are never saved or uploaded.</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Signal uses optional browser automation only for the reviewed Bolt and Spotify Web commands.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSPrincipalClass</key>

@@ -30,15 +30,15 @@ struct SyntheticHand {
         case let .pinch(ratio):
             // Pinch fixtures intentionally fold every non-thumb finger. This
             // is the adversarial geometry that previously became a fist even
-            // when the thumb and middle fingertip were touching. Click,
-            // scroll, and zoom must depend on the thumb-middle pair, never on
-            // the index fingertip or on an extended-index pose.
+            // when the thumb and index fingertip were touching. Click, scroll,
+            // and zoom must depend on the thumb-index pair regardless of
+            // whether the remaining fingers resemble a fist.
             applyFoldedFingerOverrides(to: &points, fingers: [.index, .middle, .ring, .little])
             points[.thumbCMC] = Point2D(x: -0.30, y: 0.25)
             points[.thumbMP] = Point2D(x: -0.52, y: 0.58)
             points[.thumbIP] = Point2D(x: -0.10, y: 0.70)
-            let middleTip = points[.middleTip] ?? Point2D(x: 0.03, y: 0.78)
-            points[.thumbTip] = Point2D(x: middleTip.x + ratio, y: middleTip.y)
+            let indexTip = points[.indexTip] ?? Point2D(x: -0.26, y: 0.68)
+            points[.thumbTip] = Point2D(x: indexTip.x + ratio, y: indexTip.y)
         }
 
         return Self(
@@ -89,34 +89,52 @@ struct SyntheticHand {
     }
 
     /// Changes only the thumb tip so its palm-normalized distance from the
-    /// middle fingertip is exactly `ratio`. Palm anchors and the index finger
+    /// index fingertip is exactly `ratio`. Palm anchors and finger posture
     /// remain untouched, making this suitable for closure-only regressions.
-    func withMiddleThumbDistance(_ ratio: Double) -> Self {
-        guard let middleTip = localPoints[.middleTip] else { return self }
+    func withIndexThumbDistance(_ ratio: Double) -> Self {
+        guard let indexTip = localPoints[.indexTip] else { return self }
         return withLocalPoint(
-            Point2D(x: middleTip.x + ratio, y: middleTip.y),
+            Point2D(x: indexTip.x + ratio, y: indexTip.y),
             for: .thumbTip
         )
     }
 
+    /// Compatibility spelling for older non-geometry tests. Despite the
+    /// historical name, this now constructs the authoritative thumb-index
+    /// distance and contains no thumb-middle behavior.
+    func withMiddleThumbDistance(_ ratio: Double) -> Self {
+        withIndexThumbDistance(ratio)
+    }
+
     /// Translates only the two fingertips participating in the pinch. A
     /// wrist/palm scroll anchor must ignore this motion completely.
-    func movingMiddleThumbTips(dx: Double, dy: Double) -> Self {
+    func movingIndexThumbTips(dx: Double, dy: Double) -> Self {
         var result = self
-        for name in [LandmarkName.thumbTip, .middleTip] {
+        for name in [LandmarkName.thumbTip, .indexTip] {
             guard let point = result.localPoints[name] else { continue }
             result.localPoints[name] = Point2D(x: point.x + dx, y: point.y + dy)
         }
         return result
     }
 
-    /// Restores the canonical extended index without changing the middle-thumb
-    /// pair. This proves that pinch priority suppresses an otherwise valid
-    /// pointer pose and that the index is not a click input.
+    /// Restores the canonical extended index while preserving thumb-index
+    /// separation. This proves that pinch priority suppresses an otherwise
+    /// valid pointer pose.
     func withIndexExtended() -> Self {
         var result = self
+        let ratio: Double? = {
+            guard let thumb = localPoints[.thumbTip],
+                  let index = localPoints[.indexTip] else { return nil }
+            return thumb.distance(to: index)
+        }()
         for name in [LandmarkName.indexMCP, .indexPIP, .indexDIP, .indexTip] {
             result.localPoints[name] = Self.openPalmPoints[name]
+        }
+        if let ratio, let index = result.localPoints[.indexTip] {
+            result.localPoints[.thumbTip] = Point2D(
+                x: index.x + ratio,
+                y: index.y
+            )
         }
         return result
     }

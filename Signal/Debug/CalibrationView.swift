@@ -152,7 +152,7 @@ public struct CalibrationView: View {
                     )
                     valueLine("Active gesture", activeGestureText(viewModel.diagnostics.gesture.activeGesture))
                     valueLine(
-                        "Middle-thumb normalized distance",
+                        "Thumb–index normalized distance",
                         optionalNumber(viewModel.diagnostics.gesture.middleThumbNormalizedDistance)
                     )
                     valueLine("Pending click", viewModel.diagnostics.gesture.pendingClick ? "yes" : "no")
@@ -235,9 +235,9 @@ public struct CalibrationView: View {
                 Text("This window is for practice. If it closes, reopen it from the Signal menu-bar hand. Control stays blocked until both permissions are granted and you choose Enable Control from that menu.")
                     .foregroundStyle(.secondary)
                 gestureGuideLine("Index finger only", "Move the pointer")
-                gestureGuideLine("Quick thumb–middle pinch", "Release to left-click once; the pointer stays frozen")
-                gestureGuideLine("Hold thumb–middle pinch and keep moving vertically", "Up scrolls up; down scrolls down. Stop moving to stop scrolling")
-                gestureGuideLine("Hold thumb–middle pinch and keep moving horizontally", "Right zooms in; left zooms out. Stop moving to stop zooming")
+                gestureGuideLine("Quick thumb–index pinch", "Release to left-click once; the pointer stays frozen")
+                gestureGuideLine("Hold thumb–index pinch and keep moving vertically", "Up scrolls up; down scrolls down. Stop moving to stop scrolling")
+                gestureGuideLine("Hold thumb–index pinch and keep moving horizontally", "Right zooms in; left zooms out. Stop moving to stop zooming")
             }
             .padding(.top, 7)
         } label: {
@@ -294,8 +294,8 @@ public struct CalibrationView: View {
             valueLine("Palm scale", overlay.hand.palmScaleSource.rawValue)
             valueLine("Velocity", pointText(overlay.hand.velocity))
             valueLine("Missing duration", number(overlay.hand.missingDuration, digits: 3) + " s")
-            valueLine("Middle-thumb distance", optionalNumber(pinchDistance(overlay.hand.filteredLandmarks)))
-            valueLine("Middle-thumb normalized distance", optionalNumber(overlay.pose?.metrics.pinchRatio))
+            valueLine("Thumb–index distance", optionalNumber(pinchDistance(overlay.hand.filteredLandmarks)))
+            valueLine("Thumb–index normalized distance", optionalNumber(overlay.pose?.metrics.pinchRatio))
             valueLine(
                 "Pinch thresholds",
                 "close \(number(settings.tuning.pinchCloseRatio, digits: 2)) / open \(number(settings.tuning.pinchOpenRatio, digits: 2))"
@@ -309,13 +309,13 @@ public struct CalibrationView: View {
             compactSlider("Pointer dead zone", value: doubleBinding(\.pointerDeadZone), range: 0...0.08, step: 0.001)
             compactSlider("Required-joint confidence", value: doubleBinding(\.minimumLandmarkConfidence), range: 0.1...1, step: 0.01)
             compactSlider(
-                "Middle-thumb close",
+                "Thumb–index close",
                 value: doubleBinding(\.pinchCloseRatio),
                 range: 0...max(0.01, settings.tuning.pinchOpenRatio - 0.01),
                 step: 0.01
             )
             compactSlider(
-                "Middle-thumb open",
+                "Thumb–index open",
                 value: doubleBinding(\.pinchOpenRatio),
                 range: min(0.99, settings.tuning.pinchCloseRatio + 0.01)...settings.tuning.pinchIntentRatio,
                 step: 0.01
@@ -445,10 +445,10 @@ public struct CalibrationView: View {
 
     private func pinchDistance(_ landmarks: HandLandmarks) -> Double? {
         guard let thumb = landmarks[.thumbTip]?.position,
-              let middle = landmarks[.middleTip]?.position else {
+              let index = landmarks[.indexTip]?.position else {
             return nil
         }
-        return hypot(middle.x - thumb.x, middle.y - thumb.y)
+        return hypot(index.x - thumb.x, index.y - thumb.y)
     }
 
     private func number(_ value: Double, digits: Int) -> String {

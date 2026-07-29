@@ -1,19 +1,16 @@
 import Foundation
 
 enum ZoomOutputPolicy {
-    /// Production screen zoom never consumes persisted application shortcuts.
-    /// Keeping this decision in one testable seam prevents either initial
-    /// composition or later settings updates from restoring page zoom.
+    /// Production zoom is application-aware. User profiles take precedence;
+    /// `ZoomController` supplies frontmost-app defaults and a Command +/-/0
+    /// fallback when no explicit profile exists.
     static func productionProfiles(
-        ignoring _: [ZoomApplicationProfileSetting]
+        ignoring settings: [ZoomApplicationProfileSetting]
     ) -> [String: ZoomApplicationProfile] {
-        [:]
+        ZoomProfileAdapter.profiles(from: settings)
     }
 }
 
-/// Legacy settings decoder seam retained for compatibility tests. Production
-/// runtime intentionally does not call this adapter because arbitrary app
-/// shortcuts can change page or document zoom.
 enum ZoomProfileAdapter {
     static func profiles(
         from settings: [ZoomApplicationProfileSetting]

@@ -74,6 +74,24 @@ final class GeometryAndTrackingTests: XCTestCase {
         XCTAssertEqual(classifier.classify(accepted).pose, .pointer)
     }
 
+    func testThumbIndexPinchRequiresIndexTipConfidenceAndIgnoresMiddleTipOcclusion() {
+        let weakIndex = SyntheticHand.pose(.pinch(ratio: 0.20))
+            .withConfidence(0.599, for: .indexTip)
+            .tracked(at: 0)
+        let occludedMiddle = SyntheticHand.pose(.pinch(ratio: 0.20))
+            .without(.middleTip)
+            .tracked(at: 0)
+
+        let rejected = classifier.classify(weakIndex)
+        XCTAssertNil(rejected.pinchRatio)
+        XCTAssertNotEqual(rejected.pose, .pinch)
+
+        let accepted = classifier.classify(occludedMiddle)
+        XCTAssertEqual(accepted.pinchRatio ?? -1, 0.20, accuracy: 1e-12)
+        XCTAssertEqual(accepted.pose, .pinch)
+        XCTAssertEqual(accepted.minimumRequiredConfidence, 0.95, accuracy: 1e-12)
+    }
+
     func testMissingOrNonfiniteGestureLandmarksAreSafeNeutral() {
         let missing = SyntheticHand.pose(.pointer).without(.indexTip).tracked(at: 0)
         XCTAssertEqual(classifier.classify(missing).pose, .unknown)

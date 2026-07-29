@@ -65,7 +65,7 @@ final class GestureEngineTests: XCTestCase {
         )
     }
 
-    func testMiddleThumbPinchImmediatelySuppressesActivePointer() {
+    func testThumbIndexPinchImmediatelySuppressesActivePointer() {
         let engine = GestureEngine(tuning: gestureTestTuning())
         let openPointer = SyntheticHand.pose(.pointer)
         XCTAssertEqual(events(engine, openPointer, at: 0), [])
@@ -78,7 +78,7 @@ final class GestureEngineTests: XCTestCase {
         )
 
         let closing = openPointer
-            .withMiddleThumbDistance(0.20)
+            .withIndexThumbDistance(0.20)
             .translatedLocal(dx: 0.02, dy: 0.04)
         let result = result(engine, closing, at: 0.180)
 
@@ -100,7 +100,7 @@ final class GestureEngineTests: XCTestCase {
         )
 
         let approaching = pointer
-            .withMiddleThumbDistance(0.39)
+            .withIndexThumbDistance(0.39)
             .translatedLocal(dx: 0.20, dy: 0.10)
         let frozen = result(engine, approaching, at: 0.180)
         XCTAssertEqual(frozen.events, [])
@@ -137,10 +137,10 @@ final class GestureEngineTests: XCTestCase {
         XCTAssertEqual(engine.advance(to: .init(rawValue: 0.30)), [])
     }
 
-    func testQuickMiddleThumbTapFromPointerEmitsOneClickAndZeroMotion() {
+    func testQuickThumbIndexTapFromPointerEmitsOneClickAndZeroMotion() {
         let engine = GestureEngine(tuning: gestureTestTuning())
         let openPointer = SyntheticHand.pose(.pointer)
-        let closedPointer = openPointer.withMiddleThumbDistance(0.20)
+        let closedPointer = openPointer.withIndexThumbDistance(0.20)
 
         XCTAssertEqual(events(engine, openPointer, at: 0), [])
         let established = result(engine, openPointer, at: 0.140)
@@ -176,10 +176,10 @@ final class GestureEngineTests: XCTestCase {
         XCTAssertEqual(trace.filter(\.isZoom), [])
     }
 
-    func testMiddleThumbClickDoesNotRequireIndexTip() {
+    func testThumbIndexClickDoesNotRequireMiddleTip() {
         let engine = GestureEngine(tuning: gestureTestTuning())
-        let open = SyntheticHand.pose(.pinch(ratio: 0.35)).without(.indexTip)
-        let closed = SyntheticHand.pose(.pinch(ratio: 0.20)).without(.indexTip)
+        let open = SyntheticHand.pose(.pinch(ratio: 0.35)).without(.middleTip)
+        let closed = SyntheticHand.pose(.pinch(ratio: 0.20)).without(.middleTip)
 
         XCTAssertEqual(events(engine, open, at: 0), [])
         XCTAssertEqual(events(engine, open, at: 0.07), [])
@@ -278,7 +278,7 @@ final class GestureEngineTests: XCTestCase {
 
         // These are fingertip-only movements. A wrist/palm anchor must not see
         // them as downward scrolling, and both stabilization frames are quiet.
-        let fingertipMotion = closed.movingMiddleThumbTips(dx: 0, dy: 0.12)
+        let fingertipMotion = closed.movingIndexThumbTips(dx: 0, dy: 0.12)
         XCTAssertEqual(events(engine, fingertipMotion, at: 0.12), [])
         XCTAssertEqual(events(engine, fingertipMotion, at: 0.14), [])
 
@@ -573,10 +573,10 @@ final class GestureEngineTests: XCTestCase {
         XCTAssertEqual(events(engine, open, at: 0.18), [.leftClick])
     }
 
-    func testMiddleThumbPinchTakesPriorityOverFistAndPointer() {
+    func testThumbIndexPinchTakesPriorityOverFistAndPointer() {
         let classifier = HandPoseClassifier()
-        let closedFistGeometry = SyntheticHand.pose(.fist).withMiddleThumbDistance(0.20)
-        let likelyContact = SyntheticHand.pose(.fist).withMiddleThumbDistance(0.27)
+        let closedFistGeometry = SyntheticHand.pose(.fist).withIndexThumbDistance(0.20)
+        let likelyContact = SyntheticHand.pose(.fist).withIndexThumbDistance(0.27)
         let pointerGeometry = closedFistGeometry.withIndexExtended()
 
         let closedMetrics = classifier.classify(closedFistGeometry.tracked(at: 0))
@@ -587,7 +587,7 @@ final class GestureEngineTests: XCTestCase {
         XCTAssertEqual(classifier.classify(SyntheticHand.pose(.fist).tracked(at: 0)).pose, .fist)
     }
 
-    func testActiveMiddleThumbPinchHysteresisNeverFallsThroughToFist() {
+    func testActiveThumbIndexPinchHysteresisNeverFallsThroughToFist() {
         let engine = GestureEngine(tuning: gestureTestTuning())
         let open = SyntheticHand.pose(.pinch(ratio: 0.35))
         XCTAssertEqual(events(engine, open, at: 0), [])
@@ -811,7 +811,7 @@ final class GestureEngineTests: XCTestCase {
     private func occlusionTolerantPinch(ratio: Double) -> SyntheticHand {
         SyntheticHand.pose(.pinch(ratio: ratio))
             .withConfidence(0.10, for: .thumbCMC)
-            .without(.indexTip)
+            .without(.middleTip)
             .withConfidence(0.10, for: .ringTip)
             .without(.littleTip)
     }

@@ -1,19 +1,34 @@
-# Extension packaging
+# Native Signal packaging
 
-Signal is packaged as:
+The canonical outputs are:
 
-- `extension/dist/signal-extension/` — canonical load-unpacked directory.
-- `extension/dist/signal-extension.zip` — canonical distributable archive.
-- `extension/dist/signal-extension.zip.sha256` — canonical SHA-256 checksum.
+```text
+artifacts/native/Signal.app
+artifacts/native/Signal-local.zip
+artifacts/native/Signal-local.dmg  # optional
+```
 
-Run `cd extension && pnpm package`. The build rejects forbidden manifest
-capabilities and production localhost/native references. Copy the ZIP and
-checksum to `web/public/downloads/` before saving the public Sites release.
-The same artifacts are mirrored under `extension/release/` for compatibility.
+Build and package from the repository root:
 
-The Chrome Web Store is not required for the hackathon release. Installation
-uses Chrome Developer mode and **Load unpacked**.
+```sh
+./scripts/build-native-signal.sh
+SIGNAL_CREATE_DMG=YES ./scripts/package-native-signal.sh
+```
 
-Historical macOS packaging source and release evidence remain in git history and
-on `codex/archive-native-web-2026-07-24`; they are not part of the current
-product, navigation, CI, or deployment.
+For a local ad-hoc hardened-runtime signature when no Apple identity is
+installed:
+
+```sh
+CODE_SIGNING_ALLOWED=YES \
+SIGNAL_SIGN_IDENTITY='-' \
+SIGNAL_CREATE_DMG=YES \
+./scripts/package-native-signal.sh
+```
+
+The scripts validate `com.allenxu.Signal`, arm64, package membership, and reject
+nested apps, extensions, XPC services, XCTest payload, websites, servers, and
+helpers. The ZIP and DMG contain one application. Packaging does not prove
+notarization, permission grants, launch behavior, or physical gestures.
+
+See [Native installation](NATIVE_INSTALLATION.md) for the stable install path
+and first-run permission flow.

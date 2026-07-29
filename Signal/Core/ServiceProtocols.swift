@@ -14,6 +14,23 @@ public enum ControlIntent: String, Codable, Equatable, Sendable {
     case disabled, enabled, paused
 }
 
+/// The only user-facing runtime modes. `ControlIntent` remains an internal
+/// safety gate so existing input fencing can distinguish pending, enabled,
+/// and quiesced output without leaking a fourth mode into the product.
+public enum SignalMode: String, CaseIterable, Codable, Equatable, Hashable, Sendable {
+    case paused
+    case control
+    case commands
+
+    public var title: String {
+        switch self {
+        case .paused: "Paused"
+        case .control: "Control"
+        case .commands: "Commands"
+        }
+    }
+}
+
 public enum AppStatus: Equatable, Sendable {
     case disabled, enabled, paused
     case cameraPermissionMissing

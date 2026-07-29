@@ -1,7 +1,14 @@
 # Five-hour team plan
 
-> Historical planning record. Superseded by the browser-only decision in
-> `DECISIONS.md` D-013; do not use this file as current architecture.
+> Historical planning record for the earlier native/web release. Decision D-015
+> supersedes its combined-product assumptions and makes the local native
+> `Signal.app` canonical. Use `ARCHITECTURE.md`, `HANDOFF.md`, and the root
+> Xcode project for current implementation and release evidence.
+
+The historical schedule below is retained for provenance. It must not be read
+as a current promise of a website, cloud service, extension, Hybrid mode, nine
+command gestures, or web deployment. The current native product has Paused,
+Control, and Commands modes and exactly eight command poses; Five is absent.
 
 ## Ownership
 

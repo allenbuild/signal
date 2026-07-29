@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 @MainActor
@@ -72,6 +73,15 @@ struct SignalApp: App {
         }
         .menuBarExtraStyle(.window)
 
+        Window("Signal", id: "main") {
+            if let runtime {
+                MainSceneRoot(runtime: runtime)
+            } else {
+                EmptyView()
+            }
+        }
+        .defaultSize(width: 1_180, height: 780)
+
         Window("Signal Calibration", id: "calibration") {
             if let runtime {
                 CalibrationSceneRoot(runtime: runtime)
@@ -99,9 +109,21 @@ final class SignalRuntime: ObservableObject {
     let settingsStore: SettingsStore
     let calibrationViewModel: CalibrationViewModel
     let launchAtLoginViewModel: LaunchAtLoginViewModel
+    let optionalPermissionService: OptionalPermissionService?
+    let commandRepository: SignalCommandRepository?
+    let customCommandEditorModel: SignalCustomCommandEditorModel?
+    let teachByDemoModel: SignalTeachByDemoModel?
+    let teachByDemoReviewContext: SignalTeachByDemoReviewContext?
+    let teachByDemoRecordingBridge: SignalTeachByDemoRecordingBridge?
+    let teachByDemoRecordingSetup:
+        SignalTeachByDemoRecordingSetupModel?
     let previewLayerController: CameraPreviewLayerController?
     let coordinator: AppCoordinator
     private var settingsWindowController: SignalSettingsWindowController?
+    private var commandEditorWindowController:
+        SignalCustomCommandWindowController?
+    private var cancellables: Set<AnyCancellable> = []
+    private var observesCommandEditor = false
     private(set) var hasStarted = false
 
     var hasCreatedSettingsWindowController: Bool {
@@ -114,6 +136,13 @@ final class SignalRuntime: ObservableObject {
         let settingsStore = SettingsStore()
         let calibrationViewModel = CalibrationViewModel()
         let permissionService = PermissionStatusService()
+        let optionalPermissionService = OptionalPermissionService()
+        let commandRepository = SignalCommandRepository()
+        let commandRecognitionRuntime = SignalCommandRecognitionRuntime()
+        let commandExecutor = SignalCommandExecutor()
+        let commandPerformer = SignalNativeCommandPerformer()
+        let teachByDemoModel = SignalTeachByDemoModel()
+        let teachByDemoReviewContext = SignalTeachByDemoReviewContext()
         let launchAtLoginController = LaunchAtLoginController()
         let launchAtLoginViewModel = LaunchAtLoginViewModel(
             controller: launchAtLoginController
@@ -123,13 +152,67 @@ final class SignalRuntime: ObservableObject {
 
         let inputController = MacOSInputController(
             tuning: tuning,
-            // Production zoom is always macOS Accessibility screen
-            // magnification so applications keep their page/document zoom.
             userZoomProfiles: ZoomOutputPolicy.productionProfiles(
                 ignoring: settingsStore.zoomProfiles
             ),
-            screenZoomShortcutsEnabled: settingsStore.screenZoomShortcutsEnabled
+            screenZoomShortcutsEnabled: true
         )
+        let emergencyMonitor = EmergencyShortcutMonitor(
+            ignoredEventMarker: inputController.generatedEventMarker
+        )
+        let customCommandEditorModel = SignalCustomCommandEditorModel(
+            repository: commandRepository,
+            testReviewedPlan: {
+                [commandExecutor, commandPerformer, emergencyMonitor,
+                 permissionService] plan in
+                guard permissionService.accessibilityTrusted else {
+                    return SignalCustomCommandPlanTestResult(
+                        succeeded: false,
+                        message: """
+                        Grant Accessibility before testing a command.
+                        """
+                    )
+                }
+                guard emergencyMonitor.health.permitsEnable(
+                    accessibilityTrusted: true
+                ) else {
+                    return SignalCustomCommandPlanTestResult(
+                        succeeded: false,
+                        message: """
+                        The global Emergency Stop shortcut is unavailable.
+                        """
+                    )
+                }
+                let receipt = await commandExecutor.execute(
+                    plan,
+                    performer: commandPerformer
+                )
+                return SignalCustomCommandPlanTestResult(
+                    succeeded: receipt.status == .success,
+                    message: receipt.message
+                )
+            }
+        )
+        let teachByDemoRecordingBridge = SignalTeachByDemoRecordingBridge(
+            proposalModel: teachByDemoModel,
+            reviewContext: teachByDemoReviewContext,
+            ignoredEventMarker: inputController.generatedEventMarker,
+            canStart: { [emergencyMonitor, permissionService] in
+                permissionService.accessibilityTrusted
+                    && emergencyMonitor.health.permitsEnable(
+                        accessibilityTrusted: true
+                    )
+            }
+        )
+        let teachByDemoRecordingSetup =
+            SignalTeachByDemoRecordingSetupModel(
+                inspector: SignalTeachByDemoSystemSetupInspector(
+                    resolver: SignalTeachByDemoAXContextResolver(
+                        reviewContext: teachByDemoReviewContext
+                    )
+                ),
+                authorizer: teachByDemoReviewContext
+            )
         let gesturePipeline = GesturePipeline(
             tuning: tuning,
             inputSink: inputController
@@ -144,9 +227,6 @@ final class SignalRuntime: ObservableObject {
         }
 
         let lifecycleMonitor = AppLifecycleMonitor()
-        let emergencyMonitor = EmergencyShortcutMonitor(
-            ignoredEventMarker: inputController.generatedEventMarker
-        )
         let coordinator = AppCoordinator(
             state: state,
             uiModel: uiModel,
@@ -159,7 +239,15 @@ final class SignalRuntime: ObservableObject {
             permissionService: permissionService,
             launchAtLoginViewModel: launchAtLoginViewModel,
             lifecycleMonitor: lifecycleMonitor,
-            emergencyMonitor: emergencyMonitor
+            emergencyMonitor: emergencyMonitor,
+            commandRecognitionRuntime: commandRecognitionRuntime,
+            commandRepository: commandRepository,
+            commandExecutor: commandExecutor,
+            commandPerformer: commandPerformer,
+            cancelTeachByDemoCapture: {
+                customCommandEditorModel.cancelTest()
+                teachByDemoRecordingBridge.emergencyCancel()
+            }
         )
 
         self.state = state
@@ -167,6 +255,13 @@ final class SignalRuntime: ObservableObject {
         self.settingsStore = settingsStore
         self.calibrationViewModel = calibrationViewModel
         self.launchAtLoginViewModel = launchAtLoginViewModel
+        self.optionalPermissionService = optionalPermissionService
+        self.commandRepository = commandRepository
+        self.customCommandEditorModel = customCommandEditorModel
+        self.teachByDemoModel = teachByDemoModel
+        self.teachByDemoReviewContext = teachByDemoReviewContext
+        self.teachByDemoRecordingBridge = teachByDemoRecordingBridge
+        self.teachByDemoRecordingSetup = teachByDemoRecordingSetup
         previewLayerController = cameraService.makePreviewLayerController()
         self.coordinator = coordinator
         if let previewLayerController {
@@ -184,6 +279,13 @@ final class SignalRuntime: ObservableObject {
         self.settingsStore = settingsStore
         calibrationViewModel = CalibrationViewModel()
         self.launchAtLoginViewModel = launchAtLoginViewModel
+        optionalPermissionService = nil
+        commandRepository = nil
+        customCommandEditorModel = nil
+        teachByDemoModel = nil
+        teachByDemoReviewContext = nil
+        teachByDemoRecordingBridge = nil
+        teachByDemoRecordingSetup = nil
         previewLayerController = nil
         coordinator = AppCoordinator(state: state)
     }
@@ -192,7 +294,48 @@ final class SignalRuntime: ObservableObject {
         guard !hasStarted else { return }
         hasStarted = true
         settingsStore.synchronizePersistenceIfNeeded()
+        if let snapshot = optionalPermissionService?.refresh() {
+            uiModel.updateOptionalPermissions(snapshot)
+        }
+        observeCommandEditorIfNeeded()
         coordinator.startRuntime()
+    }
+
+    func requestOptionalPermission(_ kind: SignalDashboardPermissionKind) {
+        guard let optionalPermissionService else { return }
+        coordinator.quiesce(reason: .paused)
+        switch kind {
+        case .browserAutomation:
+            optionalPermissionService.requestChromeAutomation()
+        case .screenRecording:
+            return
+        case .camera, .accessibility:
+            return
+        }
+        uiModel.updateOptionalPermissions(optionalPermissionService.snapshot)
+    }
+
+    func openCustomCommandEditor() {
+        guard let customCommandEditorModel, let teachByDemoModel else { return }
+        coordinator.prepareForCommandEditing()
+        let controller: SignalCustomCommandWindowController
+        if let existing = commandEditorWindowController {
+            controller = existing
+        } else {
+            let created = SignalCustomCommandWindowController(
+                model: customCommandEditorModel,
+                demoModel: teachByDemoModel,
+                recordingBridge: teachByDemoRecordingBridge,
+                recordingSetup: teachByDemoRecordingSetup
+            )
+            commandEditorWindowController = created
+            controller = created
+        }
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        controller.showWindow()
+        Task {
+            try? await customCommandEditorModel.load()
+        }
     }
 
     func openSettings() {
@@ -209,6 +352,19 @@ final class SignalRuntime: ObservableObject {
         }
         controller.showWindow()
     }
+
+    private func observeCommandEditorIfNeeded() {
+        guard !observesCommandEditor, let customCommandEditorModel else {
+            return
+        }
+        observesCommandEditor = true
+        customCommandEditorModel.$phase
+            .sink { [weak self] phase in
+                guard phase == .saved else { return }
+                self?.coordinator.reloadCommands()
+            }
+            .store(in: &cancellables)
+    }
 }
 
 @MainActor
@@ -224,8 +380,70 @@ private struct MenuSceneRoot: View {
             actions: runtime.coordinator.makeActions(openCalibrationWindow: {
                 NSApplication.shared.activate(ignoringOtherApps: true)
                 openWindow(id: "calibration")
-            }, openSettingsWindow: { runtime.openSettings() })
+            }, openSettingsWindow: {
+                runtime.openSettings()
+            }, openMainWindow: {
+                NSApplication.shared.activate(ignoringOtherApps: true)
+                openWindow(id: "main")
+            })
         )
+    }
+}
+
+@MainActor
+private struct MainSceneRoot: View {
+    @Environment(\.openWindow) private var openWindow
+    @ObservedObject var runtime: SignalRuntime
+
+    var body: some View {
+        SignalDashboardView(
+            presentation: runtime.uiModel.dashboardPresentation,
+            actions: SignalDashboardActions(
+                selectMode: { mode in
+                    runtime.coordinator.setMode(mode.signalMode)
+                },
+                editCommand: { cardID in
+                    guard cardID == .fist else { return }
+                    runtime.openCustomCommandEditor()
+                },
+                requestPermission: { permission in
+                    let actions = runtime.coordinator.makeActions(
+                        openCalibrationWindow: {
+                            NSApplication.shared.activate(ignoringOtherApps: true)
+                            openWindow(id: "calibration")
+                        },
+                        openSettingsWindow: { runtime.openSettings() }
+                    )
+                    switch permission {
+                    case .camera:
+                        actions.requestCameraPermission()
+                    case .accessibility:
+                        actions.requestAccessibilityPermission()
+                    case .browserAutomation, .screenRecording:
+                        runtime.requestOptionalPermission(permission)
+                    }
+                },
+                openCalibration: {
+                    runtime.coordinator.calibrationDidOpen()
+                    NSApplication.shared.activate(ignoringOtherApps: true)
+                    openWindow(id: "calibration")
+                },
+                openSettings: { runtime.openSettings() },
+                emergencyStop: {
+                    runtime.coordinator.emergencyStop()
+                }
+            )
+        )
+    }
+}
+
+private extension SignalDashboardMode {
+    var signalMode: SignalMode {
+        switch self {
+        case .paused: .paused
+        case .control: .control
+        case .commands: .commands
+        }
     }
 }
 
@@ -243,7 +461,12 @@ private struct CalibrationSceneRoot: View {
             actions: runtime.coordinator.makeActions(openCalibrationWindow: {
                 NSApplication.shared.activate(ignoringOtherApps: true)
                 openWindow(id: "calibration")
-            }, openSettingsWindow: { runtime.openSettings() })
+            }, openSettingsWindow: {
+                runtime.openSettings()
+            }, openMainWindow: {
+                NSApplication.shared.activate(ignoringOtherApps: true)
+                openWindow(id: "main")
+            })
         )
         .onAppear {
             runtime.previewLayerController?.refreshConnectionConfiguration()
@@ -295,5 +518,70 @@ final class SignalSettingsWindowController {
         NSApplication.shared.activate(ignoringOtherApps: true)
         windowController.showWindow(nil)
         windowController.window?.makeKeyAndOrderFront(nil)
+    }
+}
+
+@MainActor
+final class SignalCustomCommandWindowController: NSObject, NSWindowDelegate {
+    private let model: SignalCustomCommandEditorModel
+    private let demoModel: SignalTeachByDemoModel
+    private let recordingBridge: SignalTeachByDemoRecordingBridge?
+    private let recordingSetup: SignalTeachByDemoRecordingSetupModel?
+    private var windowController: NSWindowController?
+
+    var hasLoadedWindow: Bool {
+        windowController != nil
+    }
+
+    init(
+        model: SignalCustomCommandEditorModel,
+        demoModel: SignalTeachByDemoModel,
+        recordingBridge: SignalTeachByDemoRecordingBridge? = nil,
+        recordingSetup: SignalTeachByDemoRecordingSetupModel? = nil
+    ) {
+        self.model = model
+        self.demoModel = demoModel
+        self.recordingBridge = recordingBridge
+        self.recordingSetup = recordingSetup
+        super.init()
+    }
+
+    @discardableResult
+    func loadWindow() -> NSWindowController {
+        if let windowController {
+            return windowController
+        }
+
+        let root = SignalCustomCommandEditorView(
+            model: model,
+            demoModel: demoModel,
+            recordingBridge: recordingBridge,
+            recordingSetup: recordingSetup
+        )
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 1_020, height: 700),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Signal Custom Command"
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+        window.center()
+        window.contentViewController = NSHostingController(rootView: root)
+        let created = NSWindowController(window: window)
+        windowController = created
+        return created
+    }
+
+    func showWindow() {
+        let windowController = loadWindow()
+        windowController.showWindow(nil)
+        windowController.window?.makeKeyAndOrderFront(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        model.cancelTest()
+        recordingBridge?.cancel()
     }
 }

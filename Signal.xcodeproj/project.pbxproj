@@ -56,6 +56,44 @@
 		C0000000C0000000C0000037 /* SettingsAndCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000037 /* SettingsAndCoordinatorTests.swift */; };
 		C0000000C0000000C0000038 /* Wave6RegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000038 /* Wave6RegressionTests.swift */; };
 		C0000000C0000000C0000039 /* Wave6DeterministicAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000039 /* Wave6DeterministicAdapterTests.swift */; };
+		C0000000C0000000C0000040 /* SignalDashboardPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000040 /* SignalDashboardPresentation.swift */; };
+		C0000000C0000000C0000041 /* SignalDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000041 /* SignalDashboardView.swift */; };
+		C0000000C0000000C0000042 /* SignalDashboardPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000042 /* SignalDashboardPresentationTests.swift */; };
+		C0000000C0000000C0000043 /* CommandGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000043 /* CommandGesture.swift */; };
+		C0000000C0000000C0000044 /* CommandGestureClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000044 /* CommandGestureClassifier.swift */; };
+		C0000000C0000000C0000045 /* CommandGestureClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000045 /* CommandGestureClassifierTests.swift */; };
+		C0000000C0000000C0000046 /* OptionalPermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000046 /* OptionalPermissionService.swift */; };
+		C0000000C0000000C0000047 /* SignalCommandModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000047 /* SignalCommandModels.swift */; };
+		C0000000C0000000C0000048 /* SignalCommandURLPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000048 /* SignalCommandURLPolicy.swift */; };
+		C0000000C0000000C0000049 /* SignalCommandValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000049 /* SignalCommandValidation.swift */; };
+		C0000000C0000000C000004A /* SignalCommandDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000004A /* SignalCommandDefaults.swift */; };
+		C0000000C0000000C000004B /* SignalCommandActivationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000004B /* SignalCommandActivationEngine.swift */; };
+		C0000000C0000000C000004C /* SignalCommandRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000004C /* SignalCommandRepository.swift */; };
+		C0000000C0000000C000004D /* SignalCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000004D /* SignalCommandExecutor.swift */; };
+		C0000000C0000000C000004E /* SignalCommandDomainWave3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000004E /* SignalCommandDomainWave3Tests.swift */; };
+		C0000000C0000000C000004F /* SignalCommandAutomationWave3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000004F /* SignalCommandAutomationWave3Tests.swift */; };
+		C0000000C0000000C0000050 /* SignalCommandRecognitionRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000050 /* SignalCommandRecognitionRuntime.swift */; };
+		C0000000C0000000C0000051 /* SignalCommandRecognitionRuntimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000051 /* SignalCommandRecognitionRuntimeTests.swift */; };
+		C0000000C0000000C0000052 /* SignalCustomCommandAuthoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000052 /* SignalCustomCommandAuthoring.swift */; };
+		C0000000C0000000C0000053 /* SignalTeachByDemoAuthoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000053 /* SignalTeachByDemoAuthoring.swift */; };
+		C0000000C0000000C0000054 /* SignalCustomCommandEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000054 /* SignalCustomCommandEditorView.swift */; };
+		C0000000C0000000C0000055 /* SignalCustomCommandAuthoringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000055 /* SignalCustomCommandAuthoringTests.swift */; };
+		C0000000C0000000C0000056 /* SignalNativeAutomationSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000056 /* SignalNativeAutomationSupport.swift */; };
+		C0000000C0000000C0000057 /* ChromeAutomationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000057 /* ChromeAutomationAdapter.swift */; };
+		C0000000C0000000C0000058 /* BrowserAutomationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000058 /* BrowserAutomationController.swift */; };
+		C0000000C0000000C0000059 /* SignalNativeCommandPerformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000059 /* SignalNativeCommandPerformer.swift */; };
+		C0000000C0000000C000005A /* SignalNativeBrowserAutomationWave4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000005A /* SignalNativeBrowserAutomationWave4Tests.swift */; };
+		C0000000C0000000C000005B /* SignalTeachByDemoCaptureAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000005B /* SignalTeachByDemoCaptureAdapter.swift */; };
+		C0000000C0000000C000005C /* SignalTeachByDemoSystemCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000005C /* SignalTeachByDemoSystemCapture.swift */; };
+		C0000000C0000000C000005D /* SignalTeachByDemoCaptureAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000005D /* SignalTeachByDemoCaptureAdapterTests.swift */; };
+		C0000000C0000000C000005E /* SignalTeachByDemoRecordingBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000005E /* SignalTeachByDemoRecordingBridge.swift */; };
+		C0000000C0000000C000005F /* SignalTeachByDemoRecordingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B000005F /* SignalTeachByDemoRecordingPanel.swift */; };
+		C0000000C0000000C0000060 /* SignalTeachByDemoRecordingBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000060 /* SignalTeachByDemoRecordingBridgeTests.swift */; };
+		C0000000C0000000C0000061 /* SignalCustomCommandNaturalLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000061 /* SignalCustomCommandNaturalLanguage.swift */; };
+		C0000000C0000000C0000062 /* SignalCustomCommandFilePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000062 /* SignalCustomCommandFilePicker.swift */; };
+		C0000000C0000000C0000063 /* SignalTeachByDemoRecordingSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000063 /* SignalTeachByDemoRecordingSetup.swift */; };
+		C0000000C0000000C0000064 /* SignalCommandCoordinatorIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000064 /* SignalCommandCoordinatorIntegrationTests.swift */; };
+		C0000000C0000000C0000065 /* SignalCustomCommandRecordingSetupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000B0000000B0000065 /* SignalCustomCommandRecordingSetupTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -122,6 +160,44 @@
 		B0000000B0000000B0000037 /* SettingsAndCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAndCoordinatorTests.swift; sourceTree = "<group>"; };
 		B0000000B0000000B0000038 /* Wave6RegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wave6RegressionTests.swift; sourceTree = "<group>"; };
 		B0000000B0000000B0000039 /* Wave6DeterministicAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wave6DeterministicAdapterTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000040 /* SignalDashboardPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalDashboardPresentation.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000041 /* SignalDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalDashboardView.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000042 /* SignalDashboardPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalDashboardPresentationTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000043 /* CommandGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandGesture.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000044 /* CommandGestureClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandGestureClassifier.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000045 /* CommandGestureClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandGestureClassifierTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000046 /* OptionalPermissionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionalPermissionService.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000047 /* SignalCommandModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandModels.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000048 /* SignalCommandURLPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandURLPolicy.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000049 /* SignalCommandValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandValidation.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000004A /* SignalCommandDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandDefaults.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000004B /* SignalCommandActivationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandActivationEngine.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000004C /* SignalCommandRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandRepository.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000004D /* SignalCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandExecutor.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000004E /* SignalCommandDomainWave3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandDomainWave3Tests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000004F /* SignalCommandAutomationWave3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandAutomationWave3Tests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000050 /* SignalCommandRecognitionRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandRecognitionRuntime.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000051 /* SignalCommandRecognitionRuntimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandRecognitionRuntimeTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000052 /* SignalCustomCommandAuthoring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCustomCommandAuthoring.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000053 /* SignalTeachByDemoAuthoring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalTeachByDemoAuthoring.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000054 /* SignalCustomCommandEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCustomCommandEditorView.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000055 /* SignalCustomCommandAuthoringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCustomCommandAuthoringTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000056 /* SignalNativeAutomationSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalNativeAutomationSupport.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000057 /* ChromeAutomationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromeAutomationAdapter.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000058 /* BrowserAutomationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserAutomationController.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000059 /* SignalNativeCommandPerformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalNativeCommandPerformer.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000005A /* SignalNativeBrowserAutomationWave4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalNativeBrowserAutomationWave4Tests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000005B /* SignalTeachByDemoCaptureAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalTeachByDemoCaptureAdapter.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000005C /* SignalTeachByDemoSystemCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalTeachByDemoSystemCapture.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000005D /* SignalTeachByDemoCaptureAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalTeachByDemoCaptureAdapterTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000005E /* SignalTeachByDemoRecordingBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalTeachByDemoRecordingBridge.swift; sourceTree = "<group>"; };
+		B0000000B0000000B000005F /* SignalTeachByDemoRecordingPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalTeachByDemoRecordingPanel.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000060 /* SignalTeachByDemoRecordingBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalTeachByDemoRecordingBridgeTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000061 /* SignalCustomCommandNaturalLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCustomCommandNaturalLanguage.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000062 /* SignalCustomCommandFilePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCustomCommandFilePicker.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000063 /* SignalTeachByDemoRecordingSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalTeachByDemoRecordingSetup.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000064 /* SignalCommandCoordinatorIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCommandCoordinatorIntegrationTests.swift; sourceTree = "<group>"; };
+		B0000000B0000000B0000065 /* SignalCustomCommandRecordingSetupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCustomCommandRecordingSetupTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -168,6 +244,9 @@
 				A0000000A0000000A0000007 /* Camera */,
 				A0000000A0000000A0000008 /* Tracking */,
 				A0000000A0000000A0000009 /* Gestures */,
+				A0000000A0000000A0000015 /* Commands */,
+				A0000000A0000000A0000016 /* Automation */,
+				A0000000A0000000A0000017 /* CustomCommands */,
 				A0000000A0000000A000000A /* Input */,
 				A0000000A0000000A000000B /* Permissions */,
 				A0000000A0000000A000000C /* Lifecycle */,
@@ -198,6 +277,7 @@
 				B0000000B0000000B0000002 /* GestureEvent.swift */,
 				B0000000B0000000B0000003 /* GestureTuning.swift */,
 				B0000000B0000000B0000004 /* ServiceProtocols.swift */,
+				B0000000B0000000B0000043 /* CommandGesture.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -232,8 +312,52 @@
 			children = (
 				B0000000B0000000B000001A /* GestureEngine.swift */,
 				B0000000B0000000B000001B /* HandGeometry.swift */,
+				B0000000B0000000B0000044 /* CommandGestureClassifier.swift */,
 			);
 			path = Gestures;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000015 /* Commands */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000047 /* SignalCommandModels.swift */,
+				B0000000B0000000B0000048 /* SignalCommandURLPolicy.swift */,
+				B0000000B0000000B0000049 /* SignalCommandValidation.swift */,
+				B0000000B0000000B000004A /* SignalCommandDefaults.swift */,
+				B0000000B0000000B000004B /* SignalCommandActivationEngine.swift */,
+				B0000000B0000000B000004C /* SignalCommandRepository.swift */,
+				B0000000B0000000B0000050 /* SignalCommandRecognitionRuntime.swift */,
+			);
+			path = Commands;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000016 /* Automation */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B000004D /* SignalCommandExecutor.swift */,
+				B0000000B0000000B0000056 /* SignalNativeAutomationSupport.swift */,
+				B0000000B0000000B0000057 /* ChromeAutomationAdapter.swift */,
+				B0000000B0000000B0000058 /* BrowserAutomationController.swift */,
+				B0000000B0000000B0000059 /* SignalNativeCommandPerformer.swift */,
+			);
+			path = Automation;
+			sourceTree = "<group>";
+		};
+		A0000000A0000000A0000017 /* CustomCommands */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000B0000000B0000052 /* SignalCustomCommandAuthoring.swift */,
+				B0000000B0000000B0000053 /* SignalTeachByDemoAuthoring.swift */,
+				B0000000B0000000B0000054 /* SignalCustomCommandEditorView.swift */,
+				B0000000B0000000B0000061 /* SignalCustomCommandNaturalLanguage.swift */,
+				B0000000B0000000B0000062 /* SignalCustomCommandFilePicker.swift */,
+				B0000000B0000000B000005B /* SignalTeachByDemoCaptureAdapter.swift */,
+				B0000000B0000000B000005C /* SignalTeachByDemoSystemCapture.swift */,
+				B0000000B0000000B000005E /* SignalTeachByDemoRecordingBridge.swift */,
+				B0000000B0000000B000005F /* SignalTeachByDemoRecordingPanel.swift */,
+				B0000000B0000000B0000063 /* SignalTeachByDemoRecordingSetup.swift */,
+			);
+			path = CustomCommands;
 			sourceTree = "<group>";
 		};
 		A0000000A0000000A000000A /* Input */ = {
@@ -252,6 +376,7 @@
 			children = (
 				B0000000B0000000B0000022 /* LaunchAtLoginController.swift */,
 				B0000000B0000000B0000023 /* PermissionStatusService.swift */,
+				B0000000B0000000B0000046 /* OptionalPermissionService.swift */,
 			);
 			path = Permissions;
 			sourceTree = "<group>";
@@ -271,6 +396,8 @@
 				B0000000B0000000B000002F /* SignalUIModel.swift */,
 				B0000000B0000000B0000030 /* MenuBarContentView.swift */,
 				B0000000B0000000B0000031 /* OnboardingView.swift */,
+				B0000000B0000000B0000040 /* SignalDashboardPresentation.swift */,
+				B0000000B0000000B0000041 /* SignalDashboardView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -296,6 +423,17 @@
 				B0000000B0000000B0000037 /* SettingsAndCoordinatorTests.swift */,
 				B0000000B0000000B0000038 /* Wave6RegressionTests.swift */,
 				B0000000B0000000B0000039 /* Wave6DeterministicAdapterTests.swift */,
+				B0000000B0000000B0000042 /* SignalDashboardPresentationTests.swift */,
+				B0000000B0000000B0000045 /* CommandGestureClassifierTests.swift */,
+				B0000000B0000000B000004E /* SignalCommandDomainWave3Tests.swift */,
+				B0000000B0000000B000004F /* SignalCommandAutomationWave3Tests.swift */,
+				B0000000B0000000B0000051 /* SignalCommandRecognitionRuntimeTests.swift */,
+				B0000000B0000000B0000055 /* SignalCustomCommandAuthoringTests.swift */,
+				B0000000B0000000B000005A /* SignalNativeBrowserAutomationWave4Tests.swift */,
+				B0000000B0000000B000005D /* SignalTeachByDemoCaptureAdapterTests.swift */,
+				B0000000B0000000B0000060 /* SignalTeachByDemoRecordingBridgeTests.swift */,
+				B0000000B0000000B0000064 /* SignalCommandCoordinatorIntegrationTests.swift */,
+				B0000000B0000000B0000065 /* SignalCustomCommandRecordingSetupTests.swift */,
 			);
 			path = SignalTests;
 			sourceTree = "<group>";
@@ -431,6 +569,7 @@
 				C0000000C0000000C0000002 /* GestureEvent.swift in Sources */,
 				C0000000C0000000C0000003 /* GestureTuning.swift in Sources */,
 				C0000000C0000000C0000004 /* ServiceProtocols.swift in Sources */,
+				C0000000C0000000C0000043 /* CommandGesture.swift in Sources */,
 				C0000000C0000000C0000005 /* AppState.swift in Sources */,
 				C0000000C0000000C0000006 /* AppCoordinator.swift in Sources */,
 				C0000000C0000000C0000007 /* SignalApp.swift in Sources */,
@@ -446,6 +585,29 @@
 				C0000000C0000000C0000019 /* MirroredPreviewHost.swift in Sources */,
 				C0000000C0000000C000001A /* GestureEngine.swift in Sources */,
 				C0000000C0000000C000001B /* HandGeometry.swift in Sources */,
+				C0000000C0000000C0000044 /* CommandGestureClassifier.swift in Sources */,
+				C0000000C0000000C0000047 /* SignalCommandModels.swift in Sources */,
+				C0000000C0000000C0000048 /* SignalCommandURLPolicy.swift in Sources */,
+				C0000000C0000000C0000049 /* SignalCommandValidation.swift in Sources */,
+				C0000000C0000000C000004A /* SignalCommandDefaults.swift in Sources */,
+				C0000000C0000000C000004B /* SignalCommandActivationEngine.swift in Sources */,
+				C0000000C0000000C000004C /* SignalCommandRepository.swift in Sources */,
+				C0000000C0000000C000004D /* SignalCommandExecutor.swift in Sources */,
+				C0000000C0000000C0000050 /* SignalCommandRecognitionRuntime.swift in Sources */,
+				C0000000C0000000C0000052 /* SignalCustomCommandAuthoring.swift in Sources */,
+				C0000000C0000000C0000053 /* SignalTeachByDemoAuthoring.swift in Sources */,
+				C0000000C0000000C0000054 /* SignalCustomCommandEditorView.swift in Sources */,
+				C0000000C0000000C0000061 /* SignalCustomCommandNaturalLanguage.swift in Sources */,
+				C0000000C0000000C0000062 /* SignalCustomCommandFilePicker.swift in Sources */,
+				C0000000C0000000C000005B /* SignalTeachByDemoCaptureAdapter.swift in Sources */,
+				C0000000C0000000C000005C /* SignalTeachByDemoSystemCapture.swift in Sources */,
+				C0000000C0000000C000005E /* SignalTeachByDemoRecordingBridge.swift in Sources */,
+				C0000000C0000000C000005F /* SignalTeachByDemoRecordingPanel.swift in Sources */,
+				C0000000C0000000C0000063 /* SignalTeachByDemoRecordingSetup.swift in Sources */,
+				C0000000C0000000C0000056 /* SignalNativeAutomationSupport.swift in Sources */,
+				C0000000C0000000C0000057 /* ChromeAutomationAdapter.swift in Sources */,
+				C0000000C0000000C0000058 /* BrowserAutomationController.swift in Sources */,
+				C0000000C0000000C0000059 /* SignalNativeCommandPerformer.swift in Sources */,
 				C0000000C0000000C000001C /* CGInputEventBackend.swift in Sources */,
 				C0000000C0000000C000001D /* InputBackend.swift in Sources */,
 				C0000000C0000000C000001E /* MacOSInputController.swift in Sources */,
@@ -454,6 +616,7 @@
 				C0000000C0000000C0000021 /* EmergencyShortcutMonitor.swift in Sources */,
 				C0000000C0000000C0000022 /* LaunchAtLoginController.swift in Sources */,
 				C0000000C0000000C0000023 /* PermissionStatusService.swift in Sources */,
+				C0000000C0000000C0000046 /* OptionalPermissionService.swift in Sources */,
 				C0000000C0000000C0000024 /* LaunchAtLoginViewModel.swift in Sources */,
 				C0000000C0000000C0000025 /* SettingsStore.swift in Sources */,
 				C0000000C0000000C0000026 /* SettingsView.swift in Sources */,
@@ -468,6 +631,8 @@
 				C0000000C0000000C000002F /* SignalUIModel.swift in Sources */,
 				C0000000C0000000C0000030 /* MenuBarContentView.swift in Sources */,
 				C0000000C0000000C0000031 /* OnboardingView.swift in Sources */,
+				C0000000C0000000C0000040 /* SignalDashboardPresentation.swift in Sources */,
+				C0000000C0000000C0000041 /* SignalDashboardView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -483,6 +648,17 @@
 				C0000000C0000000C0000037 /* SettingsAndCoordinatorTests.swift in Sources */,
 				C0000000C0000000C0000038 /* Wave6RegressionTests.swift in Sources */,
 				C0000000C0000000C0000039 /* Wave6DeterministicAdapterTests.swift in Sources */,
+				C0000000C0000000C0000042 /* SignalDashboardPresentationTests.swift in Sources */,
+				C0000000C0000000C0000045 /* CommandGestureClassifierTests.swift in Sources */,
+				C0000000C0000000C000004E /* SignalCommandDomainWave3Tests.swift in Sources */,
+				C0000000C0000000C000004F /* SignalCommandAutomationWave3Tests.swift in Sources */,
+				C0000000C0000000C0000051 /* SignalCommandRecognitionRuntimeTests.swift in Sources */,
+				C0000000C0000000C0000055 /* SignalCustomCommandAuthoringTests.swift in Sources */,
+				C0000000C0000000C000005A /* SignalNativeBrowserAutomationWave4Tests.swift in Sources */,
+				C0000000C0000000C000005D /* SignalTeachByDemoCaptureAdapterTests.swift in Sources */,
+				C0000000C0000000C0000060 /* SignalTeachByDemoRecordingBridgeTests.swift in Sources */,
+				C0000000C0000000C0000064 /* SignalCommandCoordinatorIntegrationTests.swift in Sources */,
+				C0000000C0000000C0000065 /* SignalCustomCommandRecordingSetupTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

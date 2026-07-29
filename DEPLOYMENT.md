@@ -1,40 +1,26 @@
-# Extension and site deployment
+# Native Signal distribution
 
-The configured Sites project is
-`appgprj_6a6422c8db288191a17d8b43fb81efa5` and the public URL is
-<https://signal-hand-control.allenxtech.chatgpt.site>.
+The canonical Signal product has no website or server dependency or deployment
+step. Its release is the local native app built from the root
+`Signal.xcodeproj`.
 
-## Release gates
+## Release flow
 
-1. Validate shared schema fixtures.
-2. Install the exact extension and web lockfiles.
-3. Run extension lint, deterministic tests, typecheck, build, package, and
-   forbidden-capability scan.
-4. Run web lint, unit/component tests, typecheck, production build, Playwright,
-   and the production dependency audit.
-5. Copy the extension ZIP and checksum into `web/public/downloads/`.
-6. Scan source and output for secrets, private destinations, native product
-   links, and production localhost dependencies.
-7. Commit and push the exact verified source.
-8. Publish the exact ZIP/checksum and save that commit as a Sites version.
-   Deploy only the saved version.
-9. Smoke `/`, `/setup`, the ZIP/checksum, MediaPipe assets, health, planner, profile flows,
-   hard refresh, mobile layout, camera permission, Control, and Commands on the
-   production HTTPS URL.
-10. Load the unpacked artifact in current Chrome and test Wikipedia, GitHub,
-    Google, a nested scrolling page, and a React app. Record a second-computer
-    physical result separately. Automation does not
-   count as two-computer hardware evidence.
+1. Run the root arm64 build and full XCTest suite.
+2. Run `SIGNAL_CREATE_DMG=YES ./scripts/package-native-signal.sh`.
+3. Verify bundle ID, architecture, entitlements, signature, and payload.
+4. Verify the ZIP and DMG each recover one `Signal.app`.
+5. Copy the app to `/Applications/Signal.app`.
+6. Launch that exact path and grant Camera and Accessibility only to it.
+7. Record physical behavior separately from automated evidence.
+8. Commit and push the exact verified source and publish only artifacts built
+   from that commit.
 
-## Environment
+The current machine may use an ad-hoc “Sign to Run Locally” signature. Public
+distribution requires an installed Developer ID identity, hardened-runtime
+signature, notarization, and stapling. Never disable Gatekeeper globally.
 
-Optional server-only values are `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, and
-`DISCORD_WEBHOOK_URL`. `NEXT_PUBLIC_SITE_URL` is the canonical public HTTPS
-origin. D1 is injected through the `DB` binding. The extension stores only
-settings, tuning, and reviewed profiles in Chrome storage. No native release
-variables are used.
-
-## Rollback
-
-Keep the preceding Sites version immutable. If production smoke fails, redeploy
-that saved version and report which browser gate failed.
+The Sites project and Chrome extension remain historical, noncanonical release
+records. They are not linked from, packaged with, or required by native Signal.
+Their present hosting or store availability is outside this native release
+claim; this document does not assert that either is online or offline.

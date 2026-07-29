@@ -62,15 +62,15 @@ public struct SettingsView: View {
                 tuningSlider("Transient joint grace", value: doubleBinding(\.poseExitGraceDuration), range: 0...0.2, step: 0.01, suffix: " s")
             }
 
-            Section("One-hand middle-thumb pinch") {
+            Section("One-hand thumb–index pinch") {
                 tuningSlider(
-                    "Middle-thumb close threshold",
+                    "Thumb–index close threshold",
                     value: doubleBinding(\.pinchCloseRatio),
                     range: 0...max(0.01, store.tuning.pinchOpenRatio - 0.01),
                     step: 0.01
                 )
                 tuningSlider(
-                    "Middle-thumb open threshold",
+                    "Thumb–index open threshold",
                     value: doubleBinding(\.pinchOpenRatio),
                     range: min(0.99, store.tuning.pinchCloseRatio + 0.01)...store.tuning.pinchIntentRatio,
                     step: 0.01
@@ -112,20 +112,7 @@ public struct SettingsView: View {
                     value: intBinding(\.zoomMaximumStepsPerFrame),
                     in: 1...8
                 )
-                Text("Zoom magnifies the macOS screen and never changes an app's page or document zoom. Turn on “Use keyboard shortcuts to zoom” in Accessibility settings.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Button("Open System Settings…") {
-                    openSystemSettings()
-                }
-                Toggle(
-                    "I enabled macOS keyboard shortcuts to zoom",
-                    isOn: Binding(
-                        get: { store.screenZoomShortcutsEnabled },
-                        set: { store.setScreenZoomShortcutsEnabled($0) }
-                    )
-                )
-                Text("Horizontal zoom stays blocked until this is confirmed, preventing the shortcut from reaching the active app.")
+                Text("Horizontal movement sends app-aware zoom shortcuts to the frontmost application. Signal uses your saved app profile when one exists and Command +/− as the safe fallback.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -150,7 +137,7 @@ public struct SettingsView: View {
         .formStyle(.grouped)
         .frame(minWidth: 600, idealWidth: 680, minHeight: 620, idealHeight: 760)
         .confirmationDialog(
-            "Restore all gesture tuning and disable screen zoom?",
+            "Restore all gesture tuning and application zoom profiles?",
             isPresented: $confirmingReset,
             titleVisibility: .visible
         ) {
@@ -159,13 +146,6 @@ public struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         }
-    }
-
-    private func openSystemSettings() {
-        guard let url = NSWorkspace.shared.urlForApplication(
-            withBundleIdentifier: "com.apple.systempreferences"
-        ) else { return }
-        NSWorkspace.shared.open(url)
     }
 
     private func doubleBinding(_ keyPath: WritableKeyPath<GestureTuning, Double>) -> Binding<Double> {

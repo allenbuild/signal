@@ -403,7 +403,7 @@ public final class GestureEngine: GestureResetting {
             return GestureOutput(requiredJointConfidence: confidence)
         }
 
-        // Thumb/middle closure can perturb distal joints for a few frames even
+        // Thumb/index closure can perturb distal joints for a few frames even
         // though the hand itself is still. Refresh the wrist origin for exactly
         // the configured number of reliable post-close frames. A release during
         // this phase remains a valid quick click.
@@ -954,11 +954,11 @@ public final class GestureEngine: GestureResetting {
         var required: [LandmarkName] = [
             .wrist,
             .thumbMP, .thumbIP, .thumbTip,
-            .middleMCP, .middlePIP, .middleDIP, .middleTip
+            .indexMCP, .indexPIP, .indexDIP, .indexTip
         ]
         // The tracker already selected a reliable scale source. Include only
-        // that source's remaining palm anchor; folded-finger tips and thumb CMC
-        // are never part of pinch confidence.
+        // that source's remaining palm anchor; unrelated folded-finger tips
+        // and thumb CMC are never part of pinch confidence.
         switch hand.palmScaleSource {
         case .indexToLittleMCP:
             required.append(.littleMCP)

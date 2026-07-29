@@ -26,9 +26,22 @@ public struct MenuBarContentView: View {
                 .font(.headline)
                 .foregroundStyle(model.statusIsWarning ? .orange : .primary)
 
+            Button("Open Signal…", action: actions.openMainWindow)
+
             Divider()
 
-            controlButtons
+            Picker(
+                "Mode",
+                selection: Binding(
+                    get: { model.mode },
+                    set: { actions.setMode($0) }
+                )
+            ) {
+                ForEach(SignalMode.allCases, id: \.self) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
 
             if !model.cameraAuthorized || !model.accessibilityTrusted {
                 permissionButtons
@@ -41,7 +54,7 @@ public struct MenuBarContentView: View {
             Divider()
 
             Button("Practice & Gesture Guide…", action: actions.openCalibration)
-            Text("Practice the index-only pointer and one-hand thumb–middle pinch: release to click, move up/down to scroll, or move right/left to zoom. Practice stays input-blocked until both permissions are granted and you explicitly Enable Control.")
+            Text("Practice the index-only pointer and one-hand thumb–index pinch: release to click, move up/down to scroll, or move right/left to zoom. Practice stays input-blocked until both permissions are granted and you explicitly choose Control.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Button("Open Settings…", action: actions.openSettings)
@@ -83,7 +96,7 @@ public struct MenuBarContentView: View {
         .padding(12)
         .frame(width: 300)
         .confirmationDialog(
-            "Restore all gesture tuning and disable screen zoom?",
+            "Restore all gesture tuning and application zoom profiles?",
             isPresented: $confirmingReset,
             titleVisibility: .visible
         ) {
@@ -91,22 +104,6 @@ public struct MenuBarContentView: View {
                 settings.resetSafeDefaults()
             }
             Button("Cancel", role: .cancel) {}
-        }
-    }
-
-    @ViewBuilder
-    private var controlButtons: some View {
-        switch model.controlIntent {
-        case .disabled:
-            Button("Enable Control", action: actions.enableControl)
-                .disabled(!model.cameraAuthorized || !model.accessibilityTrusted)
-        case .enabled:
-            Button("Disable Control", action: actions.disableControl)
-            Button("Pause", action: actions.pauseControl)
-        case .paused:
-            Button("Disable Control", action: actions.disableControl)
-            Button("Resume", action: actions.resumeControl)
-                .disabled(!model.cameraAuthorized || !model.accessibilityTrusted)
         }
     }
 

@@ -1,27 +1,18 @@
-# Ninety-second extension demo
+# Native Signal demo
 
-Use the exact production URL and commit that passed the browser checklist. Keep
-the camera HUD, mode, and command status visible.
+Use the exact installed build at `/Applications/Signal.app`. Begin Paused and
+keep the Emergency Stop shortcut, Control/Commands selector, camera state, and
+current gesture visible.
 
 | Time | Action and line |
 | --- | --- |
-| 0–12s | Open the Signal side panel beside Wikipedia. Say: “Signal is a Chrome hand controller and programmable command layer.” Click Start Signal and show camera FPS. |
-| 12–30s | In Control mode, move the virtual pointer, pinch one Wikipedia link, held-pinch scroll, then held-pinch horizontal zoom. Point out that the real OS cursor did not move. |
-| 30–43s | Switch to GitHub while tracking continues. Repeat pointer movement to prove active-tab routing and show the old tab reset. |
-| 43–58s | Switch to Commands. Hold One through the progress indicator, release, and show that it fires once and rearms only after release or pose change. |
-| 58–76s | Edit Fist in the side panel. Generate, review, and save the prefilled public-URL and speech plan. Mention the local deterministic fallback if Claude is unavailable. |
-| 76–87s | Hold Fist and show the reviewed browser plan execute on an ordinary site. |
-| 87–90s | Show the public install/download page. Say: “One extension, no native app, localhost process, account, or uploaded camera frames.” |
+| 0–12s | Open Signal from the menu bar. Say: “Signal is one local native macOS app; camera frames stay on this Mac.” Show Paused. |
+| 12–30s | Select Control. Demonstrate relative system cursor movement, one quick thumb-index pinch click, held vertical pinch scroll, and held horizontal pinch zoom. |
+| 30–43s | Move between Chrome and another application to show system-wide cursor and scroll output, then pause. |
+| 43–62s | Select Commands. Hold One until it opens the exact Rickroll URL once, keep holding briefly to show no repeat, then release. |
+| 62–80s | Open Fist, create a constrained local draft, review it, use Test explicitly, save it, and show that the seven fixed cards did not change. |
+| 80–90s | Trigger Fist once, then press Control–Option–Command–H and show immediate Paused status. |
 
-## Recovery cues
-
-- Planner/API failure: choose the seeded validated plan; say “offline fallback.”
-- Protected Chrome page: switch to an ordinary HTTP/HTTPS page.
-- Discord failure/unconfigured secret: show the in-app receipt labeled fallback.
-- Teach by Demo failure: use the natural-language Fist flow.
-- C shape instability before the demo: run one calibration capture; do not
-  pretend fixture mode is live.
-- Public profile failure: show extension local export/import while keeping the landing
-  page available.
-- Unsafe or unstable input: click Stop Signal, reframe the camera, then start
-  again.
+Never substitute fixture output for a physical result. If Camera,
+Accessibility, Chrome Automation, sign-in, network, or a target site is
+unavailable, show the truthful recovery message and record the limitation.

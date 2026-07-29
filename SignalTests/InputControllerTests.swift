@@ -682,37 +682,40 @@ final class InputControllerTests: XCTestCase {
         XCTAssertEqual(backend.events().count, zoomIn.count * 2)
     }
 
-    func testStandardZoomUsesConfiguredAccessibilityChordsAndNoReset() {
+    func testStandardZoomUsesFrontmostApplicationFallbackAndReset() {
         let profile = ZoomApplicationProfile.standard
         XCTAssertEqual(
             profile.zoomIn,
-            ZoomShortcut(keyCode: 24, modifiers: [.command, .option])
+            ZoomShortcut(keyCode: 24, modifiers: [.command])
         )
         XCTAssertEqual(
             profile.zoomOut,
-            ZoomShortcut(keyCode: 27, modifiers: [.command, .option])
+            ZoomShortcut(keyCode: 27, modifiers: [.command])
         )
-        XCTAssertNil(profile.reset)
+        XCTAssertEqual(
+            profile.reset,
+            ZoomShortcut(keyCode: 29, modifiers: [.command])
+        )
 
         for shortcut in [profile.zoomIn, profile.zoomOut] {
             XCTAssertTrue(shortcut.modifiers.contains(.command))
-            XCTAssertTrue(shortcut.modifiers.contains(.option))
+            XCTAssertFalse(shortcut.modifiers.contains(.option))
             XCTAssertFalse(shortcut.modifiers.contains(.control))
             XCTAssertFalse(shortcut.modifiers.contains(.shift))
         }
 
-        let blockedBackend = FakeInputBackend()
-        let blocked = MacOSInputController(
-            backend: blockedBackend,
+        let backend = FakeInputBackend()
+        let controller = MacOSInputController(
+            backend: backend,
             trustProvider: FakeInputTrustProvider(),
             applicationProvider: FakeFrontmostApplicationProvider(),
             clock: FakeInputClock(),
             screenZoomShortcutsEnabled: false
         )
-        enable(blocked)
-        blocked.handle(.zoom(delta: GestureTuning.safeDefaults.zoomStepThreshold))
-        drain(blocked)
-        XCTAssertEqual(blockedBackend.events(), [])
+        enable(controller)
+        controller.handle(.zoom(delta: GestureTuning.safeDefaults.zoomStepThreshold))
+        drain(controller)
+        XCTAssertEqual(backend.events(), profile.zoomIn.eventPair)
     }
 
     func testFirstZoomDeltaEmitsCompleteChordThenPlainClick() {
