@@ -29,7 +29,7 @@ Recorded 2026-07-28 in America/Chicago.
 - Repository: `/Users/allenxu/Desktop/signal/signal`
 - Final source branch: `signal-native-local`
 - Native implementation commit:
-  `fc5170931d81a0a0b925c8d2069c3542b55056d2`
+  `61031af6255997b6caa14e50922d4fdb86dfb0a2`
 - Product: the root `Signal.xcodeproj` / `Signal` scheme only.
 - Runtime: one AppKit + SwiftUI `LSUIElement` menu-bar app using Apple
   AVFoundation, Vision, Accessibility, Core Graphics, and AppKit APIs.
@@ -61,21 +61,21 @@ xcodebuild test \
   -project Signal.xcodeproj \
   -scheme Signal \
   -destination 'platform=macOS,arch=arm64' \
-  -derivedDataPath /tmp/signal-native-final2.HtjCv9/DerivedData \
-  -resultBundlePath /tmp/signal-native-final2.HtjCv9/SignalNativeFinal.xcresult \
+  -derivedDataPath /tmp/signal-ci-fix.WhKThG/DerivedData \
+  -resultBundlePath /tmp/signal-ci-fix.WhKThG/SignalCIFix.xcresult \
   CODE_SIGNING_ALLOWED=NO
 ```
 
 Result: **239 executed, 239 passed, 0 failed, 0 skipped**, with result bundle
-at `/tmp/signal-native-final2.HtjCv9/SignalNativeFinal.xcresult`. A separate
+at `/tmp/signal-ci-fix.WhKThG/SignalCIFix.xcresult`. A separate
 fresh CI-parity run also passed 239/239.
 
 Final local artifacts:
 
 | Artifact | Size | SHA-256 |
 | --- | ---: | --- |
-| `artifacts/native/Signal-local.zip` | 1,254,828 bytes | `9ea0a07b2691cce27bf9ccfdf6c5f777aaa99b5f8c5eafad97ef6f1fa29f60cc` |
-| `artifacts/native/Signal-local.dmg` | 1,739,648 bytes | `8e24de37faa7e91ecf3154217fd3675f9567a0535e5ba011acc045f25f389678` |
+| `artifacts/native/Signal-local.zip` | 1,254,828 bytes | `ad05b6cee3c7fbb4fdc7642abbc1f853cee1d80208ab6e6779fe2232d705b245` |
+| `artifacts/native/Signal-local.dmg` | 1,739,651 bytes | `7f017226b5e1b5c4b04894e319036bd26819caa9a730398610c8048c9a10ecda` |
 | `artifacts/native/Signal.app/Contents/MacOS/Signal` | 4,923,648 bytes | `6c341ab267c4d0db997a716008bec7dc0a35ffab40a8555f1dcbe9d8dfa7e71a` |
 
 The source app, extracted ZIP app, and mounted DMG app passed strict code

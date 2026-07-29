@@ -74,16 +74,16 @@ only after direct observation on the exact `/Applications/Signal.app` build.
 ## Verified release evidence
 
 The final native implementation is
-`fc5170931d81a0a0b925c8d2069c3542b55056d2` on
+`61031af6255997b6caa14e50922d4fdb86dfb0a2` on
 `signal-native-local`.
 
 - Full native suite: 239/239 passed, 0 failed, 0 skipped.
 - Signed local Release package: PASS for `arm64`, macOS 13.0 minimum,
   `com.allenxu.Signal`, and `LSUIElement=true`.
 - ZIP:
-  `9ea0a07b2691cce27bf9ccfdf6c5f777aaa99b5f8c5eafad97ef6f1fa29f60cc`
+  `ad05b6cee3c7fbb4fdc7642abbc1f853cee1d80208ab6e6779fe2232d705b245`
 - DMG:
-  `8e24de37faa7e91ecf3154217fd3675f9567a0535e5ba011acc045f25f389678`
+  `7f017226b5e1b5c4b04894e319036bd26819caa9a730398610c8048c9a10ecda`
 - App binary:
   `6c341ab267c4d0db997a716008bec7dc0a35ffab40a8555f1dcbe9d8dfa7e71a`
 - Source app, extracted ZIP app, and mounted DMG app passed strict code-sign
