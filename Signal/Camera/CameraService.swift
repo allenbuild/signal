@@ -435,35 +435,35 @@ public final class CameraService: NSObject, CameraControlling,
     private func installObservers() {
         let center = NotificationCenter.default
         observerTokens.append(center.addObserver(
-            forName: AVCaptureSession.runtimeErrorNotification,
+            forName: .AVCaptureSessionRuntimeError,
             object: captureSession,
             queue: nil
         ) { [weak self] notification in
             self?.handleRuntimeError(notification)
         })
         observerTokens.append(center.addObserver(
-            forName: AVCaptureSession.wasInterruptedNotification,
+            forName: .AVCaptureSessionWasInterrupted,
             object: captureSession,
             queue: nil
         ) { [weak self] _ in
             self?.handleInterruption()
         })
         observerTokens.append(center.addObserver(
-            forName: AVCaptureSession.interruptionEndedNotification,
+            forName: .AVCaptureSessionInterruptionEnded,
             object: captureSession,
             queue: nil
         ) { [weak self] _ in
             self?.handleInterruptionEnded()
         })
         observerTokens.append(center.addObserver(
-            forName: AVCaptureDevice.wasDisconnectedNotification,
+            forName: .AVCaptureDeviceWasDisconnected,
             object: nil,
             queue: nil
         ) { [weak self] notification in
             self?.handleDeviceDisconnected(notification)
         })
         observerTokens.append(center.addObserver(
-            forName: AVCaptureDevice.wasConnectedNotification,
+            forName: .AVCaptureDeviceWasConnected,
             object: nil,
             queue: nil
         ) { [weak self] _ in
