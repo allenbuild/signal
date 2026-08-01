@@ -736,6 +736,41 @@ final class SettingsAndCoordinatorTests: XCTestCase {
         XCTAssertEqual(state.status, .waitingForHand)
     }
 
+    func testBlockedControlReturnsPickerToPausedForAnExplicitRetry() {
+        let state = AppState()
+        let coordinator = AppCoordinator(
+            state: state,
+            initialPermissions: PermissionSnapshot(
+                camera: .notDetermined,
+                accessibilityTrusted: false
+            )
+        )
+
+        coordinator.setMode(.control)
+
+        XCTAssertEqual(state.mode, .paused)
+        XCTAssertEqual(state.controlIntent, .disabled)
+        XCTAssertEqual(state.status, .cameraPermissionMissing)
+    }
+
+    func testBlockedCommandsReturnsPickerToPausedForAnExplicitRetry() {
+        let state = AppState()
+        let coordinator = AppCoordinator(
+            state: state,
+            initialPermissions: PermissionSnapshot(
+                camera: .notDetermined,
+                accessibilityTrusted: false
+            ),
+            commandRecognitionRuntime: SignalCommandRecognitionRuntime()
+        )
+
+        coordinator.setMode(.commands)
+
+        XCTAssertEqual(state.mode, .paused)
+        XCTAssertEqual(state.controlIntent, .disabled)
+        XCTAssertEqual(state.status, .cameraPermissionMissing)
+    }
+
     func testCommandsFailClosedWhenEmergencyMonitorIsUnavailable() {
         let state = AppState()
         let coordinator = AppCoordinator(

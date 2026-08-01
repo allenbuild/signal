@@ -24,6 +24,16 @@ public struct PermissionSnapshot: Equatable, Sendable {
     }
 }
 
+public struct PermissionUpdate: Equatable, Sendable {
+    public var revision: UInt64
+    public var snapshot: PermissionSnapshot
+
+    public init(revision: UInt64, snapshot: PermissionSnapshot) {
+        self.revision = revision
+        self.snapshot = snapshot
+    }
+}
+
 public protocol PermissionSystemProviding: Sendable {
     var cameraState: CameraPermissionState { get }
     var accessibilityTrusted: Bool { get }
@@ -61,7 +71,7 @@ public struct SystemPermissionProvider: PermissionSystemProviding, Sendable {
 /// This service never prompts during initialization or `refresh()`. App code
 /// must call the request methods only from onboarding or a clear user action.
 public final class PermissionStatusService: PermissionChecking, @unchecked Sendable {
-    public var onChange: (@Sendable (PermissionSnapshot) -> Void)? {
+    public var onChange: (@Sendable (PermissionUpdate) -> Void)? {
         get {
             lock.lock()
             defer { lock.unlock() }
@@ -83,8 +93,12 @@ public final class PermissionStatusService: PermissionChecking, @unchecked Senda
     }
 
     private let lock = NSLock()
-    private var changeCallback: (@Sendable (PermissionSnapshot) -> Void)?
+    // Keep sampling, revision assignment, and callback delivery ordered while
+    // allowing an observer to synchronously inspect the current snapshot.
+    private let refreshLock = NSRecursiveLock()
+    private var changeCallback: (@Sendable (PermissionUpdate) -> Void)?
     private var lastSnapshot: PermissionSnapshot?
+    private var revision: UInt64 = 0
     private let system: PermissionSystemProviding
 
     public init(system: PermissionSystemProviding = SystemPermissionProvider()) {
@@ -92,22 +106,37 @@ public final class PermissionStatusService: PermissionChecking, @unchecked Senda
     }
 
     @discardableResult
-    public func refresh() -> PermissionSnapshot {
-        let snapshot = currentSnapshot()
+    public func refresh() -> PermissionUpdate {
+        // Sampling and revision assignment are one serialized operation. A
+        // camera-completion refresh can otherwise race an activation refresh
+        // and deliver an older snapshot after a newer authorization result.
+        refreshLock.lock()
+        defer { refreshLock.unlock() }
+        let snapshot = sampleSnapshot()
 
         lock.lock()
         let changed = snapshot != lastSnapshot
-        lastSnapshot = snapshot
+        if changed {
+            lastSnapshot = snapshot
+            revision &+= 1
+        }
+        let update = PermissionUpdate(revision: revision, snapshot: snapshot)
         let callback = changeCallback
         lock.unlock()
 
         if changed {
-            callback?(snapshot)
+            callback?(update)
         }
-        return snapshot
+        return update
     }
 
     public func currentSnapshot() -> PermissionSnapshot {
+        refreshLock.lock()
+        defer { refreshLock.unlock() }
+        return sampleSnapshot()
+    }
+
+    private func sampleSnapshot() -> PermissionSnapshot {
         PermissionSnapshot(
             camera: system.cameraState,
             accessibilityTrusted: system.accessibilityTrusted

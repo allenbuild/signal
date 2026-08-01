@@ -33,6 +33,7 @@ final class AppCoordinator {
         camera: .unknown,
         accessibilityTrusted: false
     )
+    private var permissionRevision: UInt64 = 0
     private var emergencyHealth = EmergencyMonitorHealth(
         globalMonitorInstalled: false,
         localMonitorInstalled: false
@@ -74,6 +75,7 @@ final class AppCoordinator {
             globalMonitorInstalled: false,
             localMonitorInstalled: false
         ),
+        permissionService: PermissionStatusService? = nil,
         commandRecognitionRuntime: SignalCommandRecognitionRuntime? = nil,
         commandRepository: SignalCommandRepository? = nil,
         commandExecutor: SignalCommandExecutor? = nil,
@@ -91,7 +93,7 @@ final class AppCoordinator {
         trackingService = nil
         gesturePipeline = gestureResetter as? GesturePipeline
         concreteInputController = inputController as? MacOSInputController
-        permissionService = nil
+        self.permissionService = permissionService
         settingsStore = nil
         calibrationViewModel = nil
         uiModel = nil
@@ -261,19 +263,34 @@ final class AppCoordinator {
             handlePermissions(refreshed)
         }
         guard permissions.cameraAuthorized else {
+            let shouldRequest = permissions.camera == .notDetermined
+            state.setMode(.paused)
             apply(controlIntent: .disabled, status: .cameraPermissionMissing)
+            reconcileCameraDemand()
+            if shouldRequest, permissionService != nil {
+                requestCameraPermission()
+            }
             return
         }
         guard permissions.accessibilityTrusted else {
+            state.setMode(.paused)
             apply(controlIntent: .disabled, status: .accessibilityPermissionMissing)
+            reconcileCameraDemand()
+            if permissionService != nil {
+                requestAccessibilityPermission()
+            }
             return
         }
         guard emergencyHealth.permitsEnable(accessibilityTrusted: true) else {
+            state.setMode(.paused)
             apply(controlIntent: .disabled, status: .emergencyStopped)
+            reconcileCameraDemand()
             return
         }
         guard sessionIsActive else {
-            apply(controlIntent: .disabled, status: .disabled)
+            state.setMode(.paused)
+            apply(controlIntent: .paused, status: .paused)
+            reconcileCameraDemand()
             return
         }
 
@@ -303,11 +320,16 @@ final class AppCoordinator {
 
         state.setMode(.commands)
         if let refreshed = permissionService?.refresh() {
-            permissions = refreshed
+            handlePermissions(refreshed)
         }
         guard permissions.cameraAuthorized else {
+            let shouldRequest = permissions.camera == .notDetermined
+            state.setMode(.paused)
             apply(controlIntent: .disabled, status: .cameraPermissionMissing)
             reconcileCameraDemand()
+            if shouldRequest, permissionService != nil {
+                requestCameraPermission()
+            }
             return
         }
         guard permissions.accessibilityTrusted else {
@@ -317,6 +339,9 @@ final class AppCoordinator {
                 status: .accessibilityPermissionMissing
             )
             reconcileCameraDemand()
+            if permissionService != nil {
+                requestAccessibilityPermission()
+            }
             return
         }
         guard emergencyHealth.permitsEnable(accessibilityTrusted: true) else {
@@ -451,11 +476,14 @@ final class AppCoordinator {
                 self?.handleTracking(snapshot: delivery.snapshot, gesture: delivery.gesture)
             }
         }
-        cameraService?.onDiagnostics = { [weak trackingService] diagnostics in
+        cameraService?.onDiagnostics = { [weak self, weak trackingService] diagnostics in
             trackingService?.updateCameraDiagnostics(
                 captureFPS: diagnostics.captureFPS,
                 droppedFrames: diagnostics.drops.total
             )
+            Task { @MainActor [weak self] in
+                self?.handleCameraDiagnostics(diagnostics)
+            }
         }
         cameraService?.onStateUpdate = { [weak self] update in
             if update.state.isTerminalForInput {
@@ -464,12 +492,13 @@ final class AppCoordinator {
             }
             Task { @MainActor [weak self] in self?.handleCameraState(update) }
         }
-        permissionService?.onChange = { [weak self] snapshot in
+        permissionService?.onChange = { [weak self] update in
+            let snapshot = update.snapshot
             if !snapshot.cameraAuthorized || !snapshot.accessibilityTrusted {
                 watchdog.disarm()
                 safetyFence?.revoke(for: .permissionLost)
             }
-            Task { @MainActor [weak self] in self?.handlePermissions(snapshot) }
+            Task { @MainActor [weak self] in self?.handlePermissions(update) }
         }
         concreteInputController?.onFault = { [weak self] fault in
             safetyFence?.revoke(for: .inputFault)
@@ -795,6 +824,16 @@ final class AppCoordinator {
         cameraStateRevision = update.revision
         let nextState = update.state
         cameraState = nextState
+        let resetMetrics: Bool
+        if case .running = nextState {
+            resetMetrics = false
+        } else {
+            resetMetrics = true
+        }
+        uiModel?.updateCameraState(
+            cameraStateDisplayText,
+            resetMetrics: resetMetrics
+        )
         let commandsWereActive = state.mode == .commands
         switch nextState {
         case let .running(generation, _):
@@ -836,7 +875,16 @@ final class AppCoordinator {
         }
     }
 
-    private func handlePermissions(_ snapshot: PermissionSnapshot) {
+    private func handleCameraDiagnostics(_ diagnostics: CameraDiagnosticsSnapshot) {
+        guard case let .running(generation, _) = cameraState,
+              generation == diagnostics.generation else { return }
+        uiModel?.updateCameraDiagnostics(diagnostics)
+    }
+
+    private func handlePermissions(_ update: PermissionUpdate) {
+        guard update.revision > permissionRevision else { return }
+        permissionRevision = update.revision
+        let snapshot = update.snapshot
         let previous = permissions
         permissions = snapshot
         if snapshot.camera != previous.camera {
@@ -994,6 +1042,19 @@ final class AppCoordinator {
 
     private func requestCameraPermission() {
         quiesce(reason: .paused)
+        if let update = permissionService?.refresh() {
+            handlePermissions(update)
+            switch update.snapshot.camera {
+            case .denied:
+                openPrivacySettings(anchor: "Privacy_Camera")
+                return
+            case .restricted, .unknown:
+                openPrivacySettings(anchor: "Privacy_Camera")
+                return
+            case .authorized, .notDetermined:
+                break
+            }
+        }
         permissionService?.requestCameraAccess { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -1009,12 +1070,21 @@ final class AppCoordinator {
         permissionService?.promptForAccessibility()
         if let refreshed = permissionService?.refresh() {
             handlePermissions(refreshed)
-            guard !refreshed.accessibilityTrusted else { return }
+            guard !refreshed.snapshot.accessibilityTrusted else { return }
         }
         // AXIsProcessTrustedWithOptions only presents its prompt once for some
         // TCC identities. A later explicit button press still opens System
         // Settings through public workspace APIs; the UI explains the manual
         // Privacy & Security > Accessibility navigation path.
+        openPrivacySettings(anchor: "Privacy_Accessibility")
+    }
+
+    private func openPrivacySettings(anchor: String) {
+        if let url = URL(
+            string: "x-apple.systempreferences:com.apple.preference.security?\(anchor)"
+        ), NSWorkspace.shared.open(url) {
+            return
+        }
         if let url = NSWorkspace.shared.urlForApplication(
             withBundleIdentifier: "com.apple.systempreferences"
         ) {

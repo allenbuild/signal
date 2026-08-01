@@ -193,9 +193,16 @@ final class Wave6DeterministicAdapterTests: XCTestCase {
 
         XCTAssertEqual(provider.requestCount, 0)
         XCTAssertEqual(provider.accessibilityPromptCount, 0)
-        XCTAssertEqual(service.refresh(), .init(camera: .notDetermined, accessibilityTrusted: false))
-        XCTAssertEqual(service.refresh(), .init(camera: .notDetermined, accessibilityTrusted: false))
+        XCTAssertEqual(
+            service.refresh().snapshot,
+            .init(camera: .notDetermined, accessibilityTrusted: false)
+        )
+        XCTAssertEqual(
+            service.refresh().snapshot,
+            .init(camera: .notDetermined, accessibilityTrusted: false)
+        )
         XCTAssertEqual(snapshots.values.count, 1)
+        XCTAssertEqual(snapshots.values.map(\.revision), [1])
         XCTAssertEqual(provider.requestCount, 0)
         XCTAssertEqual(provider.accessibilityPromptCount, 0)
 
@@ -208,6 +215,39 @@ final class Wave6DeterministicAdapterTests: XCTestCase {
         service.promptForAccessibility()
         XCTAssertEqual(provider.accessibilityPromptCount, 1)
         XCTAssertTrue(service.accessibilityTrusted)
+    }
+
+    func testPermissionObserverCanSynchronouslyReadCurrentSnapshot() {
+        let provider = FakePermissionSystem()
+        let service = PermissionStatusService(system: provider)
+        let observed = PermissionSnapshotRecorder()
+        service.onChange = { _ in
+            observed.append(service.currentSnapshot())
+        }
+
+        _ = service.refresh()
+
+        XCTAssertEqual(
+            observed.values,
+            [.init(camera: .notDetermined, accessibilityTrusted: false)]
+        )
+    }
+
+    @MainActor
+    func testModeSelectionPromptsForCameraOnceAndRemainsPausedAfterGrant() {
+        let provider = FakePermissionSystem()
+        let service = PermissionStatusService(system: provider)
+        let state = AppState()
+        let coordinator = AppCoordinator(
+            state: state,
+            permissionService: service
+        )
+
+        coordinator.setMode(.control)
+
+        XCTAssertEqual(provider.requestCount, 1)
+        XCTAssertEqual(state.mode, .paused)
+        XCTAssertNotEqual(state.controlIntent, .enabled)
     }
 
     func testEmergencyPureChordMarkerDebounceAndHealthPolicy() {
@@ -436,6 +476,13 @@ private final class FakePermissionSystem: PermissionSystemProviding, @unchecked 
 }
 
 private final class PermissionRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var stored: [PermissionUpdate] = []
+    func append(_ value: PermissionUpdate) { lock.performLocked { stored.append(value) } }
+    var values: [PermissionUpdate] { lock.performLocked { stored } }
+}
+
+private final class PermissionSnapshotRecorder: @unchecked Sendable {
     private let lock = NSLock()
     private var stored: [PermissionSnapshot] = []
     func append(_ value: PermissionSnapshot) { lock.performLocked { stored.append(value) } }

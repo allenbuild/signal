@@ -397,7 +397,7 @@ private struct MainSceneRoot: View {
 
     var body: some View {
         SignalDashboardView(
-            presentation: runtime.uiModel.dashboardPresentation,
+            model: runtime.uiModel,
             actions: SignalDashboardActions(
                 selectMode: { mode in
                     runtime.coordinator.setMode(mode.signalMode)

@@ -132,6 +132,24 @@ public final class SignalUIModel: ObservableObject {
             gesture.diagnostics.activeGesture.rawValue
     }
 
+    public func updateCameraState(_ cameraState: String, resetMetrics: Bool) {
+        dashboardPresentation.telemetry.cameraState = cameraState
+        guard resetMetrics else { return }
+        dashboardPresentation.telemetry.captureFPS = 0
+        dashboardPresentation.telemetry.processedFPS = 0
+        dashboardPresentation.telemetry.visionLatencyMilliseconds = 0
+        dashboardPresentation.telemetry.endToEndLatencyMilliseconds = 0
+    }
+
+    public func updateCameraDiagnostics(_ diagnostics: CameraDiagnosticsSnapshot) {
+        dashboardPresentation.telemetry.captureFPS = diagnostics.captureFPS
+        dashboardPresentation.telemetry.processedFPS = diagnostics.processedFPS
+        dashboardPresentation.telemetry.visionLatencyMilliseconds =
+            diagnostics.latestProcessingLatencyMilliseconds
+        dashboardPresentation.telemetry.endToEndLatencyMilliseconds =
+            diagnostics.latestEndToEndLatencyMilliseconds ?? 0
+    }
+
     public func updateCommandActivation(
         cardID: SignalDashboardCardID?,
         progress: Double

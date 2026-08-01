@@ -115,11 +115,38 @@ final class SignalDashboardPresentationTests: XCTestCase {
         )
 
         _ = SignalDashboardView(
-            presentation: SignalDashboardPresentation(),
+            model: SignalUIModel(),
             actions: actions
         )
 
         XCTAssertEqual(recorder.invocationCount, 0)
+    }
+
+    func testCameraTelemetryUpdatesWithoutARecognizedHandSnapshot() {
+        let model = SignalUIModel()
+        model.updateCameraState("Running", resetMetrics: true)
+        model.updateCameraDiagnostics(
+            CameraDiagnosticsSnapshot(
+                generation: 7,
+                captureFPS: 29.8,
+                processedFPS: 24.1,
+                receivedFrames: 30,
+                processedFrames: 24,
+                drops: .init(),
+                currentInFlight: 0,
+                maximumInFlight: 1,
+                latestProcessingLatencyMilliseconds: 11.2,
+                latestEndToEndLatencyMilliseconds: 17.4
+            )
+        )
+
+        XCTAssertEqual(model.dashboardPresentation.telemetry.cameraState, "Running")
+        XCTAssertEqual(model.dashboardPresentation.telemetry.captureFPS, 29.8)
+        XCTAssertEqual(model.dashboardPresentation.telemetry.processedFPS, 24.1)
+        XCTAssertEqual(
+            model.dashboardPresentation.telemetry.visionLatencyMilliseconds,
+            11.2
+        )
     }
 
     func testOptionalPermissionsRemainSeparatedFromCorePermissions() {

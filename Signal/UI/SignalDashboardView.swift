@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 public struct SignalDashboardView: View {
-    private let presentation: SignalDashboardPresentation
+    @ObservedObject private var model: SignalUIModel
     private let actions: SignalDashboardActions
     private let columns = Array(
         repeating: GridItem(.flexible(minimum: 150), spacing: 12),
@@ -10,11 +10,15 @@ public struct SignalDashboardView: View {
     )
 
     public init(
-        presentation: SignalDashboardPresentation,
+        model: SignalUIModel,
         actions: SignalDashboardActions
     ) {
-        self.presentation = presentation
+        self.model = model
         self.actions = actions
+    }
+
+    private var presentation: SignalDashboardPresentation {
+        model.dashboardPresentation
     }
 
     public var body: some View {
@@ -166,11 +170,27 @@ public struct SignalDashboardView: View {
             }
             Spacer(minLength: 6)
             if permission.state.needsUserAction {
-                Button("Review") {
+                Button(permissionActionTitle(permission)) {
                     actions.requestPermission(permission.kind)
                 }
                 .controlSize(.small)
             }
+        }
+    }
+
+    private func permissionActionTitle(
+        _ permission: SignalDashboardPermission
+    ) -> String {
+        guard permission.kind.isCorePermission else { return "Review" }
+        return switch permission.state {
+        case .notDetermined:
+            "Grant"
+        case .denied, .restricted:
+            "Open Settings"
+        case .requiresRelaunch:
+            "Review"
+        case .granted, .optional, .notRequired:
+            "Review"
         }
     }
 
